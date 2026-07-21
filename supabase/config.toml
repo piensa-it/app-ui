@@ -1,0 +1,31 @@
+project_id = "jlovwiskabbnbxkhstdy"
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.verify-otp]
+verify_jwt = false
+
+[functions.add-user-email]
+verify_jwt = true
+
+[functions.verify-user-email]
+verify_jwt = true
+
+[functions.auth-with-any-email]
+verify_jwt = false
+
+[functions.process-email-transaction]
+verify_jwt = false
+
+[functions.process-email-queue]
+verify_jwt = false
+
+[functions.send-reset-password]
+verify_jwt = false
+
+[functions.verify-reset-password]
+verify_jwt = false

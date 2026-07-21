@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="canonical" href="https://misfin.co/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MisFin — Gestión inteligente de tus finanzas personales</title>
+    <meta name="description" content="Gestiona tus finanzas personales de forma simple. Mis Finanzas te ayuda a controlar gastos, ingresos, presupuestos y alcanzar tus metas financieras con reportes detallados." />
+    <meta name="keywords" content="gestión gastos personales, control finanzas, presupuesto mensual, ahorro dinero, app finanzas, control ingresos gastos, Mis Finanzas" />
+    <meta name="author" content="Core Ecosystem" />
+    
+    <!-- SEO Performance -->
+    <meta name="theme-color" content="#0EA5E9" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://misfin.co/" />
+    <meta property="og:title" content="MisFin — Gestión inteligente de tus finanzas personales" />
+    <meta property="og:description" content="Controla tus finanzas personales con facilidad. Gestiona gastos, ingresos, presupuestos y alcanza tus metas financieras." />
+    <meta property="og:image" content="https://misfin.co/favicon.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://misfin.co/" />
+    <meta name="twitter:title" content="MisFin — Gestión inteligente de tus finanzas personales" />
+    <meta name="twitter:description" content="Controla tus finanzas personales con facilidad. Gestiona gastos, ingresos, presupuestos y alcanza tus metas financieras." />
+    <meta name="twitter:image" content="https://misfin.co/favicon.png" />
+    <meta name="twitter:site" content="@MisFinanzas" />
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "MisFin",
+      "applicationCategory": "FinanceApplication",
+      "description": "Aplicación web para gestión de gastos personales y finanzas",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "COP"
+      }
+    }
+    </script>
+
+    <!-- Consent Mode v2: por defecto TODO denegado hasta que el usuario decida
+         en el banner de cookies (src/components/CookieConsent.tsx). Debe ir
+         ANTES del snippet de GTM para que las etiquetas de Google (GA4, Ads,
+         futuros pixeles de AdSense) respeten el estado desde el primer disparo. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied'
+      });
+    </script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-K38DJTNQ');</script>
+    <!-- End Google Tag Manager -->
+  </head>
+
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K38DJTNQ"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
