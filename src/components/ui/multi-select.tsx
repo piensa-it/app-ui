@@ -2,6 +2,7 @@ import * as React from "react";
 import { MultiSelect as PrimeMultiSelect, type MultiSelectProps } from "primereact/multiselect";
 
 import { cn } from "@/lib/utils";
+import { overlayPanelTransition } from "@/lib/overlay-transitions";
 
 export interface SelectOption {
   label: string;
@@ -26,6 +27,7 @@ const MultiSelect = React.forwardRef<PrimeMultiSelect, MultiSelectFieldProps>(
       optionDisabled="disabled"
       placeholder={placeholder}
       display={display}
+      transitionOptions={overlayPanelTransition}
       {...props}
     />
   ),

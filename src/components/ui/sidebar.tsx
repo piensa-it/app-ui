@@ -2,6 +2,7 @@ import * as React from "react";
 import { Sidebar as PrimeSidebar, type SidebarProps as PrimeSidebarProps } from "primereact/sidebar";
 
 import { cn } from "@/lib/utils";
+import { sidebarTransition } from "@/lib/overlay-transitions";
 
 export interface SheetProps extends Omit<PrimeSidebarProps, "visible" | "onHide"> {
   open: boolean;
@@ -20,6 +21,7 @@ const Sheet = React.forwardRef<PrimeSidebar, SheetProps>(
       onHide={() => onOpenChange(false)}
       position={position}
       className={cn(position === "left" || position === "right" ? "w-3/4 sm:max-w-sm" : undefined, className)}
+      transitionOptions={sidebarTransition(position)}
       {...props}
     >
       {children}

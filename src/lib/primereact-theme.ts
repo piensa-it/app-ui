@@ -19,7 +19,16 @@ import type { PrimeReactPTOptions } from "primereact/api";
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
-const transition = "transition-colors";
+const transition = "transition-colors duration-150";
+
+/**
+ * Anillo de 1px casi invisible que reforzamos junto a la sombra en paneles
+ * flotantes/modales. Una sombra sola sobre fondos claros se ve tenue; el
+ * hairline le da un borde definido sin depender solo del `box-shadow`
+ * (mismo truco que usan Linear/Vercel/shadcn para que los overlays no se
+ * sientan "planos" sobre el fondo).
+ */
+const elevationRing = "ring-1 ring-black/5 dark:ring-white/10";
 
 export const piensaTheme: PrimeReactPTOptions = {
   // --- Inputs de texto ---
@@ -57,14 +66,17 @@ export const piensaTheme: PrimeReactPTOptions = {
     input: { className: "flex-1 truncate bg-transparent outline-none" },
     trigger: { className: "flex w-6 items-center justify-center text-muted-foreground" },
     panel: {
-      className:
-        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+      className: cx(
+        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
+        elevationRing,
+      ),
     },
     list: { className: "max-h-72 overflow-auto p-1" },
     item: {
       className: cx(
         "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none",
         "aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground",
+        transition,
       ),
     },
     emptyMessage: { className: "px-2 py-1.5 text-sm text-muted-foreground" },
@@ -88,8 +100,10 @@ export const piensaTheme: PrimeReactPTOptions = {
     label: { className: "flex flex-wrap gap-1 truncate" },
     trigger: { className: "flex w-6 items-center justify-center text-muted-foreground" },
     panel: {
-      className:
-        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+      className: cx(
+        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
+        elevationRing,
+      ),
     },
     header: { className: "flex items-center gap-2 border-b border-border p-2" },
     filterContainer: { className: "flex-1" },
@@ -101,6 +115,7 @@ export const piensaTheme: PrimeReactPTOptions = {
       className: cx(
         "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none",
         "aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground",
+        transition,
       ),
     },
   },
@@ -119,13 +134,17 @@ export const piensaTheme: PrimeReactPTOptions = {
       },
     },
     panel: {
-      className:
-        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+      className: cx(
+        "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
+        elevationRing,
+      ),
     },
     list: { className: "max-h-72 overflow-auto p-1" },
     item: {
-      className:
+      className: cx(
         "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+        transition,
+      ),
     },
     emptyMessage: { className: "px-2 py-1.5 text-sm text-muted-foreground" },
   },
@@ -183,8 +202,7 @@ export const piensaTheme: PrimeReactPTOptions = {
   // --- Overlays: Dialog / ConfirmDialog / Sidebar / OverlayPanel / Tooltip ---
   dialog: {
     root: {
-      className:
-        "w-full max-w-lg rounded-lg border border-border bg-background shadow-lg data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+      className: cx("w-full max-w-lg rounded-lg border border-border bg-background shadow-2xl", elevationRing),
     },
     header: { className: "flex items-center justify-between gap-4 p-6 pb-0" },
     headerTitle: { className: "font-heading text-lg font-semibold leading-none tracking-tight" },
@@ -200,7 +218,7 @@ export const piensaTheme: PrimeReactPTOptions = {
   },
   confirmdialog: {
     root: {
-      className: "w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg",
+      className: cx("w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-2xl", elevationRing),
     },
     header: { className: "flex items-center gap-3 pb-2" },
     headerTitle: { className: "font-heading text-lg font-semibold" },
@@ -209,21 +227,24 @@ export const piensaTheme: PrimeReactPTOptions = {
     footer: { className: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end" },
     rejectButton: {
       root: {
-        className:
+        className: cx(
           "inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent",
+          transition,
+        ),
       },
     },
     acceptButton: {
       root: {
-        className:
+        className: cx(
           "inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90",
+          transition,
+        ),
       },
     },
   },
   sidebar: {
     root: {
-      className:
-        "fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out",
+      className: cx("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-2xl", elevationRing),
     },
     header: { className: "flex items-center justify-between" },
     closeButton: {
@@ -237,14 +258,16 @@ export const piensaTheme: PrimeReactPTOptions = {
   },
   overlaypanel: {
     root: {
-      className:
-        "z-50 w-72 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-md",
+      className: cx(
+        "z-50 w-72 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-lg",
+        elevationRing,
+      ),
     },
   },
   tooltip: {
     root: { className: "z-50" },
     text: {
-      className: "rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-md",
+      className: "rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-lg",
     },
   },
 
@@ -275,8 +298,10 @@ export const piensaTheme: PrimeReactPTOptions = {
   toast: {
     root: { className: "z-50 flex w-96 max-w-[90vw] flex-col gap-2" },
     message: {
-      className:
-        "flex items-start gap-3 rounded-md border border-border bg-card p-4 text-card-foreground shadow-lg data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2",
+      className: cx(
+        "flex items-start gap-3 rounded-md border border-border bg-card p-4 text-card-foreground shadow-xl",
+        elevationRing,
+      ),
     },
     content: { className: "flex flex-1 items-start gap-3" },
     summary: { className: "text-sm font-semibold" },
@@ -302,7 +327,7 @@ export const piensaTheme: PrimeReactPTOptions = {
     thead: { className: "bg-muted/50" },
     headerRow: { className: "" },
     tbody: { className: "divide-y divide-border" },
-    row: { root: { className: "hover:bg-accent/40" } },
+    row: { root: { className: cx("hover:bg-accent/40", transition) } },
     paginator: {
       root: { className: "flex items-center justify-between gap-2 border-t border-border p-3 text-sm" },
     },
@@ -322,15 +347,19 @@ export const piensaTheme: PrimeReactPTOptions = {
       ),
     },
     panel: {
-      className:
-        "z-50 mt-1 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md",
+      className: cx(
+        "z-50 mt-1 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-lg",
+        elevationRing,
+      ),
     },
     header: { className: "mb-2 flex items-center justify-between" },
     title: { className: "text-sm font-semibold" },
     tableHeaderCell: { className: "p-1 text-xs font-medium text-muted-foreground" },
     day: {
-      className:
+      className: cx(
         "flex h-8 w-8 items-center justify-center rounded-md text-sm hover:bg-accent aria-selected:bg-primary aria-selected:text-primary-foreground",
+        transition,
+      ),
     },
   },
   fileupload: {

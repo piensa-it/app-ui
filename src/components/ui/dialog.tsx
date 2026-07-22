@@ -2,6 +2,7 @@ import * as React from "react";
 import { Dialog as PrimeDialog, type DialogProps as PrimeDialogProps } from "primereact/dialog";
 
 import { cn } from "@/lib/utils";
+import { dialogTransition } from "@/lib/overlay-transitions";
 
 export interface DialogProps extends Omit<PrimeDialogProps, "visible" | "onHide" | "header" | "footer"> {
   open: boolean;
@@ -22,6 +23,7 @@ const Dialog = React.forwardRef<PrimeDialog, DialogProps>(
       modal={modal}
       dismissableMask={dismissableMask}
       className={cn(className)}
+      transitionOptions={dialogTransition}
       {...props}
     >
       {children}

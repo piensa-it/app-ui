@@ -1,5 +1,7 @@
 import { ConfirmDialog, confirmDialog, type ConfirmDialogProps } from "primereact/confirmdialog";
 
+import { dialogTransition } from "@/lib/overlay-transitions";
+
 /**
  * `<AlertDialogHost />` se monta una única vez (ya incluido dentro de
  * `UiProvider`, no hace falta agregarlo manualmente). Habilita
@@ -7,7 +9,7 @@ import { ConfirmDialog, confirmDialog, type ConfirmDialogProps } from "primereac
  * `AlertDialog` declarativo basado en Radix.
  */
 function AlertDialogHost(props: ConfirmDialogProps) {
-  return <ConfirmDialog {...props} />;
+  return <ConfirmDialog transitionOptions={dialogTransition} {...props} />;
 }
 
 export interface ConfirmAlertOptions {

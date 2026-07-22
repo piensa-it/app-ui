@@ -2,6 +2,7 @@ import * as React from "react";
 import { Calendar, type CalendarProps } from "primereact/calendar";
 
 import { cn } from "@/lib/utils";
+import { overlayPanelTransition } from "@/lib/overlay-transitions";
 
 export type DatePickerProps = Omit<CalendarProps, "locale">;
 
@@ -14,6 +15,7 @@ const DatePicker = React.forwardRef<Calendar, DatePickerProps>(
       dateFormat={dateFormat}
       showIcon={showIcon}
       locale="es"
+      transitionOptions={overlayPanelTransition}
       {...props}
     />
   ),

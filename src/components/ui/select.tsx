@@ -2,6 +2,7 @@ import * as React from "react";
 import { Dropdown, type DropdownProps } from "primereact/dropdown";
 
 import { cn } from "@/lib/utils";
+import { overlayPanelTransition } from "@/lib/overlay-transitions";
 
 export interface SelectOption {
   label: string;
@@ -30,6 +31,7 @@ const Select = React.forwardRef<Dropdown, SelectProps>(
       value={value ?? null}
       onChange={(e) => onChange?.(e.value)}
       placeholder={placeholder}
+      transitionOptions={overlayPanelTransition}
       {...props}
     />
   ),

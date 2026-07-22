@@ -2,6 +2,7 @@ import * as React from "react";
 import { OverlayPanel, type OverlayPanelProps } from "primereact/overlaypanel";
 
 import { cn } from "@/lib/utils";
+import { overlayPanelTransition } from "@/lib/overlay-transitions";
 
 interface PopoverContextValue {
   panelRef: React.RefObject<OverlayPanel>;
@@ -46,6 +47,7 @@ const PopoverContent = React.forwardRef<OverlayPanel, PopoverContentProps>(
           else if (forwardedRef) (forwardedRef as React.MutableRefObject<OverlayPanel | null>).current = node;
         }}
         className={cn(className)}
+        transitionOptions={overlayPanelTransition}
         {...props}
       >
         {children}
