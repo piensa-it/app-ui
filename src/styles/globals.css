@@ -55,6 +55,17 @@
     --input: 20 15% 90%;
     --ring: 350 85% 42%;
 
+    /* Negro/sombra universales — no son "color de marca", son efectos
+       físicos (oscurecer detrás de un modal, dar profundidad a una
+       tarjeta) que casi ningún producto necesita cambiar por tema. Se
+       definen igual en `:root` y en `.dark` a propósito. Aun así viven en
+       una CSS variable — no un `bg-black`/`rgb(0 0 0 ...)` fijo en el
+       componente — para que una app que sí quiera un scrim o una sombra
+       con tinte de marca pueda sobreescribirlos sin tocar el código
+       fuente de la librería, igual que cualquier otro token. */
+    --overlay: 0 0% 0%;
+    --shadow-color: 0 0% 0%;
+
     /* Paleta para gráficas multi-serie (`Chart`) — distinta de los tokens
        semánticos (`--primary`, `--success`...), pensada para distinguir
        varias series a la vez sin implicar significado (éxito/error/etc). */
@@ -128,6 +139,9 @@
   --border: 0 0% 20%;
   --input: 0 0% 20%;
   --ring: 24 88% 58%;
+
+  --overlay: 0 0% 0%;
+  --shadow-color: 0 0% 0%;
 
   --chart-1: 24 88% 58%;
   --chart-2: 0 0% 85%;

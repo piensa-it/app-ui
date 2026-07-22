@@ -45,7 +45,7 @@ export function ImageCarouselBackdrop({
 
   return (
     <>
-      <div className={`absolute inset-0 z-0 ${variant === "hero" ? "bg-black" : "bg-primary"}`}>
+      <div className={`absolute inset-0 z-0 ${variant === "hero" ? "bg-overlay" : "bg-primary"}`}>
         <AnimatePresence mode="popLayout">
           <motion.div
             key={index}

@@ -4,7 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 
 import { cn } from "@/lib/utils";
 import { Button, type ButtonProps } from "@/components/ui/button";
-import { backdropAnimation, dialogContentAnimation, elevationRing } from "@/lib/style-helpers";
+import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
 
 export interface ConfirmAlertOptions {
   title: string;
@@ -75,7 +75,7 @@ function AlertDialogHost() {
       unmountOnExit
     >
       <Portal>
-        <ArkDialog.Backdrop className={cn("fixed inset-0 z-50 bg-black/50", backdropAnimation)} />
+        <ArkDialog.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
         <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <ArkDialog.Content
             className={cn(

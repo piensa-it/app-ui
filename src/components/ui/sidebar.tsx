@@ -4,7 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { backdropAnimation, drawerContentAnimation, elevationRing } from "@/lib/style-helpers";
+import { backdropAnimation, drawerContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
 
 export interface SheetProps extends Omit<ArkDrawer.RootProps, "open" | "onOpenChange"> {
   open: boolean;
@@ -49,7 +49,7 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
       {...props}
     >
       <Portal>
-        <ArkDrawer.Backdrop className={cn("fixed inset-0 z-50 bg-black/50", backdropAnimation)} />
+        <ArkDrawer.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
         <ArkDrawer.Positioner className="fixed inset-0 z-50">
           <ArkDrawer.Content
             ref={ref}

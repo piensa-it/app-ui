@@ -24,8 +24,19 @@ export const transition = "transition-colors duration-150";
 /**
  * Anillo de 1px casi invisible que reforzamos junto a la sombra en paneles
  * flotantes/modales, para que no se sientan "planos" sobre el fondo.
+ * Usa `--foreground` (no `black`/`white` fijos) porque ese token ya es
+ * casi-negro en claro y casi-blanco en oscuro — se adapta solo al tema de
+ * cada app sin necesitar un color hardcodeado por modo.
  */
-export const elevationRing = "ring-1 ring-black/5 dark:ring-white/10";
+export const elevationRing = "ring-1 ring-foreground/5 dark:ring-foreground/10";
+
+/**
+ * Fondo semitransparente detrás de un modal/panel (Dialog, Sheet,
+ * AlertDialog). Usa el token `--overlay` en vez de `bg-black/50` fijo:
+ * mismo resultado visual por defecto, pero una app puede sobreescribir
+ * `--overlay` (ej. un scrim con tinte de marca) sin tocar el componente.
+ */
+export const overlayBackdrop = "bg-overlay/50";
 
 /** Clases de entrada/salida para overlays flotantes (Popover, Select, Combobox, DatePicker...). */
 export const popoverAnimation = cx(

@@ -4,7 +4,7 @@ import { Portal } from "@ark-ui/react/portal";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { backdropAnimation, dialogContentAnimation, elevationRing } from "@/lib/style-helpers";
+import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
 
 export interface DialogProps extends Omit<ArkDialog.RootProps, "open" | "onOpenChange"> {
   open: boolean;
@@ -30,7 +30,7 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
       {...props}
     >
       <Portal>
-        <ArkDialog.Backdrop className={cn("fixed inset-0 z-50 bg-black/50", backdropAnimation)} />
+        <ArkDialog.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
         <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <ArkDialog.Content
             ref={ref}

@@ -25,6 +25,12 @@ const colorTokens: { name: string; bg: string; fg: string; usage: string }[] = [
   { name: "warning", bg: "bg-warning", fg: "text-warning-foreground", usage: "Estados de alerta (pendiente)" },
   { name: "destructive", bg: "bg-destructive", fg: "text-destructive-foreground", usage: "Errores, acciones destructivas" },
   { name: "card", bg: "bg-card", fg: "text-card-foreground", usage: "Superficies elevadas (Card, Popover)" },
+  {
+    name: "overlay",
+    bg: "bg-overlay",
+    fg: "text-white",
+    usage: "Scrim detrás de modales/paneles — igual en claro y oscuro por defecto, pero sobreescribible",
+  },
 ];
 
 const radiusTokens = [

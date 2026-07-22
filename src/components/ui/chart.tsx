@@ -55,7 +55,7 @@ const tooltipStyle: React.CSSProperties = {
   backgroundColor: "hsl(var(--popover))",
   color: "hsl(var(--popover-foreground))",
   fontSize: "0.8125rem",
-  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+  boxShadow: "0 4px 6px -1px hsl(var(--shadow-color) / 0.1)",
 };
 
 /**
