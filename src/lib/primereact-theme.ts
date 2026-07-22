@@ -30,6 +30,15 @@ const transition = "transition-colors duration-150";
  */
 const elevationRing = "ring-1 ring-black/5 dark:ring-white/10";
 
+/** Botones de navegación del paginador de DataTable (primera/anterior/siguiente/última página). */
+const paginatorNavButton = {
+  className: cx(
+    "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+    "disabled:pointer-events-none disabled:opacity-40",
+    transition,
+  ),
+};
+
 export const piensaTheme: PrimeReactPTOptions = {
   // --- Inputs de texto ---
   inputtext: {
@@ -97,8 +106,21 @@ export const piensaTheme: PrimeReactPTOptions = {
       ),
     },
     labelContainer: { className: "flex-1 overflow-hidden" },
-    label: { className: "flex flex-wrap gap-1 truncate" },
-    trigger: { className: "flex w-6 items-center justify-center text-muted-foreground" },
+    label: { className: "flex flex-wrap items-center gap-1" },
+    token: {
+      className:
+        "inline-flex max-w-full items-center gap-1 rounded-md bg-secondary py-0.5 pl-2 pr-1 text-xs text-secondary-foreground",
+    },
+    tokenLabel: { className: "truncate" },
+    removeTokenIcon: {
+      className: cx(
+        "size-3.5 shrink-0 cursor-pointer rounded-sm text-secondary-foreground/70 hover:text-secondary-foreground",
+        transition,
+      ),
+    },
+    trigger: { className: "flex w-6 shrink-0 items-center justify-center text-muted-foreground" },
+    dropdownIcon: { className: "size-3.5" },
+    clearIcon: { className: "size-3.5 shrink-0 text-muted-foreground hover:text-foreground" },
     panel: {
       className: cx(
         "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
@@ -133,6 +155,28 @@ export const piensaTheme: PrimeReactPTOptions = {
         ),
       },
     },
+    // Modo `multiple`: el input se reemplaza por un <ul> (`container`) con un
+    // <li> por cada valor seleccionado (`token`) + un último <li> con el
+    // input de texto real (`inputToken`).
+    container: {
+      className: cx(
+        "flex min-h-9 w-full flex-wrap items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm",
+        focusRing,
+        transition,
+      ),
+    },
+    token: {
+      className:
+        "inline-flex max-w-full items-center gap-1 rounded-md bg-secondary py-0.5 pl-2 pr-1 text-xs text-secondary-foreground",
+    },
+    tokenLabel: { className: "truncate" },
+    removeTokenIcon: {
+      className: cx(
+        "size-3.5 shrink-0 cursor-pointer rounded-sm text-secondary-foreground/70 hover:text-secondary-foreground",
+        transition,
+      ),
+    },
+    inputToken: { className: "flex-1" },
     panel: {
       className: cx(
         "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
@@ -150,40 +194,72 @@ export const piensaTheme: PrimeReactPTOptions = {
   },
 
   // --- Checkbox / RadioButton / InputSwitch / Slider ---
+  //
+  // IMPORTANTE: en modo `unstyled` PrimeReact NO oculta el <input> nativo que
+  // usa internamente para accesibilidad — en modo "styled" eso lo hace su CSS
+  // base (clase `p-hidden-accessible`), que nosotros nunca cargamos. Si el PT
+  // `input` se deja sin estilo, el checkbox/radio/switch nativo del navegador
+  // queda visible al lado de nuestro control custom (bug real, visto en vivo:
+  // un círculo rojo nativo junto al box con foco). Por eso `input` siempre se
+  // posiciona en `absolute inset-0 opacity-0` sobre el `root` — sigue siendo
+  // clickeable/focuseable (accesibilidad intacta vía teclado/lector de
+  // pantalla) pero visualmente invisible, y usamos `peer`/`group` + su estado
+  // real (`:checked`, `:disabled`, `aria-checked`) para estilar el control
+  // visual (`box`/`slider`) en vez de los `aria-*`/`data-p-*` que PrimeReact
+  // pone en elementos que no siempre coinciden con lo que Tailwind matchea.
   checkbox: {
-    root: { className: "relative inline-flex h-4 w-4 shrink-0" },
+    root: { className: "group relative inline-flex h-4 w-4 shrink-0" },
+    input: {
+      className: "peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed",
+    },
     box: {
       className: cx(
         "flex h-4 w-4 items-center justify-center rounded-sm border border-primary shadow",
-        "aria-checked:bg-primary aria-checked:text-primary-foreground",
-        "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
-        focusRing,
+        // PrimeReact sí replica el estado en `data-p-highlight` del propio `box`.
+        "data-[p-highlight=true]:bg-primary data-[p-highlight=true]:text-primary-foreground",
+        "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
         transition,
       ),
     },
     icon: { className: "h-3.5 w-3.5" },
   },
   radiobutton: {
-    root: { className: "relative inline-flex h-4 w-4 shrink-0" },
+    root: { className: "group relative inline-flex h-4 w-4 shrink-0" },
+    input: {
+      className: "peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed",
+    },
     box: {
       className: cx(
         "flex h-4 w-4 items-center justify-center rounded-full border border-primary shadow",
-        "aria-checked:border-primary",
-        "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
-        focusRing,
+        "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
         transition,
       ),
     },
-    icon: { className: "h-2 w-2 rounded-full bg-primary" },
+    // El `icon` (punto interno) SIEMPRE está en el DOM, no solo cuando está
+    // seleccionado (a diferencia de Checkbox) — hay que ocultarlo nosotros
+    // mismos según `data-p-checked`, que PrimeReact solo pone en el `root`.
+    icon: {
+      className: cx(
+        "h-2 w-2 rounded-full bg-primary opacity-0 group-data-[p-checked=true]:opacity-100",
+        transition,
+      ),
+    },
   },
   inputswitch: {
-    root: { className: "relative inline-flex h-5 w-9 shrink-0" },
+    root: { className: "group relative inline-flex h-5 w-9 shrink-0" },
+    input: {
+      className: "peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed",
+    },
     slider: {
       className: cx(
         "absolute inset-0 cursor-pointer rounded-full bg-input",
         "before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-background before:shadow before:transition-transform",
-        "aria-checked:bg-primary aria-checked:before:translate-x-4",
-        "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+        // El `role="checkbox" aria-checked` de PrimeReact vive en el `root`, no en el `slider`.
+        "group-aria-checked:bg-primary group-aria-checked:before:translate-x-4",
+        "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
         transition,
       ),
     },
@@ -283,7 +359,7 @@ export const piensaTheme: PrimeReactPTOptions = {
     accordiontab: {
       headerAction: {
         className: cx(
-          "flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium",
+          "flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium",
           "aria-expanded:text-primary hover:bg-accent/50",
           focusRing,
           transition,
@@ -330,6 +406,42 @@ export const piensaTheme: PrimeReactPTOptions = {
     row: { root: { className: cx("hover:bg-accent/40", transition) } },
     paginator: {
       root: { className: "flex items-center justify-between gap-2 border-t border-border p-3 text-sm" },
+      firstPageButton: paginatorNavButton,
+      prevPageButton: paginatorNavButton,
+      nextPageButton: paginatorNavButton,
+      lastPageButton: paginatorNavButton,
+      pages: { className: "flex items-center gap-1" },
+      pageButton: {
+        className: cx(
+          "inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-muted-foreground",
+          "aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground",
+          "hover:bg-accent hover:text-accent-foreground aria-[current=true]:hover:bg-primary/90",
+          transition,
+        ),
+      },
+      RPPDropdown: {
+        root: {
+          className: cx(
+            "flex h-8 items-center gap-1 rounded-md border border-input bg-transparent px-2 text-sm",
+            focusRing,
+            transition,
+          ),
+        },
+        panel: {
+          className: cx(
+            "z-50 mt-1 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-lg",
+            elevationRing,
+          ),
+        },
+        list: { className: "max-h-56 overflow-auto p-1" },
+        item: {
+          className: cx(
+            "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1 text-sm outline-none",
+            "aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground",
+            transition,
+          ),
+        },
+      },
     },
   },
   column: {
@@ -353,23 +465,100 @@ export const piensaTheme: PrimeReactPTOptions = {
       ),
     },
     header: { className: "mb-2 flex items-center justify-between" },
-    title: { className: "text-sm font-semibold" },
-    tableHeaderCell: { className: "p-1 text-xs font-medium text-muted-foreground" },
-    day: {
+    previousButton: {
       className: cx(
-        "flex h-8 w-8 items-center justify-center rounded-md text-sm hover:bg-accent aria-selected:bg-primary aria-selected:text-primary-foreground",
+        "inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        focusRing,
+        transition,
+      ),
+    },
+    nextButton: {
+      className: cx(
+        "inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        focusRing,
+        transition,
+      ),
+    },
+    previousIcon: { className: "size-4" },
+    nextIcon: { className: "size-4" },
+    title: { className: "flex items-center gap-1 text-sm font-semibold" },
+    monthTitle: { className: cx("rounded-sm px-1 hover:text-primary", transition) },
+    yearTitle: { className: cx("rounded-sm px-1 hover:text-primary", transition) },
+    table: { className: "w-full border-collapse" },
+    tableHeaderCell: { className: "p-1 text-xs font-medium text-muted-foreground" },
+    // OJO: `day` es el <td> real (table-cell) — nunca darle `display: flex`
+    // aquí, rompe el layout de la tabla y los días se apilan en una columna.
+    // El estilo visual (tamaño, hover, selección) va en `dayLabel`, que es el
+    // <span> clickeable interno donde PrimeReact pone `aria-selected`.
+    day: { className: "p-0.5 text-center" },
+    dayLabel: {
+      className: cx(
+        "mx-auto flex h-8 w-8 items-center justify-center rounded-md text-sm hover:bg-accent",
+        "aria-selected:bg-primary aria-selected:text-primary-foreground",
+        "aria-disabled:pointer-events-none aria-disabled:opacity-40",
+        focusRing,
         transition,
       ),
     },
   },
   fileupload: {
     root: { className: "flex flex-col gap-3" },
-    buttonbar: { className: "flex items-center gap-2" },
+    buttonbar: { className: "flex flex-wrap items-center gap-2" },
+    // `chooseButton` es un <span> (no un <button>), así que se estila como
+    // botón "outline" directamente en vez de reutilizar `ButtonPassThroughOptions`.
+    chooseButton: {
+      className: cx(
+        "relative inline-flex h-9 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground",
+        "aria-disabled:pointer-events-none aria-disabled:opacity-50",
+        focusRing,
+        transition,
+      ),
+    },
+    chooseIcon: { className: "size-4" },
+    chooseButtonLabel: { className: "flex-1 truncate" },
+    uploadButton: {
+      root: {
+        className: cx(
+          "inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90",
+          "disabled:pointer-events-none disabled:opacity-50",
+          focusRing,
+          transition,
+        ),
+      },
+      icon: { className: "size-4" },
+    },
+    cancelButton: {
+      root: {
+        className: cx(
+          "inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "disabled:pointer-events-none disabled:opacity-50",
+          focusRing,
+          transition,
+        ),
+      },
+      icon: { className: "size-4" },
+    },
     content: {
       className: "rounded-md border-2 border-dashed border-border p-6 text-center text-sm text-muted-foreground",
     },
     file: {
-      className: "flex items-center justify-between gap-2 rounded-md border border-border p-2 text-sm",
+      className: "flex items-center justify-between gap-3 rounded-md border border-border p-2 text-sm",
+    },
+    thumbnail: { className: "h-10 w-10 shrink-0 rounded object-cover" },
+    details: { className: "flex flex-1 flex-col gap-0.5 overflow-hidden" },
+    fileName: { className: "truncate text-sm text-foreground" },
+    fileSize: { className: "text-xs text-muted-foreground" },
+    badge: { root: { className: "shrink-0" } },
+    actions: { className: "flex shrink-0 items-center gap-1" },
+    removeButton: {
+      root: {
+        className: cx(
+          "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-destructive",
+          focusRing,
+          transition,
+        ),
+      },
+      icon: { className: "size-4" },
     },
   },
   chart: {
