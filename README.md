@@ -17,9 +17,9 @@ Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente 
 
 ## Documentación de componentes
 
-**https://amontoyag8.github.io/app-ui/** — catálogo navegable de todos los componentes, categorizado (**UI**, **Layout**, **Marketing**), con ejemplos en vivo, controles interactivos para probar props, tabla de props autogenerada desde TypeScript, y una página de **Tokens** con la paleta de colores/tipografía/radios. Es la fuente de verdad de "cómo se ve e implementa cada componente" — los demás repos (MisFin, Lynx, etc.) enlazan a esta URL desde su nav/footer para que cualquier persona del equipo (no solo devs) pueda consultarla.
+**https://piensait-ui.netlify.app** — catálogo navegable de todos los componentes, categorizado (**UI**, **Layout**, **Marketing**), con ejemplos en vivo, controles interactivos para probar props, tabla de props autogenerada desde TypeScript, y una página de **Tokens** con la paleta de colores/tipografía/radios. Es la fuente de verdad de "cómo se ve e implementa cada componente" — los demás repos (MisFin, Lynx, etc.) enlazan a esta URL desde su nav/footer para que cualquier persona del equipo (no solo devs) pueda consultarla.
 
-Se genera con [Storybook](https://storybook.js.org/) a partir del código fuente de `src/` (no del paquete publicado en npm), y se **redespliega automáticamente en cada push a `main`** vía `.github/workflows/deploy-docs.yml`. Requiere habilitar GitHub Pages una sola vez: Settings del repo → Pages → Source: "GitHub Actions".
+Se genera con [Storybook](https://storybook.js.org/) a partir del código fuente de `src/` (no del paquete publicado en npm), y se **redespliega automáticamente en cada push a `main`** vía Netlify (sitio `piensait-ui`, configurado por `netlify.toml`: build `npm run build-storybook`, publish `storybook-static`). Es un flujo totalmente aparte del paquete npm — no requiere versión ni Release.
 
 ## Instalación en otro repo
 

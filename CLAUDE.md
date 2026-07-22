@@ -6,7 +6,7 @@
 
 - **Frontend**: React 18 + TypeScript 5.8 + Vite 5 (SWC), en **modo librería** (no SPA)
 - **Estilos**: Tailwind CSS 3 + shadcn-ui, tokens vía CSS variables (theming por marca)
-- **Documentación**: Storybook 10 — sitio público en https://amontoyag8.github.io/app-ui/, autodesplegado en cada push a `main`
+- **Documentación**: Storybook 10 — sitio público en https://piensait-ui.netlify.app, autodesplegado por Netlify en cada push a `main`
 - **Tests**: Vitest 4 + Testing Library
 - **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS
 
@@ -59,4 +59,4 @@ src/
 ## Publicación
 
 - **Paquete npm**: se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".
-- **Sitio de documentación**: se redespliega solo, en cada push a `main` (`.github/workflows/deploy-docs.yml`), sin necesidad de release ni bump de versión — siempre refleja el código fuente actual.
+- **Sitio de documentación**: se redespliega solo, en cada push a `main` (sitio Netlify `piensait-ui`, config en `netlify.toml`), sin necesidad de release ni bump de versión — siempre refleja el código fuente actual.

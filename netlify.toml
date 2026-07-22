@@ -1,0 +1,18 @@
+# Configuración de despliegue en Netlify — sitio de documentación de
+# componentes (Storybook), NO el paquete npm. El build del paquete
+# (dist/, publicado a GitHub Packages) es un flujo completamente aparte —
+# ver .github/workflows/publish.yml.
+[build]
+  command = "npm run build-storybook"
+  publish = "storybook-static"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Cabeceras de seguridad básicas para el sitio de documentación.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
