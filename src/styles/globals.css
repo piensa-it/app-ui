@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,37 +7,43 @@
 /**
  * Tokens de diseño de @piensa-it/ui-library.
  *
- * Estos son los valores NEUTROS por defecto (usados en el playground de
- * desarrollo de esta librería). Cada producto (MisFin, Lynx, etc.) debe
- * sobreescribir este bloque `:root` / `.dark` en su propia app — importando
- * este archivo y luego declarando sus propias variables — para aplicar su
- * identidad de marca sin tocar un solo componente. Ver README > "Theming".
+ * Paleta por defecto = identidad real de Piensa IT (rojo de marca
+ * #C8102E, tomado de piensait.com) sobre grises cálidos — no el slate
+ * genérico de shadcn. Cada producto (MisFin, Lynx, etc.) puede seguir
+ * sobreescribiendo este bloque `:root` / `.dark` en su propia app para su
+ * propia identidad, pero el default de la librería ya tiene personalidad
+ * propia. Ver README > "Theming".
+ *
+ * `--primary` (rojo profundo, marca) y `--destructive` (rojo más vivo,
+ * "peligro") se separan a propósito en tono/luminosidad — ambos leen como
+ * "rojo Piensa IT", pero no son el mismo valor, para no confundir un CTA
+ * principal con una acción destructiva.
  */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 20 20% 99%;
+    --foreground: 20 15% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 20 20% 99%;
+    --card-foreground: 20 15% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 20 20% 99%;
+    --popover-foreground: 20 15% 12%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 350 85% 42%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 20 15% 95%;
+    --secondary-foreground: 20 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 20 15% 95%;
+    --muted-foreground: 20 8% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 20 15% 95%;
+    --accent-foreground: 20 15% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 142.1 76.2% 36.3%;
     --success-foreground: 355.7 100% 97.3%;
@@ -43,50 +51,50 @@
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 8%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 20 15% 90%;
+    --input: 20 15% 90%;
+    --ring: 350 85% 42%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
-    --font-sans: "Inter", sans-serif;
-    --font-heading: "Inter", sans-serif;
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-heading: "Poppins", "Inter", system-ui, sans-serif;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 20 15% 8%;
+    --foreground: 20 10% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 20 15% 10%;
+    --card-foreground: 20 10% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 20 15% 10%;
+    --popover-foreground: 20 10% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 350 80% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 20 12% 18%;
+    --secondary-foreground: 20 10% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 20 12% 18%;
+    --muted-foreground: 20 8% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 20 12% 18%;
+    --accent-foreground: 20 10% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 85% 62%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 144.9 80.4% 10%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 92% 55%;
     --warning-foreground: 48 96% 8%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 20 12% 20%;
+    --input: 20 12% 20%;
+    --ring: 350 80% 55%;
   }
 }
 

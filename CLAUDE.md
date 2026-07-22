@@ -5,7 +5,8 @@
 ## Stack
 
 - **Frontend**: React 18 + TypeScript 5.8 + Vite 5 (SWC), en **modo librería** (no SPA)
-- **Estilos**: Tailwind CSS 3 + shadcn-ui, tokens vía CSS variables (theming por marca)
+- **Componentes**: [PrimeReact 10](https://primereact.org) (`primereact@^10.9.8`, `primeicons@^7.0.0` — dist-tags `v10-stable`/`v7-stable`, **MIT**) en modo `unstyled`, temado 100% con Tailwind vía passthrough (`src/lib/primereact-theme.ts`). **NUNCA subir a `primereact@11`/`primeicons@8` (dist-tag `latest`)** — esas versiones son de PrimeTek bajo licencia comercial "PrimeUI" (USD $599/desarrollador), no MIT. Los componentes simples (Button, Card, Badge, Input) siguen siendo Tailwind puro, sin PrimeReact.
+- **Estilos**: Tailwind CSS 3, tokens vía CSS variables (theming por marca)
 - **Documentación**: Storybook 10 — sitio público en https://piensait-ui.netlify.app, autodesplegado por Netlify en cada push a `main`
 - **Tests**: Vitest 4 + Testing Library
 - **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS
@@ -32,11 +33,12 @@ src/
 ├── styles/globals.css  # tokens de diseño (CSS vars) + directivas Tailwind
 ├── docs/                # páginas de documentación sin componente (Introducción, Tokens)
 ├── components/
-│   ├── ui/              # primitivas shadcn/ui
+│   ├── providers/UiProvider.tsx  # PrimeReactProvider (unstyled + tema) + Toaster + AlertDialogHost
+│   ├── ui/              # primitivas simples (Tailwind puro) + wrappers PrimeReact temados
 │   ├── layout/           # Layout, GlobalErrorBoundary
 │   └── marketing/         # PublicHeader, PublicFooter, ImageCarouselBackdrop
 │       └── *.stories.tsx   # cada componente vive junto a su story
-├── lib/                  # utils.ts (cn), iconConfig.ts
+├── lib/                  # utils.ts (cn), iconConfig.ts, primereact-theme.ts (tema pt), locale-es.ts
 ├── App.tsx, main.tsx      # playground de desarrollo, no se publica
 └── __tests__/             # tests de componentes
 ```
@@ -46,7 +48,7 @@ src/
 - **Sin acoplamiento a negocio**: ningún componente debe hacer fetch, hardcodear textos de una marca específica, o asumir un router concreto — todo eso se recibe por props (ver `PublicHeader`/`PublicFooter`, que reciben un `linkComponent` inyectable en vez de importar `react-router-dom` directamente).
 - **Sin colores hardcodeados**: todo color usa clases Tailwind mapeadas a CSS variables (`bg-primary`, `text-muted-foreground`, `bg-success`...) definidas en `src/styles/globals.css`. Nunca un hex/rgb directo en un componente.
 - **Export único**: cualquier componente nuevo se agrega a `src/index.ts`. Los consumidores importan solo desde la raíz del paquete, nunca desde rutas internas (`@piensa-it/ui-library/dist/...`).
-- **shadcn/ui**: usar `npx shadcn@latest add <componente>` (components.json ya configurado) y luego adaptar colores/estructura a los tokens del proyecto antes de exportarlo.
+- **PrimeReact siempre en modo `unstyled`**: nunca importar los temas SASS de PrimeReact (`primereact/resources/themes/...`) ni su CSS base. Todo el look sale de `src/lib/primereact-theme.ts` (objeto `pt` por componente, con clases Tailwind). Para un componente PrimeReact nuevo, revisa `node_modules/primereact/<componente>/<componente>.d.ts` → interfaz `<Componente>PassThroughOptions` para saber los nombres exactos de cada sección (`root`, `header`, `panel`...) antes de escribir el tema.
 - **Todo componente exportado tiene story**: `<componente>.stories.tsx` junto al componente, `tags: ["autodocs"]`, `title: "<Categoría>/<Componente>"`. Sin story, el componente no aparece en la documentación pública — no lo consideres "terminado" hasta que tenga una.
 
 ## Convenciones

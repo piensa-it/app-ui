@@ -1,6 +1,6 @@
 # @piensa-it/ui-library
 
-Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + shadcn/ui) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
+Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + PrimeReact) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
 
 > Este repo reemplaza al antiguo boilerplate de aplicación (`app-base-template`). Ya no contiene lógica de negocio, autenticación ni integración con Supabase — solo componentes visuales, tokens de diseño y utilidades de FrontEnd puras. Esos otros aspectos (routing, data fetching, auth) siguen viviendo en el boilerplate de cada aplicación; este repo es el "Repositorio Paralelo de Librería de Componentes" al que ese boilerplate delega toda la UI.
 
@@ -9,11 +9,19 @@ Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente 
 ## Stack
 
 - React 18 + TypeScript 5 (strict)
-- Tailwind CSS 3 + shadcn/ui (Radix UI + class-variance-authority)
+- Tailwind CSS 3 + [PrimeReact 10](https://primereact.org) en modo `unstyled` — ver "¿Por qué PrimeReact?" abajo
 - Vite 5 en modo librería (build ESM + CJS + `.d.ts` con `vite-plugin-dts`)
 - Storybook 10 — sitio de documentación de componentes
 - Vitest 4 + Testing Library
-- framer-motion, lucide-react
+- framer-motion, lucide-react, chart.js
+
+### ¿Por qué PrimeReact y no shadcn/ui?
+
+La librería empezó sobre shadcn/ui, pero se migró a PrimeReact porque el equipo necesitaba componentes de datos complejos (tabla con paginación/orden/filtro, selector de fecha, gráficas, carga de archivos) que shadcn no cubre out-of-the-box. **Usamos exclusivamente PrimeReact 10** (paquetes `primereact@^10.9.8` y `primeicons@^7.0.0`, dist-tags `v10-stable`/`v7-stable`) — es la última generación **MIT / 100% gratuita** de la librería.
+
+> ⚠️ A partir de `primereact@11` y `primeicons@8` (dist-tag `latest` en npm), PrimeTek pasó a un modelo de licencia comercial ("PrimeUI": USD $599/desarrollador). **Nunca actualices estas dos dependencias a `latest` sin verificar antes la licencia de la versión** — usa siempre los rangos `^10.x`/`^7.x` ya fijados en `package.json`, que se mantienen en la línea MIT para siempre.
+
+Nunca se cargan los temas SASS de PrimeReact (Lara, MD, etc.): todos los componentes corren en modo `unstyled: true` y reciben un tema Tailwind propio vía `pt` (passthrough) — ver `src/lib/primereact-theme.ts`. Así, el look final es 100% el de Piensa IT, no el de PrimeReact.
 
 ## Documentación de componentes
 
@@ -46,18 +54,22 @@ La librería se publica como paquete privado en **GitHub Packages** bajo el scop
 import "@piensa-it/ui-library/styles.css";
 ```
 
-```tsx
-import { Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
+Envuelve tu app en `UiProvider` — configura PrimeReact en modo `unstyled` con el tema de Piensa IT y monta el `Toaster` y el `AlertDialogHost` globales (no hace falta agregarlos aparte):
 
-function Example() {
+```tsx
+import { UiProvider, Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
+
+function App() {
   return (
-    <Layout brand={<span>Mi Producto</span>}>
-      <Card>
-        <CardContent>
-          <Button>Continuar</Button>
-        </CardContent>
-      </Card>
-    </Layout>
+    <UiProvider>
+      <Layout brand={<span>Mi Producto</span>}>
+        <Card>
+          <CardContent>
+            <Button>Continuar</Button>
+          </CardContent>
+        </Card>
+      </Layout>
+    </UiProvider>
   );
 }
 ```
@@ -112,28 +124,25 @@ src/
 ├── styles/globals.css     # tokens de diseño (CSS vars) + directivas Tailwind
 ├── docs/                  # páginas de documentación sin componente (Introducción, Tokens)
 ├── components/
-│   ├── ui/                # primitivas shadcn/ui (Button, Card, Badge, Input, Separator...)
+│   ├── providers/UiProvider.tsx  # PrimeReactProvider + tema + Toaster + AlertDialogHost
+│   ├── ui/                # primitivas simples (Tailwind puro) + PrimeReact temado (Select, DataTable, Dialog...)
 │   ├── layout/             # Layout, GlobalErrorBoundary
 │   └── marketing/          # PublicHeader, PublicFooter, ImageCarouselBackdrop
 │       └── *.stories.tsx    # cada componente vive junto a su story de Storybook
 ├── lib/
 │   ├── utils.ts             # cn() — merge de clases Tailwind
-│   └── iconConfig.ts         # mapa de clases para tamaños/colores de íconos
+│   ├── iconConfig.ts         # mapa de clases para tamaños/colores de íconos
+│   ├── primereact-theme.ts    # tema Tailwind (passthrough) para todos los componentes PrimeReact
+│   └── locale-es.ts            # localización en español para PrimeReact (Calendar, mensajes...)
 ├── App.tsx, main.tsx         # playground de desarrollo (no se publica)
 └── __tests__/                # tests de componentes
 ```
 
 ## Agregar un nuevo componente
 
-1. Si es una primitiva shadcn/ui nueva (Dialog, Select, Tabs...), usa el CLI de shadcn — `components.json` ya está configurado:
+1. Si es un wrapper sobre un componente de PrimeReact (ver el [catálogo completo de PrimeReact](https://primereact.org)), créalo en `src/components/ui/`: importa el componente de `primereact/<componente>`, define un tipo de props delgado sobre el suyo, y agrega el tema correspondiente en `src/lib/primereact-theme.ts` (clave `pt` con las secciones del componente — revisa el `.d.ts` de `primereact/<componente>/<componente>.d.ts` para ver los nombres exactos de cada sección). No cargues los temas SASS de PrimeReact ni importes CSS de `primereact/resources`.
 
-   ```bash
-   npx shadcn@latest add dialog
-   ```
-
-   Revisa el resultado antes de commitear: quita cualquier color hardcodeado y usa los tokens del theme (`bg-primary`, `text-muted-foreground`, etc.) en vez de valores fijos.
-
-2. Si es un componente propio (no de shadcn), créalo en `src/components/<categoría>/`, sin dependencias de negocio (nada de fetch a Supabase, rutas hardcodeadas, textos de una marca específica) — todo eso se recibe por props.
+2. Si es un componente propio (no de PrimeReact), créalo en `src/components/<categoría>/`, sin dependencias de negocio (nada de fetch a Supabase, rutas hardcodeadas, textos de una marca específica) — todo eso se recibe por props.
 
 3. Expórtalo desde `src/index.ts`.
 

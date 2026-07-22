@@ -1,6 +1,6 @@
 {
   "name": "@piensa-it/ui-library",
-  "description": "Librería de componentes UI y lineamientos de FrontEnd de Piensa IT — React + TypeScript + Tailwind + shadcn/ui, instalable en todos los sitios web de la compañía.",
+  "description": "Librería de componentes UI y lineamientos de FrontEnd de Piensa IT — React + TypeScript + Tailwind + PrimeReact, instalable en todos los sitios web de la compañía.",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -52,12 +52,16 @@
     }
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.12",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.468.0",
+    "primeicons": "^7.0.0",
+    "primereact": "^10.9.8",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"
   },

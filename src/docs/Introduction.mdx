@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # @piensa-it/ui-library
 
-Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + shadcn/ui) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
+Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + PrimeReact) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
 
 Este sitio **es** la documentación viva de la librería: cada componente publicado tiene su propia página con ejemplos interactivos, controles para probar props en vivo, y la tabla de props generada automáticamente desde los tipos de TypeScript. Usa el sidebar de la izquierda para navegar por categoría (**UI**, **Layout**, **Marketing**).
 
@@ -34,17 +34,19 @@ import "@piensa-it/ui-library/styles.css";
 ```
 
 ```tsx
-import { Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
+import { UiProvider, Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
 
-function Example() {
+function App() {
   return (
-    <Layout brand={<span>Mi Producto</span>}>
-      <Card>
-        <CardContent>
-          <Button>Continuar</Button>
-        </CardContent>
-      </Card>
-    </Layout>
+    <UiProvider>
+      <Layout brand={<span>Mi Producto</span>}>
+        <Card>
+          <CardContent>
+            <Button>Continuar</Button>
+          </CardContent>
+        </Card>
+      </Layout>
+    </UiProvider>
   );
 }
 ```
@@ -57,4 +59,4 @@ Los componentes no tienen colores hardcodeados: todo sale de variables CSS. Cada
 
 ## ¿Dudas o falta un componente?
 
-Revisa el `README.md` del repo `app-ui` para la guía de contribución (cómo agregar un componente nuevo con `shadcn/ui`, convenciones de código, cómo publicar una versión). Este sitio se regenera automáticamente en cada push a `main`, así que siempre refleja el código fuente actual — no necesariamente la última versión publicada en npm.
+Revisa el `README.md` del repo `app-ui` para la guía de contribución (cómo agregar un componente nuevo sobre PrimeReact, convenciones de código, cómo publicar una versión). Este sitio se regenera automáticamente en cada push a `main`, así que siempre refleja el código fuente actual — no necesariamente la última versión publicada en npm.

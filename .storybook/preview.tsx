@@ -1,6 +1,8 @@
 import type { Preview } from "@storybook/react-vite";
 import React from "react";
 import "../src/styles/globals.css";
+import "primeicons/primeicons.css";
+import { UiProvider } from "../src/components/providers/UiProvider";
 
 /**
  * Preview global de Storybook — este es el "sitio de documentación" de
@@ -47,7 +49,9 @@ const preview: Preview = {
       return (
         <div className={theme === "dark" ? "dark" : ""}>
           <div className="min-h-[100px] bg-background p-4 font-sans text-foreground">
-            <Story />
+            <UiProvider>
+              <Story />
+            </UiProvider>
           </div>
         </div>
       );
