@@ -4,6 +4,30 @@ import "../src/styles/globals.css";
 import { UiProvider } from "../src/components/providers/UiProvider";
 
 /**
+ * Resuelve el toggle "Tema" del toolbar (claro/oscuro/sistema) a un booleano
+ * `isDark`. En "sistema" se suscribe a `prefers-color-scheme` y reacciona en
+ * vivo si el usuario cambia el tema de su SO/navegador mientras el Storybook
+ * sigue abierto — no requiere recargar la página.
+ */
+function useResolvedDark(themeSetting: string): boolean {
+  const getSystemPreference = () =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  const [systemPrefersDark, setSystemPrefersDark] = React.useState(getSystemPreference);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event: MediaQueryListEvent) => setSystemPrefersDark(event.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  if (themeSetting === "system") return systemPrefersDark;
+  return themeSetting === "dark";
+}
+
+/**
  * Preview global de Storybook — este es el "sitio de documentación" de
  * @piensa-it/ui-library. Todas las historias se renderizan dentro de un
  * contenedor que aplica bg-background/text-foreground, así que cambiar el
@@ -34,6 +58,7 @@ const preview: Preview = {
         items: [
           { value: "light", title: "Claro" },
           { value: "dark", title: "Oscuro" },
+          { value: "system", title: "Sistema" },
         ],
         dynamicTitle: true,
       },
@@ -44,9 +69,10 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => {
-      const theme = context.globals.theme ?? "light";
+      const themeSetting = context.globals.theme ?? "light";
+      const isDark = useResolvedDark(themeSetting);
       return (
-        <div className={theme === "dark" ? "dark" : ""}>
+        <div className={isDark ? "dark" : ""}>
           {/* Superficie exterior (bg-muted) para que la "card" de la demo
               tenga contraste y se sienta agrupada/presentada, en vez de
               flotar directamente sobre el fondo de la página. Sin flex: se

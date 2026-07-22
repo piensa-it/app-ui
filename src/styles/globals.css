@@ -69,48 +69,64 @@
     --font-sans: "Inter", system-ui, sans-serif;
     --font-heading: "Poppins", "Inter", system-ui, sans-serif;
   }
+}
 
-  .dark {
-    --background: 20 15% 8%;
-    --foreground: 20 10% 95%;
+/**
+ * IMPORTANTE: este bloque `.dark` se deja DELIBERADAMENTE fuera de
+ * `@layer base`. Tailwind 3.4.17 (con `darkMode: ["class"]` + al menos un
+ * uso real de la variante `dark:` en el contenido escaneado — la tenemos en
+ * `style-helpers.ts`) descarta en silencio cualquier regla CSS propia con
+ * selector de clase (no solo `.dark`, cualquier nombre) que viva dentro de
+ * `@layer base` una vez que el pipeline de la variante `dark` se activa.
+ * Verificado de forma aislada con `tailwindcss` CLI contra este mismo
+ * `tailwind.config.ts`: una regla `@layer base { .dark { ... } }` desaparece
+ * por completo del CSS compilado; la misma regla fuera de `@layer`
+ * sobrevive intacta. No es un problema de cascada/especificidad — `.dark`
+ * y `:root` targetean elementos distintos del DOM (el div con la clase vs.
+ * `<html>`), así que estar fuera del layer no le da prioridad indebida,
+ * solo evita que Tailwind se la coma. No mover este bloque de vuelta a
+ * `@layer base` sin volver a verificar contra el CSS compilado.
+ */
+.dark {
+  --background: 20 15% 8%;
+  --foreground: 20 10% 95%;
 
-    --card: 20 15% 10%;
-    --card-foreground: 20 10% 95%;
+  --card: 20 15% 10%;
+  --card-foreground: 20 10% 95%;
 
-    --popover: 20 15% 10%;
-    --popover-foreground: 20 10% 95%;
+  --popover: 20 15% 10%;
+  --popover-foreground: 20 10% 95%;
 
-    --primary: 350 80% 55%;
-    --primary-foreground: 0 0% 100%;
+  --primary: 350 80% 55%;
+  --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 12% 18%;
-    --secondary-foreground: 20 10% 95%;
+  --secondary: 20 12% 18%;
+  --secondary-foreground: 20 10% 95%;
 
-    --muted: 20 12% 18%;
-    --muted-foreground: 20 8% 65%;
+  --muted: 20 12% 18%;
+  --muted-foreground: 20 8% 65%;
 
-    --accent: 20 12% 18%;
-    --accent-foreground: 20 10% 95%;
+  --accent: 20 12% 18%;
+  --accent-foreground: 20 10% 95%;
 
-    --destructive: 4 85% 62%;
-    --destructive-foreground: 0 0% 100%;
+  --destructive: 4 85% 62%;
+  --destructive-foreground: 0 0% 100%;
 
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 144.9 80.4% 10%;
+  --success: 142.1 70.6% 45.3%;
+  --success-foreground: 144.9 80.4% 10%;
 
-    --warning: 38 92% 55%;
-    --warning-foreground: 48 96% 8%;
+  --warning: 38 92% 55%;
+  --warning-foreground: 48 96% 8%;
 
-    --border: 20 12% 20%;
-    --input: 20 12% 20%;
-    --ring: 350 80% 55%;
+  --border: 20 12% 20%;
+  --input: 20 12% 20%;
+  --ring: 350 80% 55%;
 
-    --chart-1: 350 80% 55%;
-    --chart-2: 20 10% 85%;
-    --chart-3: 32 90% 60%;
-    --chart-4: 200 70% 55%;
-    --chart-5: 160 55% 50%;
-  }
+  --chart-1: 350 80% 55%;
+  --chart-2: 20 10% 85%;
+  --chart-3: 32 90% 60%;
+  --chart-4: 200 70% 55%;
+  --chart-5: 160 55% 50%;
 }
 
 @layer base {

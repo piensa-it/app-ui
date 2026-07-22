@@ -67,7 +67,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
                   <ChevronDown className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent-foreground" />
                 </ArkAccordion.ItemIndicator>
               </ArkAccordion.ItemTrigger>
-              <ArkAccordion.ItemContent className="px-5 pb-5 text-sm leading-relaxed text-muted-foreground">
+              <ArkAccordion.ItemContent className="px-5 pb-5 pt-1.5 text-sm leading-relaxed text-muted-foreground">
                 {tab.props.children}
               </ArkAccordion.ItemContent>
             </ArkAccordion.Item>
