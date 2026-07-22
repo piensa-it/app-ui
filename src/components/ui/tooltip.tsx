@@ -1,27 +1,43 @@
 import * as React from "react";
-import { Tooltip as PrimeTooltip, type TooltipProps as PrimeTooltipProps } from "primereact/tooltip";
+import { Tooltip as ArkTooltip } from "@ark-ui/react/tooltip";
 
-export interface TooltipProps extends Omit<PrimeTooltipProps, "target" | "content"> {
+import { cn } from "@/lib/utils";
+import { cx } from "@/lib/style-helpers";
+
+export interface TooltipProps extends Omit<ArkTooltip.RootProps, "children"> {
   /** Contenido del tooltip. */
   content: React.ReactNode;
   /** Único hijo sobre el que se activa el tooltip al hacer hover/focus. */
   children: React.ReactElement;
+  className?: string;
 }
 
 /**
- * Tooltip accesible sobre PrimeReact Tooltip. A diferencia de PrimeReact
- * "puro" (que apunta a un selector CSS), este wrapper genera un id estable
- * y lo asocia automáticamente — funciona con cualquier hijo, sea un
- * componente de la librería o un elemento nativo.
+ * Tooltip accesible sobre Ark UI (headless). A diferencia de la versión
+ * PrimeReact (que apuntaba a un selector CSS por id), este envuelve
+ * directamente al hijo con `Tooltip.Trigger asChild` — funciona con
+ * cualquier hijo, sea un componente de la librería o un elemento nativo.
  */
-function Tooltip({ content, children, ...props }: TooltipProps) {
-  const id = React.useId().replace(/:/g, "");
-  const targetId = `tooltip-target-${id}`;
+function Tooltip({ content, children, className, ...props }: TooltipProps) {
   return (
-    <>
-      {React.cloneElement(children, { id: children.props.id ?? targetId })}
-      <PrimeTooltip target={`#${children.props.id ?? targetId}`} content={content as string} {...props} />
-    </>
+    <ArkTooltip.Root openDelay={200} closeDelay={100} {...props}>
+      <ArkTooltip.Trigger asChild>{children}</ArkTooltip.Trigger>
+      <ArkTooltip.Positioner>
+        <ArkTooltip.Content
+          className={cn(
+            "z-50 rounded-md bg-foreground px-2.5 py-1.5 text-xs text-background shadow-md",
+            cx(
+              "data-[state=open]:animate-in data-[state=closed]:animate-out",
+              "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+              "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+            ),
+            className,
+          )}
+        >
+          {content}
+        </ArkTooltip.Content>
+      </ArkTooltip.Positioner>
+    </ArkTooltip.Root>
   );
 }
 

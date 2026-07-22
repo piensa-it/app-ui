@@ -1,61 +1,64 @@
 import * as React from "react";
-import { RadioButton } from "primereact/radiobutton";
+import { RadioGroup as ArkRadioGroup } from "@ark-ui/react/radio-group";
 
 import { cn } from "@/lib/utils";
+import { transition } from "@/lib/style-helpers";
 
-interface RadioGroupContextValue {
-  name: string;
-  value?: string | number;
-  onChange?: (value: string | number) => void;
+export interface RadioGroupProps extends Omit<ArkRadioGroup.RootProps, "value" | "onValueChange"> {
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
-const RadioGroupContext = React.createContext<RadioGroupContextValue | null>(null);
-
-export interface RadioGroupProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Nombre compartido por todos los `RadioGroupItem` del grupo (agrupación nativa). */
-  name: string;
-  value?: string | number;
-  onValueChange?: (value: string | number) => void;
-}
-
-/** Agrupa varios `RadioGroupItem` sobre PrimeReact `RadioButton`. */
+/** Agrupa varios `RadioGroupItem` sobre Ark UI (headless) — agrupación nativa vía `name`. */
 const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ className, name, value, onValueChange, children, ...props }, ref) => (
-    <RadioGroupContext.Provider value={{ name, value, onChange: onValueChange }}>
-      <div ref={ref} role="radiogroup" className={cn("grid gap-2", className)} {...props}>
-        {children}
-      </div>
-    </RadioGroupContext.Provider>
+  ({ className, value, onValueChange, ...props }, ref) => (
+    <ArkRadioGroup.Root
+      ref={ref}
+      className={cn("grid gap-2", className)}
+      value={value ?? null}
+      onValueChange={(details) => onValueChange?.(details.value ?? "")}
+      {...props}
+    />
   ),
 );
 RadioGroup.displayName = "RadioGroup";
 
 export interface RadioGroupItemProps {
-  value: string | number;
+  value: string;
   id?: string;
   disabled?: boolean;
   className?: string;
+  /** Texto de la opción. */
+  label?: React.ReactNode;
 }
 
-const RadioGroupItem = React.forwardRef<RadioButton, RadioGroupItemProps>(
-  ({ value, id, disabled, className }, ref) => {
-    const ctx = React.useContext(RadioGroupContext);
-    if (!ctx) {
-      throw new Error("RadioGroupItem debe usarse dentro de un RadioGroup.");
-    }
-    return (
-      <RadioButton
-        ref={ref}
-        inputId={id}
-        name={ctx.name}
-        value={value}
-        checked={ctx.value === value}
-        disabled={disabled}
-        className={cn(className)}
-        onChange={(e) => ctx.onChange?.(e.value)}
+/**
+ * OJO: el `ItemHiddenInput` (el `<input type="radio">` real) va ANTES que el
+ * `ItemControl` en el DOM a propósito — así el círculo visual puede usar
+ * `peer-checked:` (pseudo-clase nativa, 100% confiable) en vez de adivinar
+ * el nombre exacto del atributo `data-*` de Ark para el estado seleccionado.
+ */
+const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
+  ({ value, id, disabled, className, label }, ref) => (
+    <ArkRadioGroup.Item
+      ref={ref}
+      value={value}
+      disabled={disabled}
+      className={cn("flex items-center gap-2 text-sm", disabled && "cursor-not-allowed opacity-50", className)}
+    >
+      <ArkRadioGroup.ItemHiddenInput id={id} className="peer sr-only" />
+      <ArkRadioGroup.ItemControl
+        className={cn(
+          "relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-primary shadow",
+          "after:h-2 after:w-2 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-150",
+          "peer-checked:after:scale-100",
+          "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+          transition,
+        )}
       />
-    );
-  },
+      {label ? <ArkRadioGroup.ItemText>{label}</ArkRadioGroup.ItemText> : null}
+    </ArkRadioGroup.Item>
+  ),
 );
 RadioGroupItem.displayName = "RadioGroupItem";
 

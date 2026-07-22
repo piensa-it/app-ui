@@ -52,16 +52,16 @@
     }
   },
   "dependencies": {
+    "@ark-ui/react": "^5.37.2",
     "@radix-ui/react-label": "^2.1.12",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
-    "chart.js": "^4.4.7",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.468.0",
-    "primeicons": "^7.0.0",
-    "primereact": "^10.9.8",
+    "recharts": "^3.10.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"
   },

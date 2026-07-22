@@ -1,21 +1,42 @@
 import * as React from "react";
-import { Slider as PrimeSlider, type SliderProps as PrimeSliderProps } from "primereact/slider";
+import { Slider as ArkSlider } from "@ark-ui/react/slider";
 
 import { cn } from "@/lib/utils";
 
-export interface SliderProps extends Omit<PrimeSliderProps, "onChange"> {
-  onValueChange?: (value: number | [number, number]) => void;
+export interface SliderProps extends Omit<ArkSlider.RootProps, "value" | "onValueChange" | "children"> {
+  value?: number[];
+  onValueChange?: (value: number[]) => void;
 }
 
-/** Control deslizante sobre PrimeReact Slider, con el tema Tailwind de la librería. */
-const Slider = React.forwardRef<PrimeSlider, SliderProps>(
-  ({ className, onValueChange, ...props }, ref) => (
-    <PrimeSlider
+/** Control deslizante sobre Ark UI (headless), con el tema Tailwind de la librería. Soporta uno o varios thumbs. */
+const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
+  ({ className, value, onValueChange, ...props }, ref) => (
+    <ArkSlider.Root
       ref={ref}
-      className={cn(className)}
-      onChange={(e) => onValueChange?.(e.value)}
+      className={cn("relative flex w-full flex-col gap-1", className)}
+      value={value}
+      onValueChange={(details) => onValueChange?.(details.value)}
       {...props}
-    />
+    >
+      <ArkSlider.Control className="relative flex h-4 w-full items-center">
+        <ArkSlider.Track className="h-1.5 w-full rounded-full bg-secondary">
+          <ArkSlider.Range className="h-full rounded-full bg-primary" />
+        </ArkSlider.Track>
+        {(value ?? [0]).map((_, index) => (
+          <ArkSlider.Thumb
+            key={index}
+            index={index}
+            className={cn(
+              "block h-4 w-4 rounded-full border-2 border-primary bg-background shadow",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+            )}
+          >
+            <ArkSlider.HiddenInput />
+          </ArkSlider.Thumb>
+        ))}
+      </ArkSlider.Control>
+    </ArkSlider.Root>
   ),
 );
 Slider.displayName = "Slider";
