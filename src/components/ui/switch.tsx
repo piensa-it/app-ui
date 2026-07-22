@@ -4,7 +4,8 @@ import { Switch as ArkSwitch } from "@ark-ui/react/switch";
 import { cn } from "@/lib/utils";
 import { transition } from "@/lib/style-helpers";
 
-export interface SwitchProps extends Omit<ArkSwitch.RootProps, "checked" | "children"> {
+export interface SwitchProps
+  extends Omit<ArkSwitch.RootProps, "checked" | "children" | "onCheckedChange" | "label"> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   label?: React.ReactNode;
@@ -37,7 +38,10 @@ const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
         />
       </ArkSwitch.Control>
       {label ? <ArkSwitch.Label className="text-sm">{label}</ArkSwitch.Label> : null}
-      <ArkSwitch.HiddenInput />
+      {/* Ark expone el input nativo como `type="checkbox"` (semántica de
+          formulario) — se sobreescribe el rol a "switch" para que lectores
+          de pantalla lo anuncien como interruptor on/off, no como checkbox. */}
+      <ArkSwitch.HiddenInput role="switch" />
     </ArkSwitch.Root>
   ),
 );

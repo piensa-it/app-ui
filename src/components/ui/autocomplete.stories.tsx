@@ -7,8 +7,9 @@ const meta = {
   component: AutoComplete,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Campo de texto con sugerencias sobre PrimeReact AutoComplete." } },
+    docs: { description: { component: "Campo de texto con sugerencias sobre Ark UI Combobox." } },
   },
+  args: { value: "", onChange: () => {}, suggestions: [], onQueryChange: () => {} },
 } satisfies Meta<typeof AutoComplete>;
 
 export default meta;
@@ -25,10 +26,10 @@ export const Default: Story = {
         <AutoComplete
           value={value}
           suggestions={suggestions}
-          completeMethod={(e) =>
-            setSuggestions(CIUDADES.filter((c) => c.toLowerCase().includes(e.query.toLowerCase())))
+          onQueryChange={(query) =>
+            setSuggestions(CIUDADES.filter((c) => c.toLowerCase().includes(query.toLowerCase())))
           }
-          onChange={(e) => setValue(e.value)}
+          onChange={setValue}
           placeholder="Busca una ciudad"
         />
       );

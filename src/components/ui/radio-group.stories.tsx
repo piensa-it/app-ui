@@ -7,7 +7,7 @@ const meta = {
   component: RadioGroup,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Grupo de opciones excluyentes sobre PrimeReact RadioButton." } },
+    docs: { description: { component: "Grupo de opciones excluyentes sobre Ark UI RadioGroup." } },
   },
   args: { name: "demo" },
 } satisfies Meta<typeof RadioGroup>;
@@ -18,15 +18,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => {
     const Demo = () => {
-      const [value, setValue] = useState<string | number>("mensual");
+      const [value, setValue] = useState("mensual");
       return (
         <RadioGroup name="plan" value={value} onValueChange={setValue}>
-          <label className="flex items-center gap-2 text-sm">
-            <RadioGroupItem value="mensual" id="mensual" /> Mensual
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <RadioGroupItem value="anual" id="anual" /> Anual
-          </label>
+          <RadioGroupItem value="mensual" label="Mensual" />
+          <RadioGroupItem value="anual" label="Anual" />
         </RadioGroup>
       );
     };

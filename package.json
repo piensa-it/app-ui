@@ -1,6 +1,6 @@
 {
   "name": "@piensa-it/ui-library",
-  "description": "Librería de componentes UI y lineamientos de FrontEnd de Piensa IT — React + TypeScript + Tailwind + PrimeReact, instalable en todos los sitios web de la compañía.",
+  "description": "Librería de componentes UI y lineamientos de FrontEnd de Piensa IT — React + TypeScript + Tailwind + Ark UI, instalable en todos los sitios web de la compañía.",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "@ark-ui/react": "^5.37.2",
+    "@internationalized/date": "^3.12.2",
     "@radix-ui/react-label": "^2.1.12",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",

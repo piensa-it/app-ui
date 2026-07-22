@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Diálogo de confirmación sobre PrimeReact ConfirmDialog. `<AlertDialogHost />` ya está incluido dentro de `UiProvider`; llama a `confirmAlert(...)` desde cualquier parte de la app.",
+          "Diálogo de confirmación sobre Ark UI Dialog (`role=\"alertdialog\"`). `<AlertDialogHost />` ya está incluido dentro de `UiProvider`; llama a `confirmAlert(...)` desde cualquier parte de la app.",
       },
     },
   },

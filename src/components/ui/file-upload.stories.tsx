@@ -6,7 +6,7 @@ const meta = {
   component: FileUpload,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Carga de archivos (drag & drop) sobre PrimeReact FileUpload." } },
+    docs: { description: { component: "Carga de archivos (drag & drop) sobre Ark UI." } },
   },
 } satisfies Meta<typeof FileUpload>;
 
@@ -15,9 +15,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    customUpload: true,
-    uploadHandler: (e) => e.options.clear(),
-    multiple: true,
+    maxFiles: 3,
     accept: "image/*,.pdf",
   },
 };

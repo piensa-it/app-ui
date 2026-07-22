@@ -25,7 +25,7 @@ export const Default: Story = {
   render: () => {
     const Demo = () => {
       const [value, setValue] = useState<Array<string | number>>(["read"]);
-      return <MultiSelect options={permisos} value={value} onChange={(e) => setValue(e.value)} />;
+      return <MultiSelect options={permisos} value={value} onChange={setValue} />;
     };
     return <Demo />;
   },

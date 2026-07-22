@@ -5,7 +5,7 @@ import { Check, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { transition } from "@/lib/style-helpers";
 
-export interface CheckboxProps extends Omit<ArkCheckbox.RootProps, "checked" | "children"> {
+export interface CheckboxProps extends Omit<ArkCheckbox.RootProps, "checked" | "children" | "onCheckedChange"> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   /** Texto de la etiqueta, opcional (para checkboxes sin label visible usa `aria-label`). */

@@ -1,6 +1,6 @@
 # @piensa-it/ui-library
 
-Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + PrimeReact) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
+Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + Ark UI) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
 
 > Este repo reemplaza al antiguo boilerplate de aplicación (`app-base-template`). Ya no contiene lógica de negocio, autenticación ni integración con Supabase — solo componentes visuales, tokens de diseño y utilidades de FrontEnd puras. Esos otros aspectos (routing, data fetching, auth) siguen viviendo en el boilerplate de cada aplicación; este repo es el "Repositorio Paralelo de Librería de Componentes" al que ese boilerplate delega toda la UI.
 
@@ -9,19 +9,19 @@ Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente 
 ## Stack
 
 - React 18 + TypeScript 5 (strict)
-- Tailwind CSS 3 + [PrimeReact 10](https://primereact.org) en modo `unstyled` — ver "¿Por qué PrimeReact?" abajo
+- Tailwind CSS 3 + [Ark UI](https://ark-ui.com) (headless, `@ark-ui/react`) — ver "¿Por qué Ark UI?" abajo
+- [TanStack Table](https://tanstack.com/table) para `DataTable` (lógica de orden/paginación, headless)
+- [Recharts](https://recharts.org) para `Chart` (SVG, tematizable con CSS variables)
 - Vite 5 en modo librería (build ESM + CJS + `.d.ts` con `vite-plugin-dts`)
 - Storybook 10 — sitio de documentación de componentes
 - Vitest 4 + Testing Library
-- framer-motion, lucide-react, chart.js
+- framer-motion, lucide-react
 
-### ¿Por qué PrimeReact y no shadcn/ui?
+### ¿Por qué Ark UI y no shadcn/ui o PrimeReact?
 
-La librería empezó sobre shadcn/ui, pero se migró a PrimeReact porque el equipo necesitaba componentes de datos complejos (tabla con paginación/orden/filtro, selector de fecha, gráficas, carga de archivos) que shadcn no cubre out-of-the-box. **Usamos exclusivamente PrimeReact 10** (paquetes `primereact@^10.9.8` y `primeicons@^7.0.0`, dist-tags `v10-stable`/`v7-stable`) — es la última generación **MIT / 100% gratuita** de la librería.
+La librería empezó sobre shadcn/ui (Radix), pero necesitábamos componentes de datos complejos (tabla con paginación/orden, selector de fecha, gráficas, carga de archivos) que Radix no cubre out-of-the-box, así que pasó por una etapa intermedia sobre PrimeReact 10. PrimeReact resolvía la cobertura de componentes, pero su modo `unstyled` resultó frágil para tematizar 100% con Tailwind: atributos `data-*`/`aria-*` inconsistentes entre componentes, inputs nativos que había que ocultar a mano, y varios bugs de estilo descubiertos en QA visual en vivo.
 
-> ⚠️ A partir de `primereact@11` y `primeicons@8` (dist-tag `latest` en npm), PrimeTek pasó a un modelo de licencia comercial ("PrimeUI": USD $599/desarrollador). **Nunca actualices estas dos dependencias a `latest` sin verificar antes la licencia de la versión** — usa siempre los rangos `^10.x`/`^7.x` ya fijados en `package.json`, que se mantienen en la línea MIT para siempre.
-
-Nunca se cargan los temas SASS de PrimeReact (Lara, MD, etc.): todos los componentes corren en modo `unstyled: true` y reciben un tema Tailwind propio vía `pt` (passthrough) — ver `src/lib/primereact-theme.ts`. Así, el look final es 100% el de Piensa IT, no el de PrimeReact.
+**Ahora usamos [Ark UI](https://ark-ui.com)** (del equipo de Chakra UI, construido sobre máquinas de estado de Zag.js): headless igual que Radix, pero con un contrato de atributos `data-scope`/`data-part`/`data-state` **consistente y documentado** en todos los componentes — se tematiza directamente con variantes de Tailwind (`data-[state=open]:...`) sin ninguna capa de indirección tipo `pt`. Cubre casi todo lo que cubría PrimeReact (Select, Combobox, DatePicker, Dialog, Popover, Accordion, Tabs, FileUpload, Toast...). Lo único que Ark UI no trae es tabla de datos y gráficas — para eso se suman **TanStack Table** (headless, el estándar de facto) y **Recharts** (SVG real, se tematiza con las mismas CSS variables del resto de la librería — a diferencia de Chart.js, que dibuja en `<canvas>` y no puede leer clases/variables de Tailwind).
 
 ## Documentación de componentes
 
@@ -54,7 +54,7 @@ La librería se publica como paquete privado en **GitHub Packages** bajo el scop
 import "@piensa-it/ui-library/styles.css";
 ```
 
-Envuelve tu app en `UiProvider` — configura PrimeReact en modo `unstyled` con el tema de Piensa IT y monta el `Toaster` y el `AlertDialogHost` globales (no hace falta agregarlos aparte):
+Envuelve tu app en `UiProvider` — monta el `Toaster` y el `AlertDialogHost` globales (no hace falta agregarlos aparte). Como todos los componentes son headless (Ark UI), no hace falta ningún setup de tema adicional: el look sale de las CSS variables importadas en `styles.css`.
 
 ```tsx
 import { UiProvider, Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
@@ -124,25 +124,24 @@ src/
 ├── styles/globals.css     # tokens de diseño (CSS vars) + directivas Tailwind
 ├── docs/                  # páginas de documentación sin componente (Introducción, Tokens)
 ├── components/
-│   ├── providers/UiProvider.tsx  # PrimeReactProvider + tema + Toaster + AlertDialogHost
-│   ├── ui/                # primitivas simples (Tailwind puro) + PrimeReact temado (Select, DataTable, Dialog...)
+│   ├── providers/UiProvider.tsx  # Toaster + AlertDialogHost (sin proveedor de tema — headless)
+│   ├── ui/                # primitivas simples (Tailwind puro) + wrappers Ark UI temados (Select, Dialog, DataTable con TanStack, Chart con Recharts...)
 │   ├── layout/             # Layout, GlobalErrorBoundary
 │   └── marketing/          # PublicHeader, PublicFooter, ImageCarouselBackdrop
 │       └── *.stories.tsx    # cada componente vive junto a su story de Storybook
 ├── lib/
 │   ├── utils.ts             # cn() — merge de clases Tailwind
-│   ├── iconConfig.ts         # mapa de clases para tamaños/colores de íconos
-│   ├── primereact-theme.ts    # tema Tailwind (passthrough) para todos los componentes PrimeReact
-│   └── locale-es.ts            # localización en español para PrimeReact (Calendar, mensajes...)
+│   ├── style-helpers.ts       # constantes de estilo compartidas (focus ring, animaciones de overlay...)
+│   └── iconConfig.ts         # mapa de clases para tamaños/colores de íconos
 ├── App.tsx, main.tsx         # playground de desarrollo (no se publica)
 └── __tests__/                # tests de componentes
 ```
 
 ## Agregar un nuevo componente
 
-1. Si es un wrapper sobre un componente de PrimeReact (ver el [catálogo completo de PrimeReact](https://primereact.org)), créalo en `src/components/ui/`: importa el componente de `primereact/<componente>`, define un tipo de props delgado sobre el suyo, y agrega el tema correspondiente en `src/lib/primereact-theme.ts` (clave `pt` con las secciones del componente — revisa el `.d.ts` de `primereact/<componente>/<componente>.d.ts` para ver los nombres exactos de cada sección). No cargues los temas SASS de PrimeReact ni importes CSS de `primereact/resources`.
+1. Si es un wrapper sobre un componente de [Ark UI](https://ark-ui.com/docs/components), créalo en `src/components/ui/`: importa el namespace del componente (`import { X as ArkX } from "@ark-ui/react/x"`), compón sus partes (`Root`, `Trigger`, `Content`...) y tematízalas con clases Tailwind sobre los atributos `data-*` que expone cada parte. **Antes de escribir el componente, verifica la anatomía y los atributos reales** — no los adivines: revisa `node_modules/@ark-ui/react/dist/components/<componente>/<componente>.d.ts` (props exactas de cada parte) y `node_modules/@zag-js/<componente>/dist/*.d.ts` (`data-*` que realmente se renderizan, vía `grep -rho "data-[a-z-]*"`). Adivinar el nombre de un atributo fue la causa de varios bugs visuales durante la migración desde PrimeReact.
 
-2. Si es un componente propio (no de PrimeReact), créalo en `src/components/<categoría>/`, sin dependencias de negocio (nada de fetch a Supabase, rutas hardcodeadas, textos de una marca específica) — todo eso se recibe por props.
+2. Si es un componente propio (no de Ark UI), créalo en `src/components/<categoría>/`, sin dependencias de negocio (nada de fetch a Supabase, rutas hardcodeadas, textos de una marca específica) — todo eso se recibe por props.
 
 3. Expórtalo desde `src/index.ts`.
 

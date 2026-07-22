@@ -1,21 +1,90 @@
-import * as React from "react";
-import { Toast as PrimeToast, type ToastMessageOptions } from "primereact/toast";
+import type { ComponentType } from "react";
+import { Toast as ArkToast, Toaster as ArkToaster, createToaster } from "@ark-ui/react/toast";
+import { CheckCircle2, X, XCircle, Info, AlertTriangle, Loader2 } from "lucide-react";
 
-let toastRef: React.RefObject<PrimeToast> | null = null;
+import { cn } from "@/lib/utils";
+import { cx, elevationRing } from "@/lib/style-helpers";
+
+const toaster = createToaster({ placement: "bottom-end", gap: 12, overlap: false });
+
+const ICON_BY_TYPE: Record<string, ComponentType<{ className?: string }>> = {
+  success: CheckCircle2,
+  error: XCircle,
+  warning: AlertTriangle,
+  info: Info,
+  loading: Loader2,
+};
 
 /**
  * `<Toaster />` se monta una única vez (ya incluido dentro de `UiProvider`,
  * no hace falta agregarlo manualmente). Habilita las notificaciones globales
- * vía el objeto `toast` exportado de este módulo — reemplaza a `sonner`.
+ * vía el objeto `toast` exportado de este módulo, análogo a `sonner` —
+ * reemplaza al `Toaster` sobre PrimeReact Toast.
  */
 function Toaster() {
-  const ref = React.useRef<PrimeToast>(null);
-  toastRef = ref;
-  return <PrimeToast ref={ref} position="bottom-right" />;
+  return (
+    <ArkToaster toaster={toaster} className="fixed z-[100] flex flex-col gap-2 outline-none">
+      {(toast: ArkToast.Options) => {
+        const Icon = ICON_BY_TYPE[toast.type ?? "info"];
+        return (
+          <ArkToast.Root
+            key={toast.id}
+            className={cn(
+              "flex w-80 items-start gap-3 rounded-md border border-border bg-background p-4 text-sm shadow-lg",
+              elevationRing,
+              cx(
+                "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                "data-[state=closed]:slide-out-to-right-4 data-[state=open]:slide-in-from-bottom-2",
+              ),
+            )}
+          >
+            {Icon ? (
+              <Icon
+                className={cn(
+                  "mt-0.5 h-5 w-5 shrink-0",
+                  toast.type === "success" && "text-success",
+                  toast.type === "error" && "text-destructive",
+                  toast.type === "warning" && "text-warning",
+                  toast.type === "info" && "text-primary",
+                  toast.type === "loading" && "animate-spin text-muted-foreground",
+                )}
+              />
+            ) : null}
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              {toast.title ? (
+                <ArkToast.Title className="font-medium leading-none">{toast.title}</ArkToast.Title>
+              ) : null}
+              {toast.description ? (
+                <ArkToast.Description className="text-muted-foreground">{toast.description}</ArkToast.Description>
+              ) : null}
+            </div>
+            {toast.closable !== false ? (
+              <ArkToast.CloseTrigger
+                className={cn(
+                  "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                )}
+              >
+                <X className="h-4 w-4" />
+              </ArkToast.CloseTrigger>
+            ) : null}
+          </ArkToast.Root>
+        );
+      }}
+    </ArkToaster>
+  );
 }
 
-function show(options: ToastMessageOptions) {
-  toastRef?.current?.show({ life: 4000, ...options });
+export interface ToastOptions {
+  summary?: string;
+  detail?: string;
+  duration?: number;
+  closable?: boolean;
+}
+
+function toOptions({ summary, detail, ...rest }: ToastOptions) {
+  return { title: summary, description: detail, ...rest };
 }
 
 /**
@@ -23,10 +92,10 @@ function show(options: ToastMessageOptions) {
  * @example toast.success({ summary: "Guardado", detail: "Los cambios se guardaron correctamente." })
  */
 const toast = {
-  success: (options: Omit<ToastMessageOptions, "severity">) => show({ severity: "success", ...options }),
-  error: (options: Omit<ToastMessageOptions, "severity">) => show({ severity: "error", ...options }),
-  warn: (options: Omit<ToastMessageOptions, "severity">) => show({ severity: "warn", ...options }),
-  info: (options: Omit<ToastMessageOptions, "severity">) => show({ severity: "info", ...options }),
+  success: (options: ToastOptions) => toaster.success(toOptions(options)),
+  error: (options: ToastOptions) => toaster.error(toOptions(options)),
+  warn: (options: ToastOptions) => toaster.warning(toOptions(options)),
+  info: (options: ToastOptions) => toaster.info(toOptions(options)),
 };
 
 export { Toaster, toast };

@@ -9,7 +9,6 @@
 // consumidor decide dónde inyectarlo en su propio pipeline:
 //   import "@piensa-it/ui-library/styles.css";
 import "./styles/globals.css";
-import "primeicons/primeicons.css";
 
 // --- Proveedor raíz ---
 export { UiProvider, type UiProviderProps } from "./components/providers/UiProvider";
@@ -23,7 +22,7 @@ export { Textarea, type TextareaProps } from "./components/ui/textarea";
 export { Label } from "./components/ui/label";
 export { Separator } from "./components/ui/separator";
 
-// --- Primitivas de interacción (PrimeReact + tema Piensa IT) ---
+// --- Primitivas de interacción (Ark UI + tema Piensa IT) ---
 export { Select, type SelectProps, type SelectOption } from "./components/ui/select";
 export { MultiSelect, type MultiSelectFieldProps } from "./components/ui/multi-select";
 export { AutoComplete, type AutoCompleteProps } from "./components/ui/autocomplete";
@@ -34,18 +33,18 @@ export { Slider, type SliderProps } from "./components/ui/slider";
 export { Dialog, DialogHeader, DialogFooter, DialogTitle, DialogDescription, type DialogProps } from "./components/ui/dialog";
 export { AlertDialogHost, confirmAlert, type ConfirmAlertOptions } from "./components/ui/alert-dialog";
 export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sidebar";
-export { Popover, PopoverTrigger, PopoverContent, type PopoverContentProps } from "./components/ui/popover";
+export { Popover, PopoverTrigger, PopoverContent, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps } from "./components/ui/popover";
 export { Tooltip, type TooltipProps } from "./components/ui/tooltip";
-export { Tabs, TabPanel, type TabsProps } from "./components/ui/tabs";
-export { Accordion, AccordionTab, type AccordionProps } from "./components/ui/accordion";
+export { Tabs, TabPanel, type TabsProps, type TabPanelProps } from "./components/ui/tabs";
+export { Accordion, AccordionTab, type AccordionProps, type AccordionTabProps } from "./components/ui/accordion";
 export { Avatar, type AvatarProps } from "./components/ui/avatar";
 export { Progress, type ProgressProps } from "./components/ui/progress";
-export { Toaster, toast } from "./components/ui/toast";
+export { Toaster, toast, type ToastOptions } from "./components/ui/toast";
 
-// --- Datos complejos (PrimeReact + tema Piensa IT) ---
-export { DataTable, Column, type DataTableProps, type ColumnProps } from "./components/ui/data-table";
+// --- Datos complejos (Ark UI / TanStack Table / Recharts + tema Piensa IT) ---
+export { DataTable, Column, type DataTableProps, type ColumnProps, type DataTableValue } from "./components/ui/data-table";
 export { DatePicker, type DatePickerProps } from "./components/ui/date-picker";
-export { Chart, type ChartProps } from "./components/ui/chart";
+export { Chart, type ChartProps, type ChartSeries, type ChartDatum } from "./components/ui/chart";
 export { FileUpload, type FileUploadProps } from "./components/ui/file-upload";
 
 // --- Layout ---

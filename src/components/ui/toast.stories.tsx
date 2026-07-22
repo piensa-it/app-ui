@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Notificaciones globales sobre PrimeReact Toast (reemplaza a `sonner`). `<Toaster />` ya está incluido dentro de `UiProvider` — no hace falta agregarlo manualmente en la app consumidora.",
+          "Notificaciones globales sobre Ark UI Toast (reemplaza a `sonner`). `<Toaster />` ya está incluido dentro de `UiProvider` — no hace falta agregarlo manualmente en la app consumidora.",
       },
     },
   },

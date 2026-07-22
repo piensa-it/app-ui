@@ -9,11 +9,11 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component:
-          "Tabla de datos sobre PrimeReact DataTable, con paginación y orden. Componente insignia del cambio a PrimeReact.",
+        component: "Tabla de datos sobre TanStack Table (headless), con paginación y orden.",
       },
     },
   },
+  args: { value: [] },
 } satisfies Meta<typeof DataTable>;
 
 export default meta;

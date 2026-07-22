@@ -18,7 +18,7 @@ export const Default: Story = {
   render: () => {
     const Demo = () => {
       const [value, setValue] = useState<Date | null>(null);
-      return <DatePicker value={value} onChange={(e) => setValue(e.value as Date)} />;
+      return <DatePicker value={value} onChange={setValue} />;
     };
     return <Demo />;
   },

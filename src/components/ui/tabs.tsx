@@ -1,53 +1,83 @@
 import * as React from "react";
-import { TabView, TabPanel, type TabViewProps, type TabPanelPassThroughOptions } from "primereact/tabview";
+import { Tabs as ArkTabs } from "@ark-ui/react/tabs";
 
 import { cn } from "@/lib/utils";
 
-export interface TabsProps extends Omit<TabViewProps, "activeIndex" | "onTabChange"> {
-  /** Índice de la pestaña activa (controlado). */
-  value?: number;
-  onValueChange?: (index: number) => void;
+export interface TabPanelProps {
+  /** Etiqueta de la pestaña. */
+  header: React.ReactNode;
+  /** Identificador estable de la pestaña. Si se omite, se usa el índice como string. */
+  value?: string;
+  disabled?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
- * PT por pestaña individual. IMPORTANTE: a diferencia del resto de la
- * librería, TabView NO expone `header`/`headerAction` en el tema global
- * (`primereact-theme.ts`) — su prop `headerClassName` solo se aplica en modo
- * "styled" (no en `unstyled`, que es el que usamos siempre), así que la
- * única forma real de estilar la pestaña clickeable es pasando `pt`
- * directamente a cada `TabPanel`. Ver discusión en el PR que corrigió esto.
+ * Marcador de contenido — no se renderiza directamente. `Tabs` recorre sus
+ * hijos `TabPanel` para construir el `Tabs.List` (triggers) y los
+ * `Tabs.Content` correspondientes sobre Ark UI.
  */
-const tabHeaderPt: TabPanelPassThroughOptions = {
-  header: { className: "list-none" },
-  headerAction: {
-    className: cn(
-      "flex items-center gap-2 border-b-2 border-transparent px-4 py-2 text-sm font-medium text-muted-foreground",
-      "transition-colors duration-150 hover:text-foreground",
-      "aria-selected:border-primary aria-selected:text-foreground",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-    ),
-  },
-};
+function TabPanel(_props: TabPanelProps): null {
+  return null;
+}
 
-/** Navegación por pestañas sobre PrimeReact TabView. Los hijos deben ser `TabPanel`. */
-const Tabs = React.forwardRef<TabView, TabsProps>(
-  ({ className, value, onValueChange, children, ...props }, ref) => (
-    <TabView
-      ref={ref}
-      className={cn(className)}
-      activeIndex={value}
-      onTabChange={(e) => onValueChange?.(e.index)}
-      {...props}
-    >
-      {React.Children.map(children, (child) =>
-        React.isValidElement<{ pt?: TabPanelPassThroughOptions }>(child)
-          ? React.cloneElement(child, {
-              pt: { ...tabHeaderPt, ...child.props.pt },
-            })
-          : child,
-      )}
-    </TabView>
-  ),
+export interface TabsProps extends Omit<ArkTabs.RootProps, "value" | "onValueChange" | "children"> {
+  /** Valor de la pestaña activa (controlado). Si no se pasa, es no controlado. */
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children?: React.ReactNode;
+}
+
+/** Navegación por pestañas sobre Ark UI (headless). Los hijos deben ser `TabPanel`. */
+const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
+  ({ className, value, onValueChange, children, ...props }, ref) => {
+    const panels = React.Children.toArray(children).filter(
+      (child): child is React.ReactElement<TabPanelProps> => React.isValidElement(child) && child.type === TabPanel,
+    );
+    const withValues = panels.map((panel, index) => ({
+      value: panel.props.value ?? String(index),
+      header: panel.props.header,
+      disabled: panel.props.disabled,
+      children: panel.props.children,
+    }));
+    const defaultValue = withValues[0]?.value;
+
+    return (
+      <ArkTabs.Root
+        ref={ref}
+        className={cn(className)}
+        value={value}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        onValueChange={(details) => onValueChange?.(details.value)}
+        {...props}
+      >
+        <ArkTabs.List className="flex items-center border-b border-border">
+          {withValues.map((panel) => (
+            <ArkTabs.Trigger
+              key={panel.value}
+              value={panel.value}
+              disabled={panel.disabled}
+              className={cn(
+                "flex items-center gap-2 border-b-2 border-transparent px-4 py-2 text-sm font-medium text-muted-foreground",
+                "transition-colors duration-150 hover:text-foreground",
+                "data-[selected]:border-primary data-[selected]:text-foreground",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "disabled:pointer-events-none disabled:opacity-50",
+              )}
+            >
+              {panel.header}
+            </ArkTabs.Trigger>
+          ))}
+          <ArkTabs.Indicator className="h-0.5 bg-primary transition-all duration-200" />
+        </ArkTabs.List>
+        {withValues.map((panel) => (
+          <ArkTabs.Content key={panel.value} value={panel.value} className="pt-4">
+            {panel.children}
+          </ArkTabs.Content>
+        ))}
+      </ArkTabs.Root>
+    );
+  },
 );
 Tabs.displayName = "Tabs";
 

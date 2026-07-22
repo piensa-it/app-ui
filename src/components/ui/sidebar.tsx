@@ -21,6 +21,15 @@ const SIZE_BY_POSITION: Record<NonNullable<SheetProps["position"]>, string> = {
   bottom: "inset-x-0 bottom-0 w-full",
 };
 
+// Ark UI usa direcciones lógicas ("start"/"end", conscientes de RTL) en vez
+// de "left"/"right" para el prop `swipeDirection` del Drawer.
+const SWIPE_DIRECTION_BY_POSITION: Record<NonNullable<SheetProps["position"]>, "up" | "down" | "start" | "end"> = {
+  left: "start",
+  right: "end",
+  top: "up",
+  bottom: "down",
+};
+
 /**
  * Panel deslizante lateral sobre Ark UI Drawer (headless). A diferencia del
  * uso típico de `Drawer` (bottom sheet arrastrable en móvil), aquí se usa
@@ -33,7 +42,7 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
     <ArkDrawer.Root
       open={open}
       onOpenChange={(details) => onOpenChange(details.open)}
-      swipeDirection={position}
+      swipeDirection={SWIPE_DIRECTION_BY_POSITION[position]}
       modal={modal}
       lazyMount
       unmountOnExit

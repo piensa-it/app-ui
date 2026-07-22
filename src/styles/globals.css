@@ -55,6 +55,15 @@
     --input: 20 15% 90%;
     --ring: 350 85% 42%;
 
+    /* Paleta para gráficas multi-serie (`Chart`) — distinta de los tokens
+       semánticos (`--primary`, `--success`...), pensada para distinguir
+       varias series a la vez sin implicar significado (éxito/error/etc). */
+    --chart-1: 350 85% 42%;
+    --chart-2: 20 15% 15%;
+    --chart-3: 32 85% 55%;
+    --chart-4: 200 60% 45%;
+    --chart-5: 160 50% 40%;
+
     --radius: 0.625rem;
 
     --font-sans: "Inter", system-ui, sans-serif;
@@ -95,6 +104,12 @@
     --border: 20 12% 20%;
     --input: 20 12% 20%;
     --ring: 350 80% 55%;
+
+    --chart-1: 350 80% 55%;
+    --chart-2: 20 10% 85%;
+    --chart-3: 32 90% 60%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 160 55% 50%;
   }
 }
 

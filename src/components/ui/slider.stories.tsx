@@ -7,7 +7,7 @@ const meta = {
   component: Slider,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Control deslizante sobre PrimeReact Slider." } },
+    docs: { description: { component: "Control deslizante sobre Ark UI Slider." } },
   },
 } satisfies Meta<typeof Slider>;
 
@@ -17,8 +17,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => {
     const Demo = () => {
-      const [value, setValue] = useState(40);
-      return <Slider value={value} onValueChange={(v) => setValue(v as number)} />;
+      const [value, setValue] = useState([40]);
+      return <Slider value={value} onValueChange={setValue} />;
     };
     return <Demo />;
   },

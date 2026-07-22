@@ -4,12 +4,12 @@ import { Popover as ArkPopover } from "@ark-ui/react/popover";
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 
-export interface PopoverProps extends ArkPopover.RootProps {}
+export type PopoverProps = ArkPopover.RootProps;
 
 /** Agrupa un `PopoverTrigger` y un `PopoverContent` sobre Ark UI (headless). */
 const Popover = (props: PopoverProps) => <ArkPopover.Root {...props} />;
 
-export interface PopoverTriggerProps extends ArkPopover.TriggerProps {}
+export type PopoverTriggerProps = ArkPopover.TriggerProps;
 
 /** Elemento que abre/cierra el popover al hacer click. */
 const PopoverTrigger = React.forwardRef<HTMLButtonElement, PopoverTriggerProps>((props, ref) => (
@@ -17,7 +17,7 @@ const PopoverTrigger = React.forwardRef<HTMLButtonElement, PopoverTriggerProps>(
 ));
 PopoverTrigger.displayName = "PopoverTrigger";
 
-export interface PopoverContentProps extends ArkPopover.ContentProps {}
+export type PopoverContentProps = ArkPopover.ContentProps;
 
 const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({ className, ...props }, ref) => (
   <ArkPopover.Positioner>

@@ -1,23 +1,19 @@
 import * as React from "react";
-import { PrimeReactProvider } from "primereact/api";
 
-import { piensaTheme } from "@/lib/primereact-theme";
 import { Toaster } from "@/components/ui/toast";
 import { AlertDialogHost } from "@/components/ui/alert-dialog";
-import "@/lib/locale-es";
 
 export interface UiProviderProps {
   children: React.ReactNode;
-  /** Configuración regional para componentes PrimeReact (fechas, mensajes). @default "es" */
-  locale?: string;
 }
 
 /**
  * Proveedor raíz de `@piensa-it/ui-library`.
  *
- * Envuelve `PrimeReactProvider` ya configurado en modo `unstyled` con el
- * tema Tailwind de Piensa IT (`primereact-theme.ts`), para que las apps
- * consumidoras no tengan que conocer los detalles de PrimeReact.
+ * Todos los componentes son headless (Ark UI) y no requieren un contexto de
+ * tema para renderizar — este proveedor solo monta los hosts globales que sí
+ * necesitan un único punto de montaje: `<Toaster />` (notificaciones) y
+ * `<AlertDialogHost />` (`confirmAlert(...)`).
  *
  * @example
  * ```tsx
@@ -28,12 +24,12 @@ export interface UiProviderProps {
  * </UiProvider>
  * ```
  */
-export function UiProvider({ children, locale = "es" }: UiProviderProps) {
+export function UiProvider({ children }: UiProviderProps) {
   return (
-    <PrimeReactProvider value={{ unstyled: true, pt: piensaTheme, locale, ripple: false }}>
+    <>
       {children}
       <Toaster />
       <AlertDialogHost />
-    </PrimeReactProvider>
+    </>
   );
 }

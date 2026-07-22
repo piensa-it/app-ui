@@ -36,13 +36,5 @@ export const Default: Story = {
   },
 };
 
-export const ConFiltro: Story = {
-  name: "Con filtro",
-  render: () => {
-    const Demo = () => {
-      const [value, setValue] = useState<string | number | null>("co");
-      return <Select options={paises} value={value} onChange={setValue} filter />;
-    };
-    return <Demo />;
-  },
-};
+// La variante con filtro de texto vive en el componente `AutoComplete`
+// (combobox con búsqueda) — `Select` es un selector cerrado sin input.
