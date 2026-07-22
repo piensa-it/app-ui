@@ -86,28 +86,35 @@
  * `<html>`), así que estar fuera del layer no le da prioridad indebida,
  * solo evita que Tailwind se la coma. No mover este bloque de vuelta a
  * `@layer base` sin volver a verificar contra el CSS compilado.
+ *
+ * Identidad del modo oscuro (decisión de diseño explícita, no un
+ * descuido): a diferencia del claro (rojo Piensa IT sobre grises cálidos
+ * claros), el oscuro usa un neutro casi negro + acento naranja/cálido,
+ * inspirado en el look de ark-ui.com — elegido a propósito por el
+ * cliente. `--destructive` se mantiene en rojo (no naranja) para no
+ * confundir "peligro" con el acento principal de marca en este modo.
  */
 .dark {
-  --background: 20 15% 8%;
-  --foreground: 20 10% 95%;
+  --background: 0 0% 7%;
+  --foreground: 0 0% 95%;
 
-  --card: 20 15% 10%;
-  --card-foreground: 20 10% 95%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 95%;
 
-  --popover: 20 15% 10%;
-  --popover-foreground: 20 10% 95%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 95%;
 
-  --primary: 350 80% 55%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 24 88% 58%;
+  --primary-foreground: 0 0% 8%;
 
-  --secondary: 20 12% 18%;
-  --secondary-foreground: 20 10% 95%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 95%;
 
-  --muted: 20 12% 18%;
-  --muted-foreground: 20 8% 65%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 65%;
 
-  --accent: 20 12% 18%;
-  --accent-foreground: 20 10% 95%;
+  --accent: 0 0% 18%;
+  --accent-foreground: 0 0% 95%;
 
   --destructive: 4 85% 62%;
   --destructive-foreground: 0 0% 100%;
@@ -118,13 +125,13 @@
   --warning: 38 92% 55%;
   --warning-foreground: 48 96% 8%;
 
-  --border: 20 12% 20%;
-  --input: 20 12% 20%;
-  --ring: 350 80% 55%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 24 88% 58%;
 
-  --chart-1: 350 80% 55%;
-  --chart-2: 20 10% 85%;
-  --chart-3: 32 90% 60%;
+  --chart-1: 24 88% 58%;
+  --chart-2: 0 0% 85%;
+  --chart-3: 38 92% 60%;
   --chart-4: 200 70% 55%;
   --chart-5: 160 55% 50%;
 }
