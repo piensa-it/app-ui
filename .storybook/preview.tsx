@@ -47,10 +47,18 @@ const preview: Preview = {
       const theme = context.globals.theme ?? "light";
       return (
         <div className={theme === "dark" ? "dark" : ""}>
-          <div className="min-h-[100px] bg-background p-4 font-sans text-foreground">
-            <UiProvider>
-              <Story />
-            </UiProvider>
+          {/* Superficie exterior (bg-muted) para que la "card" de la demo
+              tenga contraste y se sienta agrupada/presentada, en vez de
+              flotar directamente sobre el fondo de la página. Sin flex: se
+              deja que cada historia controle su propio ancho (un Button
+              suelto queda a la izquierda, un Accordion/DataTable ocupa el
+              100% de la card) — igual que en cualquier layout normal. */}
+          <div className="min-h-[160px] bg-muted p-6 font-sans text-foreground sm:p-10">
+            <div className="min-h-[100px] w-full rounded-xl border border-border bg-card p-8 shadow-sm">
+              <UiProvider>
+                <Story />
+              </UiProvider>
+            </div>
           </div>
         </div>
       );

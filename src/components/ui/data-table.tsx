@@ -101,7 +101,7 @@ function DataTable<TValue extends DataTableValue>({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
         <table className="w-full border-collapse text-sm">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -112,8 +112,9 @@ function DataTable<TValue extends DataTableValue>({
                     <th
                       key={header.id}
                       className={cn(
-                        "px-3 py-2 text-left font-medium text-muted-foreground",
-                        header.column.getCanSort() && "cursor-pointer select-none",
+                        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+                        header.column.getCanSort() &&
+                          "cursor-pointer select-none transition-colors duration-150 hover:text-foreground",
                       )}
                       onClick={header.column.getToggleSortingHandler()}
                     >
@@ -138,7 +139,7 @@ function DataTable<TValue extends DataTableValue>({
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columnDefs.length} className="px-3 py-6 text-center text-muted-foreground">
+                <td colSpan={columnDefs.length} className="px-4 py-8 text-center text-muted-foreground">
                   {emptyMessage}
                 </td>
               </tr>
@@ -152,7 +153,7 @@ function DataTable<TValue extends DataTableValue>({
                     <td
                       key={cell.id}
                       className={cn(
-                        "px-3 py-2",
+                        "px-4 py-3",
                         (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
                       )}
                     >

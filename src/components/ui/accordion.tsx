@@ -43,7 +43,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
     return (
       <ArkAccordion.Root
         ref={ref}
-        className={cn("divide-y divide-border rounded-md border border-border", className)}
+        className={cn("divide-y divide-border rounded-lg border border-border bg-card shadow-sm", className)}
         value={value}
         multiple={multiple}
         collapsible={collapsible}
@@ -56,18 +56,18 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
             <ArkAccordion.Item key={itemValue} value={itemValue} disabled={tab.props.disabled}>
               <ArkAccordion.ItemTrigger
                 className={cn(
-                  "flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium",
+                  "group flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-medium",
                   "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-inset",
                   "disabled:pointer-events-none disabled:opacity-50",
                 )}
               >
                 {tab.props.header}
-                <ArkAccordion.ItemIndicator className="transition-transform duration-200 data-[state=open]:rotate-180">
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <ArkAccordion.ItemIndicator className="shrink-0 transition-transform duration-200 data-[state=open]:rotate-180">
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent-foreground" />
                 </ArkAccordion.ItemIndicator>
               </ArkAccordion.ItemTrigger>
-              <ArkAccordion.ItemContent className="px-4 pb-4 text-sm text-muted-foreground">
+              <ArkAccordion.ItemContent className="px-5 pb-5 text-sm leading-relaxed text-muted-foreground">
                 {tab.props.children}
               </ArkAccordion.ItemContent>
             </ArkAccordion.Item>

@@ -58,7 +58,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
               value={panel.value}
               disabled={panel.disabled}
               className={cn(
-                "flex items-center gap-2 border-b-2 border-transparent px-4 py-2 text-sm font-medium text-muted-foreground",
+                "flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground",
                 "transition-colors duration-150 hover:text-foreground",
                 "data-[selected]:border-primary data-[selected]:text-foreground",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
