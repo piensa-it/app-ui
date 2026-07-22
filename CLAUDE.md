@@ -1,21 +1,19 @@
-# Mis Finanzas — Contexto del proyecto
+# @piensa-it/ui-library — Contexto del proyecto
+
+> Este repo (`app-ui`) dejó de ser la app "Mis Finanzas". Ahora es la **librería de componentes UI** compartida de Piensa IT, instalable vía npm en los demás repos (MisFin, Lynx, etc.). No contiene lógica de negocio, auth ni Supabase — eso vive en el repo de cada aplicación.
 
 ## Stack
-- **Frontend**: React 18 + TypeScript 5.8 + Vite 5 (SWC)
-- **Estilos**: Tailwind CSS 3 + shadcn-ui
-- **Fetching/cache**: TanStack React Query 5
-- **Routing**: React Router DOM 6
-- **Formularios**: React Hook Form + Zod
-- **Backend**: Supabase (PostgreSQL + RLS + Edge Functions en Deno)
-- **Auth**: Supabase Auth + edge function personalizada `auth-with-any-email`
-- **Charts**: Recharts
-- **Tests**: Vitest 4 + coverage habilitado
+
+- **Frontend**: React 18 + TypeScript 5.8 + Vite 5 (SWC), en **modo librería** (no SPA)
+- **Estilos**: Tailwind CSS 3 + shadcn-ui, tokens vía CSS variables (theming por marca)
+- **Tests**: Vitest 4 + Testing Library
+- **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS
 
 ## Comandos clave
 
 ```bash
-npm run dev          # Servidor de desarrollo
-npm run build        # Build de producción
+npm run dev          # Playground de desarrollo (src/App.tsx) — NO es lo que se publica
+npm run build        # Genera dist/ — esto es lo que se publica a GitHub Packages
 npm run test         # Tests en modo watch
 npm run test:run     # Tests una sola vez
 npm run lint         # ESLint
@@ -24,49 +22,33 @@ npm run lint         # ESLint
 ## Estructura del proyecto
 
 ```
+tailwind-preset.js     # preset de Tailwind publicado (tokens compartidos entre repos)
 src/
-├── components/       # Componentes UI reutilizables (shadcn + custom)
-├── hooks/            # Hooks de datos: useTransactions, useCategories, etc.
-├── pages/            # Páginas por ruta
-├── integrations/
-│   └── supabase/     # Cliente Supabase + tipos generados
-├── utils/            # Funciones utilitarias (currency, dates, etc.)
-└── __tests__/        # Tests unitarios (Vitest)
-
-supabase/
-├── functions/        # Edge Functions (Deno)
-└── migrations/       # Migraciones SQL con RLS habilitado
+├── index.ts            # barrel de exports públicos — ÚNICO punto de entrada del paquete
+├── styles/globals.css  # tokens de diseño (CSS vars) + directivas Tailwind
+├── components/
+│   ├── ui/              # primitivas shadcn/ui
+│   ├── layout/           # Layout, GlobalErrorBoundary
+│   └── marketing/         # PublicHeader, PublicFooter, ImageCarouselBackdrop
+├── lib/                  # utils.ts (cn), iconConfig.ts
+├── App.tsx, main.tsx      # playground de desarrollo, no se publica
+└── __tests__/             # tests de componentes
 ```
 
 ## Patrones establecidos
 
-- **Hooks de datos**: cada entidad tiene su hook en `src/hooks/use{Entidad}.ts` con React Query
-- **Mutaciones**: usan `useMutation` con `invalidateQueries` al completar
-- **Auth**: sesión manejada por Supabase, rutas protegidas con `<ProtectedRoute>`
-- **DB**: acceso directo vía cliente Supabase desde el frontend (RLS protege los datos)
-- **Validación**: Zod en formularios, RLS en base de datos como segunda línea
-
-## Issues de escala conocidos (pendientes de resolver)
-
-Estos problemas fueron identificados en auditoría — no agregar más código que los empeore:
-
-1. **Sin paginación** — `useTransactions` carga todas las filas con `.select('*')` sin `.range()`. Crasheará con >5K transacciones por usuario.
-2. **N+1 queries** — En `useTransactions.ts` hay queries separados para categoría/subcategoría por transacción. Necesita JOIN.
-3. **Sin Error Boundary** — Un error en cualquier componente deja la app en blanco. Falta wrapper en `App.tsx`.
-4. **JWT verify desactivado** — `supabase/config.toml` tiene `verify_jwt = false` en la edge function de auth.
-5. **TypeScript laxo** — `strict: false` en tsconfig. Hay ~48 usos de `any` en el código.
-6. **Cobertura de tests <1%** — Solo 1 archivo de test para 134 archivos fuente.
+- **Sin acoplamiento a negocio**: ningún componente debe hacer fetch, hardcodear textos de una marca específica, o asumir un router concreto — todo eso se recibe por props (ver `PublicHeader`/`PublicFooter`, que reciben un `linkComponent` inyectable en vez de importar `react-router-dom` directamente).
+- **Sin colores hardcodeados**: todo color usa clases Tailwind mapeadas a CSS variables (`bg-primary`, `text-muted-foreground`, `bg-success`...) definidas en `src/styles/globals.css`. Nunca un hex/rgb directo en un componente.
+- **Export único**: cualquier componente nuevo se agrega a `src/index.ts`. Los consumidores importan solo desde la raíz del paquete, nunca desde rutas internas (`@piensa-it/ui-library/dist/...`).
+- **shadcn/ui**: usar `npx shadcn@latest add <componente>` (components.json ya configurado) y luego adaptar colores/estructura a los tokens del proyecto antes de exportarlo.
 
 ## Convenciones
 
 - Nombres de archivos: `kebab-case` para archivos, `PascalCase` para componentes
-- Tipos de Supabase: generados en `src/integrations/supabase/types.ts` — no editar manualmente
-- Variables de entorno: prefijo `VITE_` para las que necesita el frontend
-- Idioma del código: inglés; idioma de la UI y comentarios: español
+- Idioma del código: inglés; idioma de la UI, comentarios y JSDoc: español
+- Cada componente exportado debe tener al menos un test de humo en `src/__tests__/`
+- No agregar dependencias de routing, data-fetching o backend (React Query, Supabase, etc.) — esas viven en el boilerplate de cada app, no aquí
 
-## Skills disponibles para este proyecto
+## Publicación
 
-- `/scale-audit` — Audita problemas de escalabilidad (paginación, N+1, timeouts)
-- `/test-quality` — Evalúa cobertura y calidad de los tests
-- `/pr-ready` — Checklist pre-PR: lint, tests, types
-- `/security-review` — Revisa cambios pendientes en busca de vulnerabilidades
+Se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".

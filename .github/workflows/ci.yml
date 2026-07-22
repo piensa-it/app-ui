@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Audit de dependencias publicadas
+        # --omit=dev: las devDependencies (vite/esbuild) nunca se publican en
+        # el paquete — solo se usan para build local/CI. Auditamos con la
+        # misma superficie que realmente instala un consumidor.
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript strict check
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Tests
+        run: npm run test:run
+
+      - name: Build de la librería
+        run: npm run build

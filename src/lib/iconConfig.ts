@@ -1,3 +1,9 @@
+/**
+ * Mapa de clases utilitarias para renderizar íconos de forma consistente
+ * (tamaño, color semántico, contenedor) en toda la librería. Los colores
+ * usan los tokens del design system (ver src/styles/globals.css), así que
+ * respetan el theming por marca de cada consumidor.
+ */
 export const iconConfig = {
   sizes: {
     xs: "h-3 w-3",
@@ -10,9 +16,8 @@ export const iconConfig = {
     primary: "text-primary",
     muted: "text-muted-foreground",
     success: "text-success",
+    warning: "text-warning",
     destructive: "text-destructive",
-    income: "text-income",
-    expense: "text-expense",
   },
   containerSizes: {
     sm: "p-1.5 rounded-lg",
@@ -22,9 +27,10 @@ export const iconConfig = {
   containerColors: {
     primary: "bg-primary/10",
     muted: "bg-muted/50",
-    income: "bg-income/10",
-    expense: "bg-expense/10",
-  }
+    success: "bg-success/10",
+    warning: "bg-warning/10",
+    destructive: "bg-destructive/10",
+  },
 };
 
 export type IconSize = keyof typeof iconConfig.sizes;

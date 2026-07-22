@@ -1,0 +1,37 @@
+name: Publish package
+
+# Se dispara al publicar un Release en GitHub (crea el tag automáticamente).
+# Flujo recomendado: bump de "version" en package.json vía PR -> merge a
+# main -> crear el Release en GitHub apuntando a ese commit.
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@piensa-it"
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run test:run
+
+      - run: npm run build
+
+      - name: Publicar en GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
