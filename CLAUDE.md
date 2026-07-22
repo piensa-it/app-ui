@@ -6,30 +6,36 @@
 
 - **Frontend**: React 18 + TypeScript 5.8 + Vite 5 (SWC), en **modo librería** (no SPA)
 - **Estilos**: Tailwind CSS 3 + shadcn-ui, tokens vía CSS variables (theming por marca)
+- **Documentación**: Storybook 10 — sitio público en https://amontoyag8.github.io/app-ui/, autodesplegado en cada push a `main`
 - **Tests**: Vitest 4 + Testing Library
 - **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS
 
 ## Comandos clave
 
 ```bash
-npm run dev          # Playground de desarrollo (src/App.tsx) — NO es lo que se publica
-npm run build        # Genera dist/ — esto es lo que se publica a GitHub Packages
-npm run test         # Tests en modo watch
-npm run test:run     # Tests una sola vez
-npm run lint         # ESLint
+npm run dev              # Playground de desarrollo (src/App.tsx) — NO es lo que se publica
+npm run storybook         # Sitio de documentación en localhost:6006, con hot reload
+npm run build             # Genera dist/ — esto es lo que se publica a GitHub Packages
+npm run build-storybook    # Genera storybook-static/ — esto es lo que se publica como docs
+npm run test              # Tests en modo watch
+npm run test:run          # Tests una sola vez
+npm run lint              # ESLint
 ```
 
 ## Estructura del proyecto
 
 ```
 tailwind-preset.js     # preset de Tailwind publicado (tokens compartidos entre repos)
+.storybook/              # config del sitio de documentación (main.ts, preview.tsx)
 src/
 ├── index.ts            # barrel de exports públicos — ÚNICO punto de entrada del paquete
 ├── styles/globals.css  # tokens de diseño (CSS vars) + directivas Tailwind
+├── docs/                # páginas de documentación sin componente (Introducción, Tokens)
 ├── components/
 │   ├── ui/              # primitivas shadcn/ui
 │   ├── layout/           # Layout, GlobalErrorBoundary
 │   └── marketing/         # PublicHeader, PublicFooter, ImageCarouselBackdrop
+│       └── *.stories.tsx   # cada componente vive junto a su story
 ├── lib/                  # utils.ts (cn), iconConfig.ts
 ├── App.tsx, main.tsx      # playground de desarrollo, no se publica
 └── __tests__/             # tests de componentes
@@ -41,14 +47,16 @@ src/
 - **Sin colores hardcodeados**: todo color usa clases Tailwind mapeadas a CSS variables (`bg-primary`, `text-muted-foreground`, `bg-success`...) definidas en `src/styles/globals.css`. Nunca un hex/rgb directo en un componente.
 - **Export único**: cualquier componente nuevo se agrega a `src/index.ts`. Los consumidores importan solo desde la raíz del paquete, nunca desde rutas internas (`@piensa-it/ui-library/dist/...`).
 - **shadcn/ui**: usar `npx shadcn@latest add <componente>` (components.json ya configurado) y luego adaptar colores/estructura a los tokens del proyecto antes de exportarlo.
+- **Todo componente exportado tiene story**: `<componente>.stories.tsx` junto al componente, `tags: ["autodocs"]`, `title: "<Categoría>/<Componente>"`. Sin story, el componente no aparece en la documentación pública — no lo consideres "terminado" hasta que tenga una.
 
 ## Convenciones
 
 - Nombres de archivos: `kebab-case` para archivos, `PascalCase` para componentes
 - Idioma del código: inglés; idioma de la UI, comentarios y JSDoc: español
-- Cada componente exportado debe tener al menos un test de humo en `src/__tests__/`
+- Cada componente exportado debe tener al menos un test de humo en `src/__tests__/` y una story en su carpeta
 - No agregar dependencias de routing, data-fetching o backend (React Query, Supabase, etc.) — esas viven en el boilerplate de cada app, no aquí
 
 ## Publicación
 
-Se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".
+- **Paquete npm**: se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".
+- **Sitio de documentación**: se redespliega solo, en cada push a `main` (`.github/workflows/deploy-docs.yml`), sin necesidad de release ni bump de versión — siempre refleja el código fuente actual.

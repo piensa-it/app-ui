@@ -11,8 +11,15 @@ Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente 
 - React 18 + TypeScript 5 (strict)
 - Tailwind CSS 3 + shadcn/ui (Radix UI + class-variance-authority)
 - Vite 5 en modo librería (build ESM + CJS + `.d.ts` con `vite-plugin-dts`)
+- Storybook 10 — sitio de documentación de componentes
 - Vitest 4 + Testing Library
 - framer-motion, lucide-react
+
+## Documentación de componentes
+
+**https://amontoyag8.github.io/app-ui/** — catálogo navegable de todos los componentes, categorizado (**UI**, **Layout**, **Marketing**), con ejemplos en vivo, controles interactivos para probar props, tabla de props autogenerada desde TypeScript, y una página de **Tokens** con la paleta de colores/tipografía/radios. Es la fuente de verdad de "cómo se ve e implementa cada componente" — los demás repos (MisFin, Lynx, etc.) enlazan a esta URL desde su nav/footer para que cualquier persona del equipo (no solo devs) pueda consultarla.
+
+Se genera con [Storybook](https://storybook.js.org/) a partir del código fuente de `src/` (no del paquete publicado en npm), y se **redespliega automáticamente en cada push a `main`** vía `.github/workflows/deploy-docs.yml`. Requiere habilitar GitHub Pages una sola vez: Settings del repo → Pages → Source: "GitHub Actions".
 
 ## Instalación en otro repo
 
@@ -85,25 +92,30 @@ export default {
 
 ```bash
 npm install
-npm run dev      # levanta un playground en localhost:8080 con todos los componentes
-npm run test      # tests en watch mode
+npm run dev               # playground en localhost:8080 (prueba rápida y sucia)
+npm run storybook          # sitio de documentación en localhost:6006 (con hot reload)
+npm run test                # tests en watch mode
 npm run lint
-npm run build     # genera dist/ (lo que se publica)
+npm run build                # genera dist/ (lo que se publica a npm)
+npm run build-storybook       # genera storybook-static/ (lo que se publica como docs)
 ```
 
-`npm run dev` NO es lo que se publica — sirve únicamente para previsualizar componentes mientras se desarrollan (`src/App.tsx`). El paquete publicado se genera a partir de `src/index.ts` en modo build.
+`npm run dev` NO es lo que se publica — sirve únicamente para previsualizar componentes mientras se desarrollan (`src/App.tsx`). El paquete publicado se genera a partir de `src/index.ts` en modo build. `npm run storybook` es el modo recomendado para desarrollar un componente nuevo: cada story es un caso de uso documentado, con controles para probar props sin escribir código.
 
 ## Estructura
 
 ```
 tailwind-preset.js       # preset de Tailwind publicado (tokens compartidos)
+.storybook/               # config del sitio de documentación (main.ts, preview.tsx)
 src/
 ├── index.ts              # barrel de exports públicos — único punto de entrada del paquete
 ├── styles/globals.css     # tokens de diseño (CSS vars) + directivas Tailwind
+├── docs/                  # páginas de documentación sin componente (Introducción, Tokens)
 ├── components/
 │   ├── ui/                # primitivas shadcn/ui (Button, Card, Badge, Input, Separator...)
 │   ├── layout/             # Layout, GlobalErrorBoundary
 │   └── marketing/          # PublicHeader, PublicFooter, ImageCarouselBackdrop
+│       └── *.stories.tsx    # cada componente vive junto a su story de Storybook
 ├── lib/
 │   ├── utils.ts             # cn() — merge de clases Tailwind
 │   └── iconConfig.ts         # mapa de clases para tamaños/colores de íconos
@@ -126,6 +138,8 @@ src/
 3. Expórtalo desde `src/index.ts`.
 
 4. Agrega al menos un test de humo en `src/__tests__/`.
+
+5. Agrega un `<componente>.stories.tsx` junto al componente (ver los existentes como referencia), con `tags: ["autodocs"]` y `title: "<Categoría>/<Componente>"` (`UI`, `Layout` o `Marketing` — o una categoría nueva si aplica). Corre `npm run storybook` para verlo en vivo antes de subir el PR: sin story, el componente no aparece en la documentación y nadie más del equipo sabrá que existe.
 
 ## Publicar una nueva versión
 

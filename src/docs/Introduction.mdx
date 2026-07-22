@@ -1,0 +1,60 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introducción" />
+
+# @piensa-it/ui-library
+
+Librería de componentes UI y lineamientos de FrontEnd de **Piensa IT**. Fuente única de verdad para la capa de presentación (React + TypeScript + Tailwind CSS + shadcn/ui) usada en todos los sitios y aplicaciones de la compañía (MisFin, Lynx, y los que sigan).
+
+Este sitio **es** la documentación viva de la librería: cada componente publicado tiene su propia página con ejemplos interactivos, controles para probar props en vivo, y la tabla de props generada automáticamente desde los tipos de TypeScript. Usa el sidebar de la izquierda para navegar por categoría (**UI**, **Layout**, **Marketing**).
+
+## Instalación
+
+La librería se publica como paquete privado en **GitHub Packages** bajo el scope `@piensa-it`.
+
+1. En tu repo, crea (o edita) `.npmrc` en la raíz:
+
+   ```
+   @piensa-it:registry=https://npm.pkg.github.com
+   ```
+
+2. Autenticación (una vez por máquina/CI): exporta un token de GitHub con permiso `read:packages` como `NODE_AUTH_TOKEN`, o corre `npm login --scope=@piensa-it --registry=https://npm.pkg.github.com`.
+
+3. Instala:
+
+   ```bash
+   npm install @piensa-it/ui-library
+   ```
+
+## Uso
+
+```tsx
+// una sola vez, en el entrypoint de la app (main.tsx / _app.tsx)
+import "@piensa-it/ui-library/styles.css";
+```
+
+```tsx
+import { Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
+
+function Example() {
+  return (
+    <Layout brand={<span>Mi Producto</span>}>
+      <Card>
+        <CardContent>
+          <Button>Continuar</Button>
+        </CardContent>
+      </Card>
+    </Layout>
+  );
+}
+```
+
+Importa siempre desde la raíz del paquete (`@piensa-it/ui-library`), nunca desde rutas internas.
+
+## Theming por marca (white-labeling)
+
+Los componentes no tienen colores hardcodeados: todo sale de variables CSS. Cada producto sobreescribe esas variables con su propia paleta, sin tocar un solo componente — ve la página **Tokens** en el sidebar para ver la paleta completa y cómo sobreescribirla.
+
+## ¿Dudas o falta un componente?
+
+Revisa el `README.md` del repo `app-ui` para la guía de contribución (cómo agregar un componente nuevo con `shadcn/ui`, convenciones de código, cómo publicar una versión). Este sitio se regenera automáticamente en cada push a `main`, así que siempre refleja el código fuente actual — no necesariamente la última versión publicada en npm.

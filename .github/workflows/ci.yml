@@ -35,3 +35,6 @@ jobs:
 
       - name: Build de la librería
         run: npm run build
+
+      - name: Build del sitio de documentación (Storybook)
+        run: npm run build-storybook
