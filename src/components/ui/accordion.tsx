@@ -43,7 +43,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
     return (
       <ArkAccordion.Root
         ref={ref}
-        className={cn("divide-y divide-border rounded-lg border border-border bg-card shadow-sm", className)}
+        className={cn("space-y-2", className)}
         value={value}
         multiple={multiple}
         collapsible={collapsible}
@@ -53,21 +53,45 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
         {tabs.map((tab, index) => {
           const itemValue = tab.props.value ?? String(index);
           return (
-            <ArkAccordion.Item key={itemValue} value={itemValue} disabled={tab.props.disabled}>
+            <ArkAccordion.Item
+              key={itemValue}
+              value={itemValue}
+              disabled={tab.props.disabled}
+              className={cn(
+                "overflow-hidden rounded-lg border border-border bg-card shadow-sm",
+                "transition-[border-color,box-shadow] duration-normal ease-standard",
+                "hover:border-surface-border",
+                "data-[state=open]:border-ring/30 data-[state=open]:shadow-sm",
+              )}
+            >
               <ArkAccordion.ItemTrigger
                 className={cn(
-                  "group flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-medium",
-                  "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
+                  "group flex min-h-control-comfortable w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold",
+                  "transition-colors duration-normal ease-standard hover:bg-surface-hover",
+                  "data-[state=open]:bg-subtle/70 data-[state=open]:text-subtle-foreground",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-inset",
                   "disabled:pointer-events-none disabled:opacity-50",
                 )}
               >
-                {tab.props.header}
-                <ArkAccordion.ItemIndicator className="shrink-0 transition-transform duration-200 data-[state=open]:rotate-180">
-                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent-foreground" />
+                <span className="min-w-0">{tab.props.header}</span>
+                <ArkAccordion.ItemIndicator
+                  className={cn(
+                    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-background text-muted-foreground shadow-sm",
+                    "transition-[transform,background-color,color,border-color] duration-normal ease-standard",
+                    "group-hover:border-surface-border group-hover:text-foreground",
+                    "data-[state=open]:rotate-180 data-[state=open]:border-ring/30 data-[state=open]:bg-primary data-[state=open]:text-primary-foreground",
+                  )}
+                >
+                  <ChevronDown className="size-4" />
                 </ArkAccordion.ItemIndicator>
               </ArkAccordion.ItemTrigger>
-              <ArkAccordion.ItemContent className="px-5 pb-5 pt-1.5 text-sm leading-relaxed text-muted-foreground">
+              <ArkAccordion.ItemContent
+                className={cn(
+                  "border-t border-border/70 px-4 py-4 text-sm leading-6 text-muted-foreground",
+                  "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1",
+                  "data-[state=open]:duration-normal motion-reduce:animate-none",
+                )}
+              >
                 {tab.props.children}
               </ArkAccordion.ItemContent>
             </ArkAccordion.Item>

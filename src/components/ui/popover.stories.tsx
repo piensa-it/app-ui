@@ -7,7 +7,7 @@ const meta = {
   component: Popover,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Panel flotante sobre PrimeReact OverlayPanel." } },
+    docs: { description: { component: "Panel flotante accesible sobre Ark UI para contenido contextual interactivo." } },
   },
   args: { children: null },
 } satisfies Meta<typeof Popover>;

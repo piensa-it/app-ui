@@ -7,7 +7,7 @@ const meta = {
   component: Checkbox,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Checkbox accesible sobre PrimeReact Checkbox." } },
+    docs: { description: { component: "Checkbox accesible sobre Ark UI con estados marcado, vacío e indeterminado." } },
   },
 } satisfies Meta<typeof Checkbox>;
 

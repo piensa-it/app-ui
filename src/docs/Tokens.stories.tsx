@@ -1,4 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Switch } from "../components/ui/switch";
 
 const meta = {
   title: "Tokens",
@@ -53,6 +56,15 @@ const elevationTokens = [
   { name: "lg", className: "shadow-lg" },
 ];
 
+const palettes = [
+  { value: "indigo", label: "Índigo" },
+  { value: "ocean", label: "Océano" },
+  { value: "violet", label: "Violeta" },
+  { value: "emerald", label: "Esmeralda" },
+  { value: "ruby", label: "Rubí" },
+  { value: "amber", label: "Ámbar" },
+];
+
 export const Colores: Story = {
   render: () => (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -90,13 +102,44 @@ export const Tipografia: Story = {
   render: () => (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="font-heading text-3xl font-bold">Heading — font-heading</p>
-        <p className="text-xs text-muted-foreground">--font-heading (títulos, headings)</p>
+        <p className="font-heading text-3xl font-semibold tracking-tight">Geist Variable — encabezados</p>
+        <p className="text-xs text-muted-foreground">--font-heading · jerarquía por peso, escala y espaciado</p>
       </div>
       <div>
-        <p className="font-sans text-base">Texto base — font-sans</p>
-        <p className="text-xs text-muted-foreground">--font-sans (cuerpo de texto, UI)</p>
+        <p className="font-sans text-base">Geist Variable — interfaz y lectura</p>
+        <p className="text-xs text-muted-foreground">--font-sans · controles, cuerpo y datos</p>
       </div>
+    </div>
+  ),
+};
+
+export const Paletas: Story = {
+  name: "Paletas de identidad",
+  render: () => (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {palettes.map((palette) => (
+        <section
+          key={palette.value}
+          data-ui-palette={palette.value}
+          className="rounded-xl border border-surface-border bg-card p-5 shadow-sm"
+        >
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-heading font-semibold">{palette.label}</p>
+              <p className="font-mono text-xs text-muted-foreground">data-ui-palette=&quot;{palette.value}&quot;</p>
+            </div>
+            <span className="size-8 rounded-full bg-primary shadow-sm ring-4 ring-subtle" />
+          </div>
+          <div className="grid gap-3">
+            <Input aria-label={`Campo ${palette.label}`} placeholder="Campo de ejemplo" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm">Continuar</Button>
+              <Button size="sm" variant="subtle">Secundario</Button>
+              <Switch checked aria-label={`Activo ${palette.label}`} />
+            </div>
+          </div>
+        </section>
+      ))}
     </div>
   ),
 };

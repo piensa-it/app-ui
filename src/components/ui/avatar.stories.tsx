@@ -6,7 +6,7 @@ const meta = {
   component: Avatar,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Avatar de usuario sobre PrimeReact Avatar." } },
+    docs: { description: { component: "Avatar con imagen, iniciales y fallback para representar personas o entidades." } },
   },
 } satisfies Meta<typeof Avatar>;
 

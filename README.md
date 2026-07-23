@@ -84,11 +84,36 @@ Importa siempre desde la raíz del paquete (`@piensa-it/ui-library`), nunca desd
 
 Los componentes no tienen colores hardcodeados: todo sale de variables CSS (`--primary`, `--background`, `--success`, etc. — ver `src/styles/globals.css`). Cada producto sobreescribe esas variables con su propia paleta, sin tocar un solo componente:
 
+La librería incluye seis paletas listas para usar. Aplica el atributo en un
+ancestro de la aplicación o de una sección concreta:
+
+```tsx
+<div data-ui-palette="ocean">
+  <UiProvider>{children}</UiProvider>
+</div>
+```
+
+Valores disponibles: `indigo`, `ocean`, `violet`, `emerald`, `ruby` y `amber`.
+La paleta modifica identidad, foco, selección y énfasis; no cambia el significado
+universal de `success`, `warning` o `destructive`.
+
+Para una identidad completamente propia, sobreescribe los tokens:
+
 ```css
 /* estilos globales de tu app, después de importar styles.css de la librería */
 :root {
   --primary: 158 64% 32%;           /* verde MisFin, por ejemplo */
   --primary-foreground: 0 0% 100%;
+}
+```
+
+La tipografía predeterminada usa Geist Variable para interfaz y Manrope Variable
+para encabezados. Una aplicación puede reemplazarlas sin modificar componentes:
+
+```css
+:root {
+  --font-sans: "Mi fuente de interfaz", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Mi fuente de marca", var(--font-sans);
 }
 ```
 

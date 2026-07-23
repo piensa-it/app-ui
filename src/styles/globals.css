@@ -1,3 +1,6 @@
+@import "./fonts.css";
+@import "./palettes.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,60 +8,59 @@
 /**
  * Tokens de diseño de @piensa-it/ui-library.
  *
- * Paleta por defecto = identidad real de Piensa IT (rojo de marca
- * #C8102E, tomado de piensait.com) sobre grises cálidos — no el slate
- * genérico de shadcn. Cada producto (MisFin, Lynx, etc.) puede seguir
- * sobreescribiendo este bloque `:root` / `.dark` en su propia app para su
- * propia identidad, pero el default de la librería ya tiene personalidad
- * propia. Ver README > "Theming".
+ * Paleta predeterminada = índigo neutral sobre grises cálidos. La librería es
+ * white-label: cada producto puede seleccionar una paleta incluida mediante
+ * `data-ui-palette` o sobreescribir los tokens para su propia identidad. Ver
+ * README > "Theming".
  *
- * `--primary` (rojo profundo, marca) y `--destructive` (rojo más vivo,
- * "peligro") se separan a propósito en tono/luminosidad — ambos leen como
- * "rojo Piensa IT", pero no son el mismo valor, para no confundir un CTA
- * principal con una acción destructiva.
+ * `--primary` es identidad configurable; `--destructive` conserva significado
+ * universal de peligro. Nunca deben inferirse uno del otro, incluso cuando una
+ * aplicación elija la paleta rubí.
  */
 @layer base {
   :root {
-    --background: 20 20% 99%;
-    --foreground: 20 15% 12%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
-    --card: 20 20% 99%;
-    --card-foreground: 20 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
 
-    --popover: 20 20% 99%;
-    --popover-foreground: 20 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 350 85% 42%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 15% 95%;
-    --secondary-foreground: 20 15% 15%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 14%;
 
-    --muted: 20 15% 95%;
-    --muted-foreground: 20 8% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 42%;
 
-    --accent: 20 15% 95%;
-    --accent-foreground: 20 15% 15%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 14%;
 
-    --surface: 20 20% 98%;
-    --surface-hover: 20 15% 95%;
-    --surface-border: 20 15% 88%;
-    --subtle: 350 40% 96%;
-    --subtle-hover: 350 35% 92%;
-    --subtle-foreground: 350 65% 30%;
+    --surface: 0 0% 99%;
+    --surface-hover: 0 0% 96%;
+    --surface-border: 0 0% 87%;
+    --subtle: 243 70% 96%;
+    --subtle-hover: 243 65% 92%;
+    --subtle-foreground: 243 55% 34%;
 
     --destructive: 4 90% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142.1 76.2% 36.3%;
+    /* Verde suficientemente oscuro para funcionar como fondo y como texto
+       pequeño sobre blanco con contraste AA. */
+    --success: 142 72% 29%;
     --success-foreground: 355.7 100% 97.3%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 8%;
 
-    --border: 20 15% 90%;
-    --input: 20 15% 90%;
-    --ring: 350 85% 42%;
+    --border: 0 0% 89%;
+    --input: 0 0% 87%;
+    --ring: 243 75% 59%;
 
     /* Negro/sombra universales — no son "color de marca", son efectos
        físicos (oscurecer detrás de un modal, dar profundidad a una
@@ -74,8 +76,8 @@
     /* Paleta para gráficas multi-serie (`Chart`) — distinta de los tokens
        semánticos (`--primary`, `--success`...), pensada para distinguir
        varias series a la vez sin implicar significado (éxito/error/etc). */
-    --chart-1: 350 85% 42%;
-    --chart-2: 20 15% 15%;
+    --chart-1: 243 75% 59%;
+    --chart-2: 0 0% 16%;
     --chart-3: 32 85% 55%;
     --chart-4: 200 60% 45%;
     --chart-5: 160 50% 40%;
@@ -95,8 +97,11 @@
     --shadow-md: 0 8px 24px hsl(var(--shadow-color) / 0.12);
     --shadow-lg: 0 18px 48px hsl(var(--shadow-color) / 0.18);
 
-    --font-sans: "Inter", system-ui, sans-serif;
-    --font-heading: "Poppins", "Inter", system-ui, sans-serif;
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+    /* Una sola familia evita cambios de métricas entre títulos y controles.
+       La jerarquía se construye con peso, tamaño y tracking, como en las
+       interfaces de producto contemporáneas. */
+    --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   }
 }
 
@@ -116,10 +121,8 @@
  * solo evita que Tailwind se la coma. No mover este bloque de vuelta a
  * `@layer base` sin volver a verificar contra el CSS compilado.
  *
- * El modo oscuro conserva el linaje rojo de Piensa IT para que una acción
- * primaria mantenga el mismo significado y reconocimiento entre temas.
- * El naranja queda disponible como acento de gráfica/warning, y el rojo
- * destructivo se separa por luminosidad y saturación.
+ * El modo oscuro conserva el linaje cromático de la paleta seleccionada para
+ * que una acción primaria mantenga el mismo significado entre temas.
  */
 .dark {
   --background: 0 0% 7%;
@@ -131,8 +134,8 @@
   --popover: 0 0% 10%;
   --popover-foreground: 0 0% 95%;
 
-  --primary: 350 78% 58%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 243 82% 70%;
+  --primary-foreground: 243 45% 12%;
 
   --secondary: 0 0% 16%;
   --secondary-foreground: 0 0% 95%;
@@ -146,9 +149,9 @@
   --surface: 0 0% 12%;
   --surface-hover: 0 0% 16%;
   --surface-border: 0 0% 24%;
-  --subtle: 350 35% 16%;
-  --subtle-hover: 350 35% 21%;
-  --subtle-foreground: 350 80% 78%;
+  --subtle: 243 38% 18%;
+  --subtle-hover: 243 38% 23%;
+  --subtle-foreground: 243 78% 82%;
 
   --destructive: 4 85% 62%;
   --destructive-foreground: 0 0% 100%;
@@ -161,12 +164,12 @@
 
   --border: 0 0% 20%;
   --input: 0 0% 20%;
-  --ring: 350 78% 58%;
+  --ring: 243 82% 70%;
 
   --overlay: 0 0% 0%;
   --shadow-color: 0 0% 0%;
 
-  --chart-1: 350 78% 58%;
+  --chart-1: 243 82% 70%;
   --chart-2: 0 0% 85%;
   --chart-3: 38 92% 60%;
   --chart-4: 200 70% 55%;

@@ -7,7 +7,7 @@ const meta = {
   component: Switch,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Interruptor on/off sobre PrimeReact InputSwitch." } },
+    docs: { description: { component: "Interruptor accesible sobre Ark UI para preferencias binarias de efecto inmediato." } },
   },
 } satisfies Meta<typeof Switch>;
 

@@ -7,7 +7,7 @@ const meta = {
   component: Tooltip,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Tooltip accesible sobre PrimeReact Tooltip." } },
+    docs: { description: { component: "Tooltip accesible sobre Ark UI para ayudas breves y contextuales." } },
   },
   args: { content: "", children: <span /> },
 } satisfies Meta<typeof Tooltip>;

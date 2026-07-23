@@ -7,7 +7,7 @@ const meta = {
   component: MultiSelect,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Selector múltiple sobre PrimeReact MultiSelect." } },
+    docs: { description: { component: "Selector múltiple accesible sobre Ark UI con búsqueda y estados seleccionados." } },
   },
   args: { options: [] },
 } satisfies Meta<typeof MultiSelect>;

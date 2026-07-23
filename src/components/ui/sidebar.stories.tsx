@@ -8,7 +8,7 @@ const meta = {
   component: Sheet,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Panel deslizante lateral sobre PrimeReact Sidebar." } },
+    docs: { description: { component: "Panel lateral accesible sobre Ark UI para tareas secundarias y navegación contextual." } },
   },
   args: { open: false, onOpenChange: () => {} },
 } satisfies Meta<typeof Sheet>;

@@ -63,16 +63,34 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    palette: {
+      description: "Paleta de identidad",
+      toolbar: {
+        title: "Paleta",
+        icon: "paintbrush",
+        items: [
+          { value: "indigo", title: "Índigo" },
+          { value: "ocean", title: "Océano" },
+          { value: "violet", title: "Violeta" },
+          { value: "emerald", title: "Esmeralda" },
+          { value: "ruby", title: "Rubí" },
+          { value: "amber", title: "Ámbar" },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   initialGlobals: {
     theme: "light",
+    palette: "indigo",
   },
   decorators: [
     (Story, context) => {
       const themeSetting = context.globals.theme ?? "light";
+      const palette = context.globals.palette ?? "indigo";
       const isDark = useResolvedDark(themeSetting);
       return (
-        <div className={isDark ? "dark" : ""}>
+        <div className={isDark ? "dark" : ""} data-ui-palette={palette}>
           {/* Superficie exterior (bg-muted) para que la "card" de la demo
               tenga contraste y se sienta agrupada/presentada, en vez de
               flotar directamente sobre el fondo de la página. Sin flex: se

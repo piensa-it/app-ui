@@ -9,7 +9,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: "Selector desplegable sobre PrimeReact Dropdown, con el tema Tailwind de Piensa IT.",
+        component: "Selector desplegable accesible sobre Ark UI, con búsqueda, teclado y tema basado en tokens.",
       },
     },
   },

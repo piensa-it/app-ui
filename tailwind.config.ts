@@ -10,7 +10,7 @@ import preset from "./tailwind-preset.js";
  */
 const config: Config = {
   darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx}"],
+  content: ["./src/**/*.{ts,tsx,mdx}"],
   presets: [preset],
   theme: {
     container: {

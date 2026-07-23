@@ -6,7 +6,7 @@ const meta = {
   component: Tabs,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Navegación por pestañas sobre PrimeReact TabView." } },
+    docs: { description: { component: "Navegación por pestañas sobre Ark UI para alternar vistas relacionadas." } },
   },
 } satisfies Meta<typeof Tabs>;
 

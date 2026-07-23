@@ -7,7 +7,7 @@ const meta = {
   component: DatePicker,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Selector de fecha sobre PrimeReact Calendar, localizado en español." } },
+    docs: { description: { component: "Selector de fecha sobre Ark UI, localizado en español y preparado para teclado." } },
   },
 } satisfies Meta<typeof DatePicker>;
 

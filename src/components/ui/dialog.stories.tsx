@@ -8,7 +8,7 @@ const meta = {
   component: Dialog,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Modal sobre PrimeReact Dialog, con composición por hijos." } },
+    docs: { description: { component: "Modal accesible sobre Ark UI con encabezado, contenido y acciones componibles." } },
   },
   args: { open: false, onOpenChange: () => {} },
 } satisfies Meta<typeof Dialog>;

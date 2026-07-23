@@ -4,14 +4,16 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getPaginationRowModel,
+  getFilteredRowModel,
   flexRender,
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica, igual que el `DataTableValue` anterior sobre PrimeReact.
 export type DataTableValue = Record<string, any>;
@@ -46,6 +48,16 @@ export interface DataTableProps<TValue extends DataTableValue> {
   "aria-label"?: string;
   /** Caption visible que describe el conjunto de datos. */
   caption?: React.ReactNode;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  loading?: boolean;
+  /** Densidad vertical de las filas. @default "default" */
+  density?: "compact" | "default" | "comfortable";
+  /** Alterna un fondo sutil entre filas. */
+  striped?: boolean;
   className?: string;
 }
 
@@ -72,10 +84,19 @@ function DataTable<TValue extends DataTableValue>({
   emptyMessage = "No hay datos para mostrar.",
   "aria-label": ariaLabel = "Tabla de datos",
   caption,
+  title,
+  description,
+  actions,
+  searchable = false,
+  searchPlaceholder = "Buscar en la tabla…",
+  loading = false,
+  density = "default",
+  striped = false,
   className,
 }: DataTableProps<TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: rows });
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
   const columnDefs = React.useMemo<Array<ColumnDef<TValue>>>(() => {
     const specs = React.Children.toArray(children).filter(
@@ -97,20 +118,53 @@ function DataTable<TValue extends DataTableValue>({
   const table = useReactTable({
     data: value,
     columns: columnDefs,
-    state: { sorting, pagination: paginator ? pagination : undefined },
+    state: { sorting, pagination: paginator ? pagination : undefined, globalFilter },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: paginator ? getPaginationRowModel() : undefined,
   });
 
-  const totalRows = value.length;
+  const totalRows = table.getFilteredRowModel().rows.length;
   const pageCount = table.getPageCount();
+  const cellPadding = {
+    compact: "px-4 py-2",
+    default: "px-4 py-3",
+    comfortable: "px-4 py-4",
+  }[density];
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
+    <div className={cn("w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm", className)}>
+      {title || description || actions || searchable ? (
+        <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            {title ? <div className="font-heading text-base font-semibold text-foreground">{title}</div> : null}
+            {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            {searchable ? (
+              <div className="relative min-w-0 sm:w-64">
+                <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  aria-label="Buscar en la tabla"
+                  className="pl-9"
+                  placeholder={searchPlaceholder}
+                  value={globalFilter}
+                  onChange={(event) => {
+                    setGlobalFilter(event.target.value);
+                    table.setPageIndex(0);
+                  }}
+                />
+              </div>
+            ) : null}
+            {actions}
+          </div>
+        </div>
+      ) : null}
+      <div className="overflow-x-auto">
         <table aria-label={caption ? undefined : ariaLabel} className="w-full border-collapse text-sm">
           {caption ? <caption className="px-4 py-3 text-left font-medium">{caption}</caption> : null}
           <thead>
@@ -162,7 +216,17 @@ function DataTable<TValue extends DataTableValue>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.length === 0 ? (
+            {loading ? (
+              Array.from({ length: Math.min(rows, 5) }).map((_, rowIndex) => (
+                <tr key={`loading-${rowIndex}`} className="border-b border-border last:border-0">
+                  {columnDefs.map((column, columnIndex) => (
+                    <td key={`${column.id ?? columnIndex}`} className={cellPadding}>
+                      <div className={cn("h-4 animate-pulse rounded bg-muted", columnIndex === 0 ? "w-3/5" : columnIndex % 2 ? "w-4/5" : "w-2/5")} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={columnDefs.length} className="px-4 py-8 text-center text-muted-foreground">
                   {emptyMessage}
@@ -172,13 +236,16 @@ function DataTable<TValue extends DataTableValue>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-border last:border-0 transition-colors duration-150 hover:bg-accent/40"
+                  className={cn(
+                    "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
+                    striped && "even:bg-muted/30",
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={cn(
-                        "px-4 py-3",
+                        cellPadding,
                         (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
                       )}
                     >
@@ -191,8 +258,8 @@ function DataTable<TValue extends DataTableValue>({
           </tbody>
         </table>
       </div>
-      {paginator ? (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+      {paginator && !loading ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Filas por página</span>
             <Select

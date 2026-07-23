@@ -26,6 +26,8 @@ export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps } f
 export { Skeleton, type SkeletonProps } from "./components/ui/skeleton";
 export { EmptyState, type EmptyStateProps } from "./components/ui/empty-state";
 export { InputGroup, InputGroupAddon, InputGroupAction, type InputGroupProps } from "./components/ui/input-group";
+export { Icon, IconTile, type IconProps, type IconTileProps } from "./components/ui/icon";
+export { Surface, type SurfaceProps } from "./components/ui/surface";
 
 // --- Primitivas de interacción (Ark UI + tema Piensa IT) ---
 export { Select, type SelectProps, type SelectOption } from "./components/ui/select";

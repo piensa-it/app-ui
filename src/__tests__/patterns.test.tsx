@@ -8,6 +8,9 @@ import { Field } from "../components/ui/field";
 import { Input } from "../components/ui/input";
 import { InputGroup, InputGroupAddon } from "../components/ui/input-group";
 import { Skeleton } from "../components/ui/skeleton";
+import { Icon, IconTile } from "../components/ui/icon";
+import { Surface } from "../components/ui/surface";
+import { Bell } from "lucide-react";
 
 describe("patrones UX", () => {
   it("Field conecta label, descripción y error con el control", () => {
@@ -37,5 +40,15 @@ describe("patrones UX", () => {
     render(<InputGroup><InputGroupAddon>$</InputGroupAddon><Input aria-label="Valor" /></InputGroup>);
     expect(screen.getByRole("textbox", { name: "Valor" })).toBeInTheDocument();
     expect(screen.getByText("$")).toBeInTheDocument();
+  });
+
+  it("Icon distingue contenido decorativo y accesible", () => {
+    render(<><Icon icon={Bell} /><IconTile icon={Bell} label="Notificaciones" /></>);
+    expect(screen.getByRole("img", { name: "Notificaciones" })).toBeInTheDocument();
+  });
+
+  it("Surface aplica una superficie semántica configurable", () => {
+    render(<Surface as="section" variant="subtle">Resumen</Surface>);
+    expect(screen.getByText("Resumen")).toHaveClass("bg-subtle");
   });
 });

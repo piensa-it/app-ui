@@ -29,16 +29,16 @@ Piensa IT debe sentirse tecnológico y riguroso, pero no frío. Las superficies 
 sobrias, la tipografía es legible y el color de marca se reserva para acciones,
 selección y puntos de énfasis reales.
 
-### Identidad contenida
+### Identidad configurable
 
-La firma visual del sistema es un acento lineal rojo Piensa IT, preciso y de uso
-limitado. Puede aparecer en navegación seleccionada, estados activos, indicadores
-o encabezados relevantes. No debe convertirse en una franja decorativa repetida
-en todos los contenedores.
+La firma visual del sistema es un acento lineal del color primario, preciso y de
+uso limitado. Puede aparecer en navegación seleccionada, estados activos,
+indicadores o encabezados relevantes. No debe convertirse en una franja
+decorativa repetida en todos los contenedores.
 
-El rojo principal conserva su linaje de marca tanto en modo claro como oscuro.
-El naranja puede funcionar como acento complementario, pero no reemplaza la
-identidad principal ni se usa para acciones destructivas.
+El color primario conserva su linaje cromático entre modo claro y oscuro. La
+identidad de una aplicación nunca cambia el significado de success, warning o
+destructive.
 
 ### Datos fáciles de comparar
 
@@ -68,7 +68,7 @@ decisiones de marca.
 
 La paleta de referencia parte de estos roles:
 
-- Rojo Piensa IT (`#C8102E`): identidad y acción principal.
+- Primary configurable: identidad, acción principal y selección.
 - Rojo de peligro (`#EF4444`): error y acciones destructivas.
 - Grafito (`#211E1C`): texto y contraste principal.
 - Marfil cálido (`#FDFCFC`): canvas claro.

@@ -6,7 +6,7 @@ const meta = {
   component: Progress,
   tags: ["autodocs"],
   parameters: {
-    docs: { description: { component: "Barra de progreso sobre PrimeReact ProgressBar." } },
+    docs: { description: { component: "Barra de progreso accesible sobre Ark UI, tematizada con tokens semánticos." } },
   },
 } satisfies Meta<typeof Progress>;
 

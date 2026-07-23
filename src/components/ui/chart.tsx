@@ -46,6 +46,17 @@ export interface ChartProps {
   height?: number;
   showLegend?: boolean;
   showGrid?: boolean;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  /** Métrica principal asociada a la visualización. */
+  value?: React.ReactNode;
+  /** Variación o contexto breve de la métrica. */
+  trend?: React.ReactNode;
+  actions?: React.ReactNode;
+  loading?: boolean;
+  emptyMessage?: React.ReactNode;
+  /** Muestra superficie, borde y encabezado de panel. @default true */
+  framed?: boolean;
   className?: string;
 }
 
@@ -73,13 +84,35 @@ const tooltipStyle: React.CSSProperties = {
  * />
  * ```
  */
-function Chart({ type, data, categoryKey, series, height = 300, showLegend = true, showGrid = true, className }: ChartProps) {
-  const colored = series.map((s, i) => ({ ...s, color: s.color ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length] }));
+function Chart({
+  type,
+  data,
+  categoryKey,
+  series,
+  height = 300,
+  showLegend = true,
+  showGrid = true,
+  title,
+  description,
+  value,
+  trend,
+  actions,
+  loading = false,
+  emptyMessage = "No hay datos para visualizar.",
+  framed = true,
+  className,
+}: ChartProps) {
+  const colored = series.map((item, index) => ({
+    ...item,
+    color: item.color ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+  }));
+  const chartId = React.useId().replace(/:/g, "");
+  let visualization: React.ReactNode;
 
   if (type === "pie" || type === "donut") {
     const primary = colored[0];
-    return (
-      <div className={className} style={{ width: "100%", height }}>
+    visualization = (
+      <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -87,60 +120,105 @@ function Chart({ type, data, categoryKey, series, height = 300, showLegend = tru
               dataKey={primary?.key}
               nameKey={categoryKey}
               innerRadius={type === "donut" ? "60%" : 0}
-              outerRadius="85%"
-              paddingAngle={2}
+              outerRadius="84%"
+              paddingAngle={3}
+              cornerRadius={5}
             >
               {data.map((_, index) => (
                 <Cell key={index} fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]} />
               ))}
             </Pie>
             <Tooltip contentStyle={tooltipStyle} />
-            {showLegend ? <Legend /> : null}
+            {showLegend ? <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "0.8125rem" }} /> : null}
           </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  } else {
+    const ChartComponent = type === "bar" ? BarChart : type === "line" ? LineChart : AreaChart;
+    visualization = (
+      <div style={{ width: "100%", height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ChartComponent data={data} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
+            <defs>
+              {colored.map((item) => (
+                <linearGradient key={item.key} id={`${chartId}-${item.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={item.color} stopOpacity={0.28} />
+                  <stop offset="95%" stopColor={item.color} stopOpacity={0.02} />
+                </linearGradient>
+              ))}
+            </defs>
+            {showGrid ? <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" /> : null}
+            <XAxis dataKey={categoryKey} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }} />
+            {showLegend ? (
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "0.8125rem", paddingTop: "12px" }} />
+            ) : null}
+            {colored.map((item) =>
+              type === "bar" ? (
+                <Bar key={item.key} dataKey={item.key} name={item.label ?? item.key} fill={item.color} radius={[6, 6, 2, 2]} />
+              ) : type === "line" ? (
+                <Line
+                  key={item.key}
+                  type="monotone"
+                  dataKey={item.key}
+                  name={item.label ?? item.key}
+                  stroke={item.color}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 2, fill: "hsl(var(--card))" }}
+                />
+              ) : (
+                <Area
+                  key={item.key}
+                  type="monotone"
+                  dataKey={item.key}
+                  name={item.label ?? item.key}
+                  stroke={item.color}
+                  strokeWidth={2}
+                  fill={`url(#${chartId}-${item.key})`}
+                  fillOpacity={1}
+                />
+              ),
+            )}
+          </ChartComponent>
         </ResponsiveContainer>
       </div>
     );
   }
 
-  const ChartComponent = type === "bar" ? BarChart : type === "line" ? LineChart : AreaChart;
+  const content = loading ? (
+    <div className="flex items-end gap-3 px-2" style={{ height }}>
+      {[42, 68, 54, 82, 65, 90, 72].map((size, index) => (
+        <div key={index} className="flex-1 animate-pulse rounded-t-md bg-muted" style={{ height: `${size}%` }} />
+      ))}
+    </div>
+  ) : data.length === 0 ? (
+    <div className="grid place-items-center text-sm text-muted-foreground" style={{ height }}>
+      {emptyMessage}
+    </div>
+  ) : visualization;
 
   return (
-    <div className={className} style={{ width: "100%", height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <ChartComponent data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          {showGrid ? <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /> : null}
-          <XAxis dataKey={categoryKey} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }} />
-          {showLegend ? <Legend /> : null}
-          {colored.map((s) =>
-            type === "bar" ? (
-              <Bar key={s.key} dataKey={s.key} name={s.label ?? s.key} fill={s.color} radius={[4, 4, 0, 0]} />
-            ) : type === "line" ? (
-              <Line
-                key={s.key}
-                type="monotone"
-                dataKey={s.key}
-                name={s.label ?? s.key}
-                stroke={s.color}
-                strokeWidth={2}
-                dot={false}
-              />
-            ) : (
-              <Area
-                key={s.key}
-                type="monotone"
-                dataKey={s.key}
-                name={s.label ?? s.key}
-                stroke={s.color}
-                fill={s.color}
-                fillOpacity={0.2}
-              />
-            ),
-          )}
-        </ChartComponent>
-      </ResponsiveContainer>
-    </div>
+    <section className={framed ? `overflow-hidden rounded-lg border border-border bg-card shadow-sm ${className ?? ""}` : className}>
+      {title || description || value || trend || actions ? (
+        <header className="flex flex-col gap-4 border-b border-border px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            {title ? <h3 className="font-heading text-base font-semibold text-foreground">{title}</h3> : null}
+            {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+            {value ? (
+              <div className="mt-4 flex flex-wrap items-baseline gap-2">
+                <span className="font-heading text-3xl font-semibold tracking-tight text-foreground">{value}</span>
+                {trend ? <span className="text-sm font-medium text-success">{trend}</span> : null}
+              </div>
+            ) : null}
+          </div>
+          {actions}
+        </header>
+      ) : null}
+      <div className={framed ? "px-4 pb-4 pt-5" : undefined}>{content}</div>
+    </section>
   );
 }
 

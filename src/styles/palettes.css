@@ -1,0 +1,124 @@
+/**
+ * Paletas white-label. Se aplican con `data-ui-palette` en cualquier ancestro
+ * del árbol de la aplicación. Solo modifican tokens de identidad; los estados
+ * universales (destructive, success, warning) conservan su significado.
+ */
+[data-ui-palette="indigo"] {
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 243 75% 59%;
+  --subtle: 243 70% 96%;
+  --subtle-hover: 243 65% 92%;
+  --subtle-foreground: 243 55% 34%;
+  --chart-1: 243 75% 59%;
+}
+
+[data-ui-palette="ocean"] {
+  --primary: 205 88% 45%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 205 88% 45%;
+  --subtle: 202 80% 95%;
+  --subtle-hover: 202 72% 90%;
+  --subtle-foreground: 205 72% 28%;
+  --chart-1: 205 88% 45%;
+}
+
+[data-ui-palette="violet"] {
+  --primary: 270 70% 54%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 270 70% 54%;
+  --subtle: 270 65% 96%;
+  --subtle-hover: 270 55% 91%;
+  --subtle-foreground: 270 55% 34%;
+  --chart-1: 270 70% 54%;
+}
+
+[data-ui-palette="emerald"] {
+  --primary: 158 72% 34%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 158 72% 34%;
+  --subtle: 156 55% 94%;
+  --subtle-hover: 156 50% 88%;
+  --subtle-foreground: 158 66% 24%;
+  --chart-1: 158 72% 34%;
+}
+
+[data-ui-palette="ruby"] {
+  --primary: 350 75% 45%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 350 75% 45%;
+  --subtle: 350 60% 96%;
+  --subtle-hover: 350 52% 91%;
+  --subtle-foreground: 350 62% 32%;
+  --chart-1: 350 75% 45%;
+}
+
+[data-ui-palette="amber"] {
+  --primary: 30 90% 42%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 30 90% 42%;
+  --subtle: 35 90% 94%;
+  --subtle-hover: 35 82% 87%;
+  --subtle-foreground: 28 78% 26%;
+  --chart-1: 30 90% 42%;
+}
+
+:is(.dark [data-ui-palette="indigo"], .dark[data-ui-palette="indigo"]) {
+  --primary: 243 82% 70%;
+  --primary-foreground: 243 45% 12%;
+  --ring: 243 82% 70%;
+  --subtle: 243 38% 18%;
+  --subtle-hover: 243 38% 23%;
+  --subtle-foreground: 243 78% 82%;
+  --chart-1: 243 82% 70%;
+}
+
+:is(.dark [data-ui-palette="ocean"], .dark[data-ui-palette="ocean"]) {
+  --primary: 199 86% 62%;
+  --primary-foreground: 205 55% 10%;
+  --ring: 199 86% 62%;
+  --subtle: 202 45% 17%;
+  --subtle-hover: 202 42% 22%;
+  --subtle-foreground: 199 80% 78%;
+  --chart-1: 199 86% 62%;
+}
+
+:is(.dark [data-ui-palette="violet"], .dark[data-ui-palette="violet"]) {
+  --primary: 270 78% 70%;
+  --primary-foreground: 270 45% 11%;
+  --ring: 270 78% 70%;
+  --subtle: 270 38% 18%;
+  --subtle-hover: 270 38% 23%;
+  --subtle-foreground: 270 78% 82%;
+  --chart-1: 270 78% 70%;
+}
+
+:is(.dark [data-ui-palette="emerald"], .dark[data-ui-palette="emerald"]) {
+  --primary: 158 68% 56%;
+  --primary-foreground: 158 55% 9%;
+  --ring: 158 68% 56%;
+  --subtle: 158 38% 16%;
+  --subtle-hover: 158 36% 21%;
+  --subtle-foreground: 158 68% 78%;
+  --chart-1: 158 68% 56%;
+}
+
+:is(.dark [data-ui-palette="ruby"], .dark[data-ui-palette="ruby"]) {
+  --primary: 350 78% 66%;
+  --primary-foreground: 350 45% 10%;
+  --ring: 350 78% 66%;
+  --subtle: 350 38% 17%;
+  --subtle-hover: 350 38% 22%;
+  --subtle-foreground: 350 78% 82%;
+  --chart-1: 350 78% 66%;
+}
+
+:is(.dark [data-ui-palette="amber"], .dark[data-ui-palette="amber"]) {
+  --primary: 35 92% 60%;
+  --primary-foreground: 30 55% 9%;
+  --ring: 35 92% 60%;
+  --subtle: 35 42% 16%;
+  --subtle-hover: 35 40% 21%;
+  --subtle-foreground: 35 82% 78%;
+  --chart-1: 35 92% 60%;
+}

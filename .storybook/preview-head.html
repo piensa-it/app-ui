@@ -1,0 +1,65 @@
+<style>
+  /*
+   * Storybook agrega un padding superior amplio a todas las páginas Docs.
+   * En esta documentación se usa una barra de herramientas persistente, así
+   * que un espacio más corto mantiene la continuidad visual al entrar.
+   * Este ajuste vive únicamente en Storybook; no se publica con la librería.
+   */
+  .sbdocs.sbdocs-wrapper {
+    padding-top: 24px !important;
+  }
+
+  .sbdocs-content {
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+  }
+
+  .sbdocs-content > h1,
+  .sbdocs-content > h2,
+  .sbdocs-content > h3 {
+    border: 0;
+    color: hsl(var(--foreground));
+    font-family: var(--font-heading);
+    letter-spacing: -0.025em;
+  }
+
+  .sbdocs-content > h1 {
+    margin-bottom: 12px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 650;
+    line-height: 1.08;
+  }
+
+  .sbdocs-content > h2 {
+    margin-top: 40px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 1.5rem;
+    font-weight: 620;
+    line-height: 1.2;
+  }
+
+  .sbdocs-content > h3 {
+    margin-top: 28px;
+    margin-bottom: 8px;
+    font-size: 1.125rem;
+    font-weight: 620;
+    line-height: 1.35;
+  }
+
+  .sbdocs-content > p,
+  .sbdocs-content > ul,
+  .sbdocs-content > ol {
+    max-width: 76ch;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 640px) {
+    .sbdocs.sbdocs-wrapper {
+      padding: 16px !important;
+    }
+  }
+</style>
