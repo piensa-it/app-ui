@@ -29,6 +29,10 @@ La librería empezó sobre shadcn/ui (Radix), pero necesitábamos componentes de
 
 Se genera con [Storybook](https://storybook.js.org/) a partir del código fuente de `src/` (no del paquete publicado en npm), y se **redespliega automáticamente en cada push a `main`** vía Netlify (sitio `piensait-ui`, configurado por `netlify.toml`: build `npm run build-storybook`, publish `storybook-static`). Es un flujo totalmente aparte del paquete npm — no requiere versión ni Release.
 
+Las decisiones normativas del sistema viven en [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
+y el inventario de madurez y hoja de ruta en
+[COMPONENT_STATUS.md](./COMPONENT_STATUS.md).
+
 ## Instalación en otro repo
 
 La librería se publica como paquete privado en **GitHub Packages** bajo el scope `@piensa-it`.
