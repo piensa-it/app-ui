@@ -82,6 +82,14 @@ const preset = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         heading: ["var(--font-heading)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
+      fontSize: {
+        "ui-caption": ["var(--font-size-caption)", { lineHeight: "var(--line-height-caption)" }],
+        "ui-body-sm": ["var(--font-size-body-sm)", { lineHeight: "var(--line-height-body-sm)" }],
+        "ui-body": ["var(--font-size-body)", { lineHeight: "var(--line-height-body)" }],
+        "ui-title-sm": ["var(--font-size-title-sm)", { lineHeight: "var(--line-height-title-sm)" }],
+        "ui-title": ["var(--font-size-title)", { lineHeight: "var(--line-height-title)" }],
+        "ui-display": ["var(--font-size-display)", { lineHeight: "var(--line-height-display)" }],
+      },
       height: {
         "control-compact": "var(--control-compact)",
         "control-default": "var(--control-default)",

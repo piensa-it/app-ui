@@ -47,6 +47,28 @@ describe("patrones UX", () => {
     expect(screen.getByRole("img", { name: "Notificaciones" })).toBeInTheDocument();
   });
 
+  it("Icon admite escalas semánticas y medidas personalizadas", () => {
+    const { container } = render(
+      <>
+        <Icon icon={Bell} size="3xl" />
+        <Icon icon={Bell} size={30} strokeWidth={1.5} absoluteStrokeWidth label="Alerta personalizada" />
+      </>,
+    );
+
+    expect(container.querySelector(".h-12.w-12")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Alerta personalizada" })).toHaveAttribute("width", "30");
+    expect(screen.getByRole("img", { name: "Alerta personalizada" })).toHaveAttribute("stroke-width", "1.2");
+  });
+
+  it("IconTile combina superficie bordeada y forma configurable", () => {
+    render(<IconTile icon={Bell} variant="outline" shape="square" label="Avisos" />);
+    expect(screen.getByRole("img", { name: "Avisos" }).parentElement).toHaveClass(
+      "border",
+      "bg-card",
+      "rounded-md",
+    );
+  });
+
   it("Surface aplica una superficie semántica configurable", () => {
     render(<Surface as="section" variant="subtle">Resumen</Surface>);
     expect(screen.getByText("Resumen")).toHaveClass("bg-subtle");

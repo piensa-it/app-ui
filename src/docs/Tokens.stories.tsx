@@ -65,6 +65,22 @@ const palettes = [
   { value: "amber", label: "Ámbar" },
 ];
 
+const fontFamilies = [
+  { value: "geist", label: "Geist", character: "Neutral, precisa y optimizada para producto." },
+  { value: "inter", label: "Inter", character: "Familiar, compacta y muy legible en interfaces densas." },
+  { value: "dm-sans", label: "DM Sans", character: "Amable, geométrica y adecuada para productos públicos." },
+  { value: "system", label: "Sistema", character: "Nativa, rápida y alineada con cada plataforma." },
+];
+
+const typeScale = [
+  { token: "ui-display", className: "text-ui-display", sample: "Display", usage: "Portadas y cifras principales" },
+  { token: "ui-title", className: "text-ui-title", sample: "Título de página", usage: "Encabezados principales" },
+  { token: "ui-title-sm", className: "text-ui-title-sm", sample: "Título de sección", usage: "Cards y secciones" },
+  { token: "ui-body", className: "text-ui-body", sample: "Texto de interfaz y lectura", usage: "Contenido principal" },
+  { token: "ui-body-sm", className: "text-ui-body-sm", sample: "Texto auxiliar y controles", usage: "Controles y metadatos" },
+  { token: "ui-caption", className: "text-ui-caption", sample: "CAPTION · 12 PX", usage: "Etiquetas y datos compactos" },
+];
+
 export const Colores: Story = {
   render: () => (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -109,6 +125,39 @@ export const Tipografia: Story = {
         <p className="font-sans text-base">Geist Variable — interfaz y lectura</p>
         <p className="text-xs text-muted-foreground">--font-sans · controles, cuerpo y datos</p>
       </div>
+    </div>
+  ),
+};
+
+export const FamiliasTipograficas: Story = {
+  name: "Familias tipográficas",
+  render: () => (
+    <div className="grid gap-4 md:grid-cols-2">
+      {fontFamilies.map((family) => (
+        <section key={family.value} data-ui-font={family.value} className="rounded-lg border border-border bg-card p-5">
+          <p className="font-heading text-ui-title font-semibold tracking-tight">{family.label}</p>
+          <p className="mt-3 text-ui-body">Construye productos claros, modernos y consistentes.</p>
+          <p className="mt-2 text-ui-body-sm text-muted-foreground">{family.character}</p>
+          <code className="mt-4 block text-ui-caption text-muted-foreground">data-ui-font=&quot;{family.value}&quot;</code>
+        </section>
+      ))}
+    </div>
+  ),
+};
+
+export const EscalaTipografica: Story = {
+  name: "Escala tipográfica",
+  render: () => (
+    <div className="divide-y divide-border rounded-lg border border-border bg-card px-5">
+      {typeScale.map((item) => (
+        <div key={item.token} className="grid gap-2 py-5 sm:grid-cols-[1fr_13rem] sm:items-baseline">
+          <p className={`font-heading ${item.className} font-medium`}>{item.sample}</p>
+          <div>
+            <code className="text-ui-caption text-muted-foreground">text-{item.token}</code>
+            <p className="mt-1 text-ui-caption text-muted-foreground">{item.usage}</p>
+          </div>
+        </div>
+      ))}
     </div>
   ),
 };

@@ -79,18 +79,52 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    fontFamily: {
+      description: "Familia tipográfica",
+      toolbar: {
+        title: "Fuente",
+        icon: "paragraph",
+        items: [
+          { value: "geist", title: "Geist" },
+          { value: "inter", title: "Inter" },
+          { value: "dm-sans", title: "DM Sans" },
+          { value: "system", title: "Sistema" },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   initialGlobals: {
     theme: "light",
     palette: "indigo",
+    fontFamily: "geist",
   },
   decorators: [
     (Story, context) => {
       const themeSetting = context.globals.theme ?? "light";
       const palette = context.globals.palette ?? "indigo";
+      const fontFamily = context.globals.fontFamily ?? "geist";
       const isDark = useResolvedDark(themeSetting);
+      const story = (
+        <UiProvider>
+          <Story />
+        </UiProvider>
+      );
+
+      if (context.parameters.layout === "fullscreen") {
+        return (
+          <div
+            className={isDark ? "dark min-h-screen bg-background font-sans text-foreground" : "min-h-screen bg-background font-sans text-foreground"}
+            data-ui-palette={palette}
+            data-ui-font={fontFamily}
+          >
+            {story}
+          </div>
+        );
+      }
+
       return (
-        <div className={isDark ? "dark" : ""} data-ui-palette={palette}>
+        <div className={isDark ? "dark" : ""} data-ui-palette={palette} data-ui-font={fontFamily}>
           {/* Superficie exterior (bg-muted) para que la "card" de la demo
               tenga contraste y se sienta agrupada/presentada, en vez de
               flotar directamente sobre el fondo de la página. Sin flex: se
@@ -99,9 +133,7 @@ const preview: Preview = {
               100% de la card) — igual que en cualquier layout normal. */}
           <div className="min-h-[160px] bg-muted p-6 font-sans text-foreground sm:p-10">
             <div className="min-h-[100px] w-full rounded-xl border border-border bg-card p-8 shadow-sm">
-              <UiProvider>
-                <Story />
-              </UiProvider>
+              {story}
             </div>
           </div>
         </div>

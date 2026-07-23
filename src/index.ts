@@ -65,4 +65,13 @@ export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./compon
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";
-export { iconConfig, type IconSize, type IconColor, type ContainerSize, type ContainerColor } from "./lib/iconConfig";
+export {
+  iconConfig,
+  type IconSize,
+  type IconColor,
+  type ContainerSize,
+  type ContainerColor,
+  type ContainerVariant,
+  type ContainerShape,
+} from "./lib/iconConfig";
+export * from "./icons";

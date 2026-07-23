@@ -107,8 +107,15 @@ Para una identidad completamente propia, sobreescribe los tokens:
 }
 ```
 
-La tipografía predeterminada usa Geist Variable para interfaz y Manrope Variable
-para encabezados. Una aplicación puede reemplazarlas sin modificar componentes:
+La tipografía predeterminada usa Geist Variable. También se incluyen Inter,
+DM Sans y la fuente del sistema. Selecciona una familia en el ancestro:
+
+```tsx
+<div data-ui-font="inter">{children}</div>
+```
+
+Valores disponibles: `geist`, `inter`, `dm-sans` y `system`. Una aplicación
+también puede reemplazar los tokens sin modificar componentes:
 
 ```css
 :root {
@@ -116,6 +123,38 @@ para encabezados. Una aplicación puede reemplazarlas sin modificar componentes:
   --font-heading: "Mi fuente de marca", var(--font-sans);
 }
 ```
+
+La escala semántica se publica en el preset como `text-ui-caption`,
+`text-ui-body-sm`, `text-ui-body`, `text-ui-title-sm`, `text-ui-title` y
+`text-ui-display`.
+
+## Iconos
+
+La librería expone un catálogo curado de Lucide directamente desde su raíz:
+
+```tsx
+import { Icon, IconTile, SearchIcon, SuccessIcon } from "@piensa-it/ui-library";
+
+<Icon icon={SearchIcon} size="lg" label="Buscar" />
+<Icon icon={SearchIcon} size={28} strokeWidth={1.75} absoluteStrokeWidth />
+<IconTile
+  icon={SuccessIcon}
+  containerSize="lg"
+  variant="outline"
+  shape="rounded"
+  color="success"
+/>
+```
+
+Los aliases terminan en `Icon` para no colisionar con componentes como `Chart`.
+`Icon` normaliza tamaños y colores; `IconTile` añade fondos semánticos.
+Los tamaños disponibles son `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` y
+`3xl`. Para necesidades puntuales, `size` también acepta una medida numérica
+en píxeles; `strokeWidth` controla el grosor y `absoluteStrokeWidth` mantiene
+ese grosor visual al escalar.
+`IconTile` permite `variant="soft | outline | elevated | ghost"` y
+`shape="square | rounded | circle"` para elegir entre fondos suaves, cuadrados
+bordeados, superficies elevadas o contenedores circulares.
 
 Si tu app usa Tailwind y quiere usar los mismos tokens (`bg-primary`, `text-muted-foreground`...) en SU PROPIO código, no solo en los componentes de la librería, extiende nuestro preset en vez de redefinir los colores:
 

@@ -32,6 +32,9 @@ export interface PublicHeaderProps {
   /** Contenido del menú móvil. */
   mobileNav: ReactNode;
   linkComponent?: LinkComponent;
+  /** Comportamiento vertical del header. @default "sticky" */
+  position?: "sticky" | "fixed" | "static";
+  className?: string;
 }
 
 /**
@@ -48,6 +51,8 @@ export const PublicHeader = ({
   desktopNav,
   mobileNav,
   linkComponent: Link = DefaultLink,
+  position = "sticky",
+  className = "",
 }: PublicHeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -60,23 +65,23 @@ export const PublicHeader = ({
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full bg-background/80 backdrop-blur-sm transition-all duration-300 ${
-        scrolled ? "border-b border-border shadow-sm" : ""
-      }`}
+      className={`${position === "static" ? "relative" : `${position} top-0`} z-50 w-full border-b bg-background/95 backdrop-blur-xl transition-[border-color,box-shadow,background-color] duration-normal ${
+        scrolled ? "border-border shadow-sm" : "border-transparent"
+      } ${className}`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <Link to={homeHref} className="flex min-w-0 items-center gap-2 no-underline">
-            <img src={logoSrc} alt={brandName} className="h-9 w-9 shrink-0" />
-            <span className="text-lg font-bold text-foreground">{brandName}</span>
+        <div className="flex min-h-16 items-center justify-between gap-4">
+          <Link to={homeHref} className="flex min-w-0 items-center gap-2.5 rounded-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <img src={logoSrc} alt="" className="size-9 shrink-0 rounded-lg object-contain" />
+            <span className="truncate font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
             {badge && (
               <span className="shrink-0 rounded bg-primary/10 px-2 py-1 text-xs text-primary">{badge}</span>
             )}
           </Link>
 
-          <nav className="hidden items-center gap-4 md:flex">
+          <nav aria-label="Navegación principal" className="hidden items-center gap-2 md:flex">
             {crossLink && (
-              <Link to={crossLink.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <Link to={crossLink.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
                 {crossLink.label}
               </Link>
             )}
@@ -84,7 +89,8 @@ export const PublicHeader = ({
           </nav>
 
           <button
-            className="p-2 md:hidden"
+            type="button"
+            className="grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >
@@ -96,13 +102,15 @@ export const PublicHeader = ({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="border-t border-border py-4 md:hidden"
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className="border-t border-border py-3 md:hidden"
           >
-            <nav className="flex flex-col gap-3">
+            <nav aria-label="Navegación móvil" className="flex flex-col gap-1">
               {crossLink && (
                 <Link
                   to={crossLink.to}
-                  className="py-2 text-sm text-muted-foreground hover:text-foreground"
+                  className="rounded-md px-3 py-2.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {crossLink.label}

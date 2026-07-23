@@ -35,6 +35,7 @@ const meta = {
         Precios
       </a>
     ),
+    position: "static",
   },
 } satisfies Meta<typeof PublicHeader>;
 
@@ -43,8 +44,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <div className="h-40">
+    <div className="min-h-48 bg-muted/50">
       <PublicHeader {...args} />
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <p className="text-sm text-muted-foreground">Contenido de la página</p>
+      </div>
     </div>
   ),
 };
@@ -56,7 +60,7 @@ export const ConBadgeYCrossLink: Story = {
     crossLink: { to: "#", label: "¿Tienes una empresa?" },
   },
   render: (args) => (
-    <div className="h-40">
+    <div className="min-h-48 bg-muted/50">
       <PublicHeader {...args} />
     </div>
   ),
