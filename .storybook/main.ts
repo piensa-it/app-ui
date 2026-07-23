@@ -10,6 +10,13 @@ const config: StorybookConfig = {
     "@storybook/addon-docs",
     "@storybook/addon-a11y",
   ],
+  core: {
+    // El aviso "What's new" (release notes de Storybook, no de esta
+    // librería) no aporta nada en un sitio de documentación de cara a
+    // otros equipos/clientes — lo apagamos para que el sidebar solo
+    // muestre contenido nuestro.
+    disableWhatsNewNotifications: true,
+  },
   framework: {
     name: "@storybook/react-vite",
     options: {},
