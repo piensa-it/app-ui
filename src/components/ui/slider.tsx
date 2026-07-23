@@ -13,13 +13,13 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
   ({ className, value, onValueChange, ...props }, ref) => (
     <ArkSlider.Root
       ref={ref}
-      className={cn("relative flex w-full flex-col gap-1", className)}
+      className={cn("relative flex w-full flex-col gap-2 py-1", className)}
       value={value}
       onValueChange={(details) => onValueChange?.(details.value)}
       {...props}
     >
-      <ArkSlider.Control className="relative flex h-4 w-full items-center">
-        <ArkSlider.Track className="h-1.5 w-full rounded-full bg-secondary">
+      <ArkSlider.Control className="relative flex h-control-default w-full touch-none items-center">
+        <ArkSlider.Track className="h-2 w-full overflow-hidden rounded-full bg-secondary shadow-inner">
           <ArkSlider.Range className="h-full rounded-full bg-primary" />
         </ArkSlider.Track>
         {(value ?? [0]).map((_, index) => (
@@ -27,7 +27,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             key={index}
             index={index}
             className={cn(
-              "block h-4 w-4 rounded-full border-2 border-primary bg-background shadow",
+              "block size-5 rounded-full border-2 border-primary bg-background shadow-md transition-transform duration-normal hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
             )}

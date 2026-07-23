@@ -31,11 +31,11 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
     >
       <Portal>
         <ArkDialog.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
-        <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
           <ArkDialog.Content
             ref={ref}
             className={cn(
-              "relative w-full max-w-lg rounded-lg border border-border bg-background p-6 shadow-lg outline-none",
+              "relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-surface-border bg-background p-5 shadow-lg outline-none sm:max-w-lg sm:rounded-xl sm:p-6",
               elevationRing,
               dialogContentAnimation,
               className,
@@ -45,11 +45,12 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
             {hideCloseButton ? null : (
               <ArkDialog.CloseTrigger
                 className={cn(
-                  "absolute right-4 top-4 rounded-sm text-muted-foreground opacity-70 transition-opacity",
+                  "absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded-md text-muted-foreground transition-colors sm:right-4 sm:top-4",
+                  "hover:bg-surface-hover hover:text-foreground",
                   "hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 )}
               >
-                <X className="h-4 w-4" />
+                <X aria-hidden="true" className="size-5" />
                 <span className="sr-only">Cerrar</span>
               </ArkDialog.CloseTrigger>
             )}

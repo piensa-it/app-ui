@@ -2,26 +2,44 @@ import * as React from "react";
 import { Select as ArkSelect, createListCollection } from "@ark-ui/react/select";
 import { Portal } from "@ark-ui/react/portal";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import type { SelectOption } from "@/components/ui/select";
+import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
 export interface MultiSelectFieldProps
   extends Omit<
     ArkSelect.RootProps<SelectOption>,
     "collection" | "value" | "onValueChange" | "items" | "multiple" | "onChange"
-  > {
+  >,
+    VariantProps<typeof fieldControlVariants> {
   options: SelectOption[];
   value?: Array<string | number>;
   onChange?: (value: Array<string | number>) => void;
   placeholder?: string;
+  "aria-label"?: string;
   className?: string;
 }
 
 /** Selector múltiple sobre Ark UI (headless), con chips removibles y el tema Tailwind de la librería. */
 const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
-  ({ className, options, value = [], onChange, placeholder = "Selecciona opciones", ...props }, ref) => {
+  (
+    {
+      className,
+      options,
+      value = [],
+      onChange,
+      placeholder = "Selecciona opciones",
+      "aria-label": ariaLabel,
+      id,
+      variant,
+      size,
+      ...props
+    },
+    ref,
+  ) => {
     const collection = React.useMemo(
       () =>
         createListCollection({
@@ -46,6 +64,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
     return (
       <ArkSelect.Root
         ref={ref}
+        id={id ? `${id}-root` : undefined}
         collection={collection}
         multiple
         value={selected}
@@ -56,47 +75,57 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
         className={cn("w-full", className)}
         {...props}
       >
-        <ArkSelect.Control>
-          <ArkSelect.Trigger
-            className={cn(
-              "flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5 text-sm shadow-sm",
-              "transition-colors duration-150 hover:bg-accent/50",
-              "data-[state=open]:ring-2 data-[state=open]:ring-ring data-[state=open]:ring-offset-2",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-            )}
-          >
+        <ArkSelect.Control
+          className={cn(
+            fieldControlVariants({ variant, size }),
+            "flex flex-wrap items-center gap-1.5 py-1.5",
+          )}
+        >
             {selected.length === 0 ? (
               <span className="px-1 text-muted-foreground">{placeholder}</span>
             ) : (
               selected.map((raw) => (
                 <span
                   key={raw}
-                  className="flex items-center gap-1 rounded-sm bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
+                  className="flex min-h-7 items-center gap-1 rounded-md bg-subtle px-2 text-xs font-medium text-subtle-foreground"
                 >
                   {labelByValue.get(raw) ?? raw}
                   <span
                     role="button"
-                    tabIndex={-1}
+                    tabIndex={0}
                     onClick={(event) => {
                       event.stopPropagation();
                       removeValue(raw);
                     }}
-                    className="rounded-sm opacity-70 hover:opacity-100"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        removeValue(raw);
+                      }
+                    }}
+                    aria-label={`Quitar ${labelByValue.get(raw) ?? raw}`}
+                    className="rounded-sm opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <X className="h-3 w-3" />
+                    <X aria-hidden="true" className="size-3" />
                   </span>
                 </span>
               ))
             )}
-            <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
-          </ArkSelect.Trigger>
+            <ArkSelect.Trigger
+              id={id}
+              aria-label={ariaLabel ?? "Mostrar opciones"}
+              className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ChevronsUpDown aria-hidden="true" className="size-4" />
+            </ArkSelect.Trigger>
         </ArkSelect.Control>
         <Portal>
           <ArkSelect.Positioner>
             <ArkSelect.Content
               className={cn(
-                "z-50 max-h-64 min-w-[var(--reference-width)] overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
+                floatingPanelStyles,
+                "max-h-72 min-w-[var(--reference-width)] p-1.5",
                 elevationRing,
                 popoverAnimation,
               )}
@@ -105,15 +134,11 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
                 <ArkSelect.Item
                   key={option.value}
                   item={option}
-                  className={cn(
-                    "relative flex cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none",
-                    "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
-                    "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                  )}
+                  className={optionStyles}
                 >
                   <ArkSelect.ItemText>{option.label}</ArkSelect.ItemText>
                   <ArkSelect.ItemIndicator>
-                    <Check className="h-4 w-4" />
+                    <Check aria-hidden="true" className="size-4" />
                   </ArkSelect.ItemIndicator>
                 </ArkSelect.Item>
               ))}

@@ -51,16 +51,16 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         onValueChange={(details) => onValueChange?.(details.value)}
         {...props}
       >
-        <ArkTabs.List className="flex items-center border-b border-border">
+        <ArkTabs.List className="relative flex items-center overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {withValues.map((panel) => (
             <ArkTabs.Trigger
               key={panel.value}
               value={panel.value}
               disabled={panel.disabled}
               className={cn(
-                "flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground",
-                "transition-colors duration-150 hover:text-foreground",
-                "data-[selected]:border-primary data-[selected]:text-foreground",
+                "flex min-h-control-comfortable shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 text-sm font-medium text-muted-foreground",
+                "transition-colors duration-normal hover:bg-surface-hover hover:text-foreground",
+                "data-[selected]:text-foreground",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "disabled:pointer-events-none disabled:opacity-50",
               )}
@@ -68,10 +68,10 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
               {panel.header}
             </ArkTabs.Trigger>
           ))}
-          <ArkTabs.Indicator className="h-0.5 bg-primary transition-all duration-200" />
+          <ArkTabs.Indicator className="bottom-0 h-0.5 rounded-full bg-primary transition-all duration-normal ease-standard motion-reduce:transition-none" />
         </ArkTabs.List>
         {withValues.map((panel) => (
-          <ArkTabs.Content key={panel.value} value={panel.value} className="pt-4">
+          <ArkTabs.Content key={panel.value} value={panel.value} className="pt-5 outline-none">
             {panel.children}
           </ArkTabs.Content>
         ))}

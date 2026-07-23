@@ -21,8 +21,8 @@ export const inputVariants = cva(
       },
       size: {
         sm: "h-9 rounded-md px-2.5 text-sm",
-        md: "h-10 rounded-md px-3 text-sm",
-        lg: "h-11 rounded-md px-3.5 text-base",
+        md: "h-control-default rounded-md px-3 text-sm",
+        lg: "h-control-comfortable rounded-md px-3.5 text-base",
       },
     },
     defaultVariants: {

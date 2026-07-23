@@ -40,6 +40,7 @@ export const overlayBackdrop = "bg-overlay/50";
 
 /** Clases de entrada/salida para overlays flotantes (Popover, Select, Combobox, DatePicker...). */
 export const popoverAnimation = cx(
+  "motion-reduce:transform-none motion-reduce:transition-none motion-reduce:animate-none",
   "data-[state=open]:animate-in data-[state=closed]:animate-out",
   "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
   "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -48,6 +49,7 @@ export const popoverAnimation = cx(
 
 /** Clases de entrada/salida para modales centrados (Dialog, AlertDialog). */
 export const dialogContentAnimation = cx(
+  "motion-reduce:transform-none motion-reduce:transition-none motion-reduce:animate-none",
   "data-[state=open]:animate-in data-[state=closed]:animate-out",
   "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
   "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -55,6 +57,7 @@ export const dialogContentAnimation = cx(
 
 /** Backdrop/mask detrás de un modal. */
 export const backdropAnimation = cx(
+  "motion-reduce:transition-none motion-reduce:animate-none",
   "data-[state=open]:animate-in data-[state=closed]:animate-out",
   "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 );
@@ -68,6 +71,7 @@ export function drawerContentAnimation(side: "left" | "right" | "top" | "bottom"
     bottom: "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
   };
   return cx(
+    "motion-reduce:transform-none motion-reduce:transition-none motion-reduce:animate-none",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=closed]:duration-200 data-[state=open]:duration-300",
     bySide[side],

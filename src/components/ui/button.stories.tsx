@@ -17,11 +17,11 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["default", "secondary", "outline", "ghost", "destructive", "link"],
+      options: ["solid", "subtle", "surface", "outline", "plain", "destructive", "link"],
     },
     size: {
       control: "select",
-      options: ["default", "sm", "lg", "icon"],
+      options: ["xs", "sm", "md", "lg", "icon"],
     },
   },
   args: {
@@ -35,9 +35,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Secondary: Story = { args: { variant: "secondary" } };
+export const Subtle: Story = { args: { variant: "subtle" } };
+export const Surface: Story = { args: { variant: "surface" } };
 export const Outline: Story = { args: { variant: "outline" } };
-export const Ghost: Story = { args: { variant: "ghost" } };
+export const Plain: Story = { args: { variant: "plain" } };
 export const Destructive: Story = { args: { variant: "destructive" } };
 export const Link: Story = { args: { variant: "link" } };
 
@@ -57,10 +58,11 @@ export const TodasLasVariantes: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="flex flex-wrap gap-3">
-      <Button>Default</Button>
-      <Button variant="secondary">Secondary</Button>
+      <Button>Solid</Button>
+      <Button variant="subtle">Subtle</Button>
+      <Button variant="surface">Surface</Button>
       <Button variant="outline">Outline</Button>
-      <Button variant="ghost">Ghost</Button>
+      <Button variant="plain">Plain</Button>
       <Button variant="destructive">Destructive</Button>
       <Button variant="link">Link</Button>
     </div>

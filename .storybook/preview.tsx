@@ -45,7 +45,7 @@ const preview: Preview = {
     layout: "padded",
     options: {
       storySort: {
-        order: ["Introducción", "Tokens", "UI", "Layout", "Marketing", "*"],
+        order: ["Introducción", "Tokens", "Guías", "UI", "Layout", "Marketing", "*"],
       },
     },
   },

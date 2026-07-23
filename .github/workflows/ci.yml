@@ -34,7 +34,7 @@ jobs:
         run: npm run test:run
 
       - name: Build de la librería
-        run: npm run build
+        run: npm run verify:package
 
       - name: Build del sitio de documentación (Storybook)
         run: npm run build-storybook

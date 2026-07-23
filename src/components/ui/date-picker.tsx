@@ -3,9 +3,11 @@ import { DatePicker as ArkDatePicker } from "@ark-ui/react/date-picker";
 import { Portal } from "@ark-ui/react/portal";
 import { CalendarDate, type DateValue } from "@internationalized/date";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { fieldControlVariants, floatingPanelStyles, iconButtonStyles } from "@/lib/recipes/field-control";
 
 function toCalendarDate(date: Date): CalendarDate {
   return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
@@ -19,18 +21,34 @@ export interface DatePickerProps
   extends Omit<
     ArkDatePicker.RootProps,
     "value" | "onValueChange" | "children" | "locale" | "selectionMode" | "onChange"
-  > {
+  >,
+    VariantProps<typeof fieldControlVariants> {
   value?: Date | null;
   onChange?: (date: Date | null) => void;
   placeholder?: string;
+  "aria-label"?: string;
   className?: string;
 }
 
 /** Selector de fecha sobre Ark UI (headless), localizado en español. */
 const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
-  ({ className, value, onChange, placeholder = "dd/mm/aaaa", ...props }, ref) => (
+  (
+    {
+      className,
+      value,
+      onChange,
+      placeholder = "dd/mm/aaaa",
+      variant,
+      size,
+      "aria-label": ariaLabel,
+      id,
+      ...props
+    },
+    ref,
+  ) => (
     <ArkDatePicker.Root
       ref={ref}
+      id={id ? `${id}-root` : undefined}
       locale="es"
       selectionMode="single"
       value={value ? [toCalendarDate(value)] : []}
@@ -43,24 +61,30 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
     >
       <ArkDatePicker.Control
         className={cn(
-          "flex h-9 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm",
-          "transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+          fieldControlVariants({ variant, size }),
+          "flex items-center gap-2 focus-within:border-ring focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring",
         )}
       >
         <ArkDatePicker.Input
           index={0}
+          id={id}
+          aria-label={ariaLabel}
           placeholder={placeholder}
-          className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
         />
-        <ArkDatePicker.Trigger className="shrink-0 text-muted-foreground hover:text-foreground">
-          <CalendarIcon className="h-4 w-4" />
+        <ArkDatePicker.Trigger
+          aria-label="Abrir calendario"
+          className="-mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+        >
+          <CalendarIcon aria-hidden="true" className="size-4" />
         </ArkDatePicker.Trigger>
       </ArkDatePicker.Control>
       <Portal>
         <ArkDatePicker.Positioner>
           <ArkDatePicker.Content
             className={cn(
-              "z-50 w-72 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none",
+              floatingPanelStyles,
+              "w-[min(22rem,calc(100vw-2rem))] p-3 sm:p-4",
               elevationRing,
               popoverAnimation,
             )}
@@ -71,16 +95,14 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
                   <ArkDatePicker.ViewControl className="mb-2 flex items-center justify-between">
                     <ArkDatePicker.PrevTrigger
                       className={cn(
-                        "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                        iconButtonStyles,
                       )}
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft aria-hidden="true" className="size-4" />
                     </ArkDatePicker.PrevTrigger>
                     <ArkDatePicker.ViewTrigger
                       className={cn(
-                        "rounded-md px-2 py-1 text-sm font-medium capitalize",
+                        "min-h-control-default rounded-md px-3 text-sm font-semibold capitalize",
                         "hover:bg-accent hover:text-accent-foreground",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       )}
@@ -89,12 +111,10 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
                     </ArkDatePicker.ViewTrigger>
                     <ArkDatePicker.NextTrigger
                       className={cn(
-                        "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                        iconButtonStyles,
                       )}
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight aria-hidden="true" className="size-4" />
                     </ArkDatePicker.NextTrigger>
                   </ArkDatePicker.ViewControl>
                   <ArkDatePicker.Table className="w-full border-collapse">
@@ -117,10 +137,10 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
                             <ArkDatePicker.TableCell key={dayIndex} value={day} className="p-0 text-center">
                               <ArkDatePicker.TableCellTrigger
                                 className={cn(
-                                  "flex h-8 w-8 items-center justify-center rounded-md text-sm",
-                                  "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
+                                  "mx-auto flex size-10 items-center justify-center rounded-md text-sm",
+                                  "transition-colors duration-normal ease-standard hover:bg-surface-hover hover:text-foreground",
                                   "data-[outside-range]:text-muted-foreground/50",
-                                  "data-[today]:font-semibold data-[today]:text-primary",
+                                  "data-[today]:font-semibold data-[today]:text-primary data-[today]:ring-1 data-[today]:ring-primary/30",
                                   "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary/90",
                                   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
                                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",

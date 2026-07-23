@@ -4,3 +4,4 @@ export { buttonVariants } from "./button";
 export { inputVariants, textareaVariants } from "./input";
 export { menuItemVariants } from "./menu-item";
 export { checkboxControlVariants, checkboxLabelVariants } from "./checkbox";
+export { fieldControlVariants, floatingPanelStyles, optionStyles, iconButtonStyles } from "./field-control";

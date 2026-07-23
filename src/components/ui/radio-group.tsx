@@ -30,6 +30,7 @@ export interface RadioGroupItemProps {
   className?: string;
   /** Texto de la opción. */
   label?: React.ReactNode;
+  description?: React.ReactNode;
 }
 
 /**
@@ -39,24 +40,34 @@ export interface RadioGroupItemProps {
  * el nombre exacto del atributo `data-*` de Ark para el estado seleccionado.
  */
 const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
-  ({ value, id, disabled, className, label }, ref) => (
+  ({ value, id, disabled, className, label, description }, ref) => (
     <ArkRadioGroup.Item
       ref={ref}
       value={value}
       disabled={disabled}
-      className={cn("flex items-center gap-2 text-sm", disabled && "cursor-not-allowed opacity-50", className)}
+      className={cn(
+        "flex min-h-control-default cursor-pointer items-start gap-3 rounded-md px-1.5 py-2 text-sm transition-colors duration-normal hover:bg-surface-hover",
+        disabled && "cursor-not-allowed opacity-50",
+        className,
+      )}
     >
       <ArkRadioGroup.ItemHiddenInput id={id} className="peer sr-only" />
       <ArkRadioGroup.ItemControl
         className={cn(
-          "relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-primary shadow",
-          "after:h-2 after:w-2 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-150",
+          "relative mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-background shadow-sm",
+          "after:size-2.5 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-normal",
+          "peer-checked:border-primary",
           "peer-checked:after:scale-100",
           "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
           transition,
         )}
       />
-      {label ? <ArkRadioGroup.ItemText>{label}</ArkRadioGroup.ItemText> : null}
+      {label ? (
+        <span className="grid gap-0.5">
+          <ArkRadioGroup.ItemText className="font-medium text-foreground">{label}</ArkRadioGroup.ItemText>
+          {description ? <span className="leading-5 text-muted-foreground">{description}</span> : null}
+        </span>
+      ) : null}
     </ArkRadioGroup.Item>
   ),
 );

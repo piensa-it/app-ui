@@ -16,6 +16,10 @@ const meta = {
     placeholder: "Correo electrónico",
     type: "email",
   },
+  argTypes: {
+    variant: { control: "select", options: ["outline", "surface", "subtle"] },
+    size: { control: "select", options: ["sm", "md", "lg"] },
+  },
 } satisfies Meta<typeof Input>;
 
 export default meta;
@@ -24,3 +28,4 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Deshabilitado: Story = { args: { disabled: true, value: "no-editable@example.com" } };
 export const Password: Story = { args: { type: "password", placeholder: "Contraseña" } };
+export const Invalido: Story = { args: { "aria-invalid": true, defaultValue: "correo-invalido" } };

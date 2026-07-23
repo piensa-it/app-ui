@@ -81,46 +81,48 @@ No se incorporarán hasta consolidar las Fases 1 a 4.
 
 ### Fase 1 — Estabilización técnica
 
-- [ ] Corregir externalización de dependencias y subpaths.
-- [ ] Medir el contenido real con `npm pack`.
+- [x] Corregir externalización de dependencias y subpaths.
+- [x] Medir el contenido real con `npm pack`.
 - [ ] Crear un smoke test de consumo del paquete.
 - [ ] Consolidar recetas y eliminar duplicados.
-- [ ] Migrar Button, Input y Textarea.
+- [x] Migrar Button, Input y Textarea.
 - [ ] Crear una receta compartida para triggers de campo.
 - [ ] Corregir el contrato tipado de Select.
 - [ ] Normalizar nombres de archivos y APIs públicas.
 
 ### Fase 2 — Fundamentos visuales
 
-- [ ] Completar tokens semánticos.
-- [ ] Implementar las tres densidades.
-- [ ] Definir superficies, elevación y motion.
-- [ ] Alinear la identidad cromática entre temas.
-- [ ] Retirar la descarga automática de fuentes remotas.
-- [ ] Ampliar la documentación visual de tokens.
+- [x] Completar tokens semánticos base para las recetas existentes.
+- [x] Implementar las tres densidades.
+- [x] Definir superficies, elevación y motion.
+- [x] Alinear la identidad cromática entre temas.
+- [x] Retirar la descarga automática de fuentes remotas.
+- [x] Ampliar la documentación visual de tokens.
 
 ### Fase 3 — Accesibilidad e interacción
 
 - [ ] Auditar DataTable, overlays y controles de selección.
 - [ ] Normalizar icon buttons y targets táctiles.
-- [ ] Implementar reduced motion.
+- [x] Implementar reduced motion en recetas y overlays compartidos.
 - [ ] Validar contraste y estados no dependientes del color.
 
 ### Fase 4 — Pruebas y control de calidad
 
 - [ ] Agregar un smoke test por export.
 - [ ] Agregar pruebas de teclado y estado.
-- [ ] Integrar axe.
-- [ ] Agregar contrato de paquete y presupuesto de bundle a CI.
+- [x] Integrar axe en los flujos base.
+- [x] Agregar contrato de paquete y presupuesto de bundle a CI.
 - [ ] Incorporar regresión visual.
 
 ### Fase 5 — Patrones UX esenciales
 
-- [ ] Construir los patrones faltantes en el orden priorizado.
+- [x] Construir Field, Alert, Skeleton y EmptyState.
+- [ ] Construir los demás patrones faltantes en el orden priorizado.
 
 ### Fase 6 — Documentación y adopción
 
-- [ ] Documentar foundations, guías y recetas de producto completas.
+- [x] Documentar foundations y guía inicial de patrones.
+- [ ] Documentar recetas de producto completas.
 - [ ] Publicar notas de migración y niveles de madurez en Storybook.
 
 ## Criterio para avanzar de fase

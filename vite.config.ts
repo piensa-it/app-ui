@@ -18,6 +18,13 @@ const externalDeps = [
   ...Object.keys(pkg.peerDependencies ?? {}),
 ];
 
+// Rollup compara strings de `external` de forma exacta. Ark UI y otros
+// paquetes se importan mediante subpaths (`@ark-ui/react/dialog`), así que
+// externalizar solo el nombre raíz terminaría incluyendo esos módulos en el
+// bundle. Esta función cubre tanto el paquete como cualquiera de sus subpaths.
+const isExternalDependency = (id: string) =>
+  externalDeps.some((dependency) => id === dependency || id.startsWith(`${dependency}/`));
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -46,7 +53,7 @@ export default defineConfig(({ mode }) => ({
       fileName: (format) => `ui-library.${format === "es" ? "es" : "cjs"}.js`,
     },
     rollupOptions: {
-      external: externalDeps,
+      external: isExternalDependency,
       output: {
         // Preserva nombres reconocibles para debugging en apps consumidoras.
         exports: "named",

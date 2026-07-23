@@ -2,9 +2,11 @@ import * as React from "react";
 import { Select as ArkSelect, createListCollection } from "@ark-ui/react/select";
 import { Portal } from "@ark-ui/react/portal";
 import { Check, ChevronsUpDown } from "lucide-react";
+import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
 export interface SelectOption {
   label: string;
@@ -13,17 +15,34 @@ export interface SelectOption {
 }
 
 export interface SelectProps
-  extends Omit<ArkSelect.RootProps<SelectOption>, "collection" | "value" | "onValueChange" | "items" | "onChange"> {
+  extends Omit<ArkSelect.RootProps<SelectOption>, "collection" | "value" | "onValueChange" | "items" | "onChange">,
+    VariantProps<typeof fieldControlVariants> {
   options: SelectOption[];
   value?: string | number | null;
   onChange?: (value: string | number | null) => void;
   placeholder?: string;
+  /** Nombre accesible cuando el trigger no tiene un Label asociado. */
+  "aria-label"?: string;
   className?: string;
 }
 
 /** Select accesible sobre Ark UI (headless), con el tema Tailwind de la librería. */
 const Select = React.forwardRef<HTMLDivElement, SelectProps>(
-  ({ className, options, value, onChange, placeholder = "Selecciona una opción", ...props }, ref) => {
+  (
+    {
+      className,
+      options,
+      value,
+      onChange,
+      placeholder = "Selecciona una opción",
+      "aria-label": ariaLabel,
+      id,
+      variant,
+      size,
+      ...props
+    },
+    ref,
+  ) => {
     const collection = React.useMemo(
       () =>
         createListCollection({
@@ -38,6 +57,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     return (
       <ArkSelect.Root
         ref={ref}
+        id={id ? `${id}-root` : undefined}
         collection={collection}
         value={value === null || value === undefined ? [] : [String(value)]}
         onValueChange={(details) => {
@@ -49,26 +69,26 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       >
         <ArkSelect.Control>
           <ArkSelect.Trigger
+            id={id}
+            aria-label={ariaLabel}
             className={cn(
-              "flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm",
-              "transition-colors duration-150 hover:bg-accent/50",
-              "data-[state=open]:ring-2 data-[state=open]:ring-ring data-[state=open]:ring-offset-2",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+              fieldControlVariants({ variant, size }),
+              "flex items-center justify-between gap-3",
             )}
           >
             <ArkSelect.ValueText
               placeholder={placeholder}
               className="truncate text-left data-[placeholder-shown]:text-muted-foreground"
             />
-            <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
           </ArkSelect.Trigger>
         </ArkSelect.Control>
         <Portal>
           <ArkSelect.Positioner>
             <ArkSelect.Content
               className={cn(
-                "z-50 max-h-64 min-w-[var(--reference-width)] overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
+                floatingPanelStyles,
+                "max-h-72 min-w-[var(--reference-width)] p-1.5",
                 elevationRing,
                 popoverAnimation,
               )}
@@ -77,15 +97,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 <ArkSelect.Item
                   key={option.value}
                   item={option}
-                  className={cn(
-                    "relative flex cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none",
-                    "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
-                    "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                  )}
+                  className={optionStyles}
                 >
                   <ArkSelect.ItemText>{option.label}</ArkSelect.ItemText>
                   <ArkSelect.ItemIndicator>
-                    <Check className="h-4 w-4" />
+                    <Check aria-hidden="true" className="size-4" />
                   </ArkSelect.ItemIndicator>
                 </ArkSelect.Item>
               ))}

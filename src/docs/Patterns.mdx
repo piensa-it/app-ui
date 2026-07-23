@@ -1,0 +1,51 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guías/Patrones de producto" />
+
+# Patrones de producto
+
+Las primitivas resuelven controles; los patrones resuelven situaciones completas
+de producto. Antes de construir una composición local, verifica si uno de estos
+patrones ya expresa la intención.
+
+## Formularios
+
+Usa `Field` para conectar label, ayuda y error. El mensaje de ayuda explica cómo
+completar el campo; el error explica qué debe corregirse. No uses el placeholder
+como reemplazo del label.
+
+```tsx
+<Field
+  label="Correo electrónico"
+  description="Lo usaremos para notificaciones importantes."
+  error={errors.email}
+  required
+>
+  <Input type="email" />
+</Field>
+```
+
+## Feedback persistente
+
+Usa `Alert` cuando el mensaje deba permanecer junto al contenido. Usa Toast para
+confirmaciones breves que no bloquean la tarea. Una acción destructiva debe
+explicar qué ocurrió y el siguiente paso posible.
+
+## Carga
+
+Usa `Skeleton` cuando conozcas la forma aproximada del contenido y la espera sea
+breve. Conserva estable el layout y respeta movimiento reducido. Para procesos
+largos o medibles, usa `Progress` con un label accesible.
+
+## Estados vacíos
+
+`EmptyState` describe por qué no hay contenido y ofrece una acción cuando existe
+un siguiente paso. No conviertas una búsqueda sin resultados en un mensaje de
+error: permite limpiar o ajustar filtros.
+
+## Contenido y acciones
+
+- Usa verbos concretos: “Guardar cambios”, “Crear usuario”, “Limpiar filtros”.
+- Mantén el mismo verbo en botón, confirmación y resultado.
+- Evita “Aceptar” cuando pueda nombrarse el resultado real.
+- Un mensaje de error no se disculpa; explica el problema y cómo resolverlo.

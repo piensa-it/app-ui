@@ -46,6 +46,16 @@ const preset = {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          hover: "hsl(var(--surface-hover))",
+          border: "hsl(var(--surface-border))",
+        },
+        subtle: {
+          DEFAULT: "hsl(var(--subtle))",
+          hover: "hsl(var(--subtle-hover))",
+          foreground: "hsl(var(--subtle-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -71,6 +81,34 @@ const preset = {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         heading: ["var(--font-heading)", "var(--font-sans)", "system-ui", "sans-serif"],
+      },
+      height: {
+        "control-compact": "var(--control-compact)",
+        "control-default": "var(--control-default)",
+        "control-comfortable": "var(--control-comfortable)",
+      },
+      minWidth: {
+        "control-compact": "var(--control-compact)",
+        "control-default": "var(--control-default)",
+        "control-comfortable": "var(--control-comfortable)",
+      },
+      minHeight: {
+        "control-compact": "var(--control-compact)",
+        "control-default": "var(--control-default)",
+        "control-comfortable": "var(--control-comfortable)",
+      },
+      transitionDuration: {
+        fast: "var(--duration-fast)",
+        normal: "var(--duration-normal)",
+        slow: "var(--duration-slow)",
+      },
+      transitionTimingFunction: {
+        standard: "var(--ease-standard)",
+      },
+      boxShadow: {
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
       },
       keyframes: {
         "accordion-down": {

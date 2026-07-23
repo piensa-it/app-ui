@@ -21,6 +21,8 @@ const colorTokens: { name: string; bg: string; fg: string; usage: string }[] = [
   { name: "secondary", bg: "bg-secondary", fg: "text-secondary-foreground", usage: "Acciones secundarias" },
   { name: "muted", bg: "bg-muted", fg: "text-muted-foreground", usage: "Fondos sutiles, texto de apoyo" },
   { name: "accent", bg: "bg-accent", fg: "text-accent-foreground", usage: "Hover states, resaltados" },
+  { name: "surface", bg: "bg-surface", fg: "text-foreground", usage: "Controles y superficies base" },
+  { name: "subtle", bg: "bg-subtle", fg: "text-subtle-foreground", usage: "Acciones y énfasis suaves" },
   { name: "success", bg: "bg-success", fg: "text-success-foreground", usage: "Estados positivos (pagado, activo)" },
   { name: "warning", bg: "bg-warning", fg: "text-warning-foreground", usage: "Estados de alerta (pendiente)" },
   { name: "destructive", bg: "bg-destructive", fg: "text-destructive-foreground", usage: "Errores, acciones destructivas" },
@@ -37,6 +39,18 @@ const radiusTokens = [
   { name: "sm", className: "rounded-sm" },
   { name: "md", className: "rounded-md" },
   { name: "lg", className: "rounded-lg" },
+];
+
+const densityTokens = [
+  { name: "Compacta", value: "32 px", className: "h-control-compact" },
+  { name: "Predeterminada", value: "40 px", className: "h-control-default" },
+  { name: "Cómoda", value: "44 px", className: "h-control-comfortable" },
+];
+
+const elevationTokens = [
+  { name: "sm", className: "shadow-sm" },
+  { name: "md", className: "shadow-md" },
+  { name: "lg", className: "shadow-lg" },
 ];
 
 export const Colores: Story = {
@@ -83,6 +97,47 @@ export const Tipografia: Story = {
         <p className="font-sans text-base">Texto base — font-sans</p>
         <p className="text-xs text-muted-foreground">--font-sans (cuerpo de texto, UI)</p>
       </div>
+    </div>
+  ),
+};
+
+export const Densidad: Story = {
+  render: () => (
+    <div className="grid gap-4 sm:grid-cols-3">
+      {densityTokens.map((token) => (
+        <div key={token.name} className="rounded-lg border border-border p-4">
+          <div className={`flex items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground ${token.className}`}>
+            Control
+          </div>
+          <p className="mt-3 text-sm font-semibold">{token.name}</p>
+          <p className="text-xs text-muted-foreground">{token.value}</p>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Elevacion: Story = {
+  name: "Elevación",
+  render: () => (
+    <div className="grid gap-6 bg-muted p-8 sm:grid-cols-3">
+      {elevationTokens.map((token) => (
+        <div key={token.name} className={`rounded-lg border border-border bg-card p-6 ${token.className}`}>
+          <p className="font-mono text-sm">shadow-{token.name}</p>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Movimiento: Story = {
+  name: "Movimiento y reducción",
+  render: () => (
+    <div className="space-y-3 text-sm">
+      <p>Las transiciones usan duraciones semánticas de 120, 180 y 280 ms.</p>
+      <p className="text-muted-foreground">
+        Con <code>prefers-reduced-motion</code>, el sistema elimina animaciones y transformaciones no esenciales.
+      </p>
     </div>
   ),
 };

@@ -2,11 +2,13 @@ import * as React from "react";
 import { Combobox as ArkCombobox, createListCollection } from "@ark-ui/react/combobox";
 import { Portal } from "@ark-ui/react/portal";
 import { Check, ChevronsUpDown } from "lucide-react";
+import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
-export interface AutoCompleteProps {
+export interface AutoCompleteProps extends VariantProps<typeof fieldControlVariants> {
   /** Texto actual del input (controlado). */
   value: string;
   /** Se dispara al escribir y al seleccionar una sugerencia. */
@@ -17,6 +19,9 @@ export interface AutoCompleteProps {
   onQueryChange: (query: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  "aria-label"?: string;
+  "aria-invalid"?: boolean;
+  id?: string;
   className?: string;
 }
 
@@ -27,7 +32,24 @@ export interface AutoCompleteProps {
  * la versión anterior sobre PrimeReact (`suggestions`/`completeMethod`).
  */
 const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
-  ({ className, value, onChange, suggestions, onQueryChange, placeholder = "Buscar...", disabled, ...props }, ref) => {
+  (
+    {
+      className,
+      value,
+      onChange,
+      suggestions,
+      onQueryChange,
+      placeholder = "Buscar...",
+      disabled,
+      variant,
+      size,
+      "aria-label": ariaLabel,
+      "aria-invalid": ariaInvalid,
+      id,
+      ...props
+    },
+    ref,
+  ) => {
     const items = React.useMemo(() => suggestions.map((s) => ({ label: s, value: s })), [suggestions]);
     const collection = React.useMemo(
       () =>
@@ -42,6 +64,7 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
     return (
       <ArkCombobox.Root
         ref={ref}
+        id={id ? `${id}-root` : undefined}
         collection={collection}
         inputValue={value}
         disabled={disabled}
@@ -57,44 +80,48 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
         {...props}
       >
         <ArkCombobox.Control
+          aria-invalid={ariaInvalid}
           className={cn(
-            "flex h-9 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm",
-            "transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
-            "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+            fieldControlVariants({ variant, size }),
+            "flex items-center gap-2 focus-within:border-ring focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring",
           )}
         >
           <ArkCombobox.Input
+            id={id}
+            aria-label={ariaLabel}
+            aria-invalid={ariaInvalid}
             placeholder={placeholder}
-            className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
           />
-          <ArkCombobox.Trigger className="shrink-0 text-muted-foreground">
-            <ChevronsUpDown className="h-4 w-4" />
+          <ArkCombobox.Trigger
+            aria-label="Mostrar sugerencias"
+            className="-mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <ChevronsUpDown aria-hidden="true" className="size-4" />
           </ArkCombobox.Trigger>
         </ArkCombobox.Control>
         <Portal>
           <ArkCombobox.Positioner>
             <ArkCombobox.Content
               className={cn(
-                "z-50 max-h-64 min-w-[var(--reference-width)] overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
+                floatingPanelStyles,
+                "max-h-72 min-w-[var(--reference-width)] p-1.5",
                 elevationRing,
                 popoverAnimation,
               )}
             >
-              <ArkCombobox.Empty className="px-2 py-1.5 text-sm text-muted-foreground">
+              <ArkCombobox.Empty className="px-3 py-6 text-center text-sm text-muted-foreground">
                 Sin resultados
               </ArkCombobox.Empty>
               {items.map((item) => (
                 <ArkCombobox.Item
                   key={item.value}
                   item={item}
-                  className={cn(
-                    "relative flex cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none",
-                    "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
-                  )}
+                  className={optionStyles}
                 >
                   <ArkCombobox.ItemText>{item.label}</ArkCombobox.ItemText>
                   <ArkCombobox.ItemIndicator>
-                    <Check className="h-4 w-4" />
+                    <Check aria-hidden="true" className="size-4" />
                   </ArkCombobox.ItemIndicator>
                 </ArkCombobox.Item>
               ))}

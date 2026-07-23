@@ -17,10 +17,15 @@ export { UiProvider, type UiProviderProps } from "./components/providers/UiProvi
 export { Button, buttonVariants, type ButtonProps } from "./components/ui/button";
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./components/ui/card";
 export { Badge, badgeVariants, type BadgeProps } from "./components/ui/badge";
-export { Input, type InputProps } from "./components/ui/input";
-export { Textarea, type TextareaProps } from "./components/ui/textarea";
+export { Input, inputVariants, type InputProps } from "./components/ui/input";
+export { Textarea, textareaVariants, type TextareaProps } from "./components/ui/textarea";
 export { Label } from "./components/ui/label";
 export { Separator } from "./components/ui/separator";
+export { Field, type FieldProps } from "./components/ui/field";
+export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps } from "./components/ui/alert";
+export { Skeleton, type SkeletonProps } from "./components/ui/skeleton";
+export { EmptyState, type EmptyStateProps } from "./components/ui/empty-state";
+export { InputGroup, InputGroupAddon, InputGroupAction, type InputGroupProps } from "./components/ui/input-group";
 
 // --- Primitivas de interacción (Ark UI + tema Piensa IT) ---
 export { Select, type SelectProps, type SelectOption } from "./components/ui/select";

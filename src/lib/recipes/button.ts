@@ -36,13 +36,13 @@ export const buttonVariants = cva(
         link: "text-primary underline-offset-4 shadow-none hover:underline",
       },
       size: {
-        xs: "h-8 min-w-8 px-2.5 text-xs [&_svg]:size-4",
+        xs: "h-control-compact min-w-control-compact px-2.5 text-xs [&_svg]:size-4",
         sm: "h-9 min-w-9 px-3 text-sm [&_svg]:size-4",
-        md: "h-10 min-w-10 px-3.5 text-sm [&_svg]:size-5",
-        lg: "h-11 min-w-11 px-4 text-base [&_svg]:size-5",
+        md: "h-control-default min-w-control-default px-3.5 text-sm [&_svg]:size-5",
+        lg: "h-control-comfortable min-w-control-comfortable px-4 text-base [&_svg]:size-5",
         /** @deprecated Usa `md`. */
-        default: "h-10 min-w-10 px-3.5 text-sm [&_svg]:size-5",
-        icon: "h-10 w-10 [&_svg]:size-5",
+        default: "h-control-default min-w-control-default px-3.5 text-sm [&_svg]:size-5",
+        icon: "h-control-default w-control-default [&_svg]:size-5",
       },
     },
     defaultVariants: {
