@@ -13,6 +13,23 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const Showcase: Story = {
+  name: "Vista general",
+  render: () => (
+    <Accordion defaultValue={["personalizacion"]}>
+      <AccordionTab value="personalizacion" header="Personalización por producto">
+        Configura paleta, tipografía, densidad y radios sin modificar la estructura del componente.
+      </AccordionTab>
+      <AccordionTab value="responsive" header="Comportamiento responsive">
+        Los espacios, targets y contenido se adaptan a interfaces móviles y de escritorio.
+      </AccordionTab>
+      <AccordionTab value="accesibilidad" header="Accesibilidad integrada">
+        Navegación por teclado, foco visible y estados expuestos mediante la semántica de Ark UI.
+      </AccordionTab>
+    </Accordion>
+  ),
+};
+
 export const Default: Story = {
   render: () => (
     <Accordion>

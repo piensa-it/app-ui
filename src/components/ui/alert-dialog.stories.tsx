@@ -39,3 +39,30 @@ export const Default: Story = {
     </>
   ),
 };
+
+export const Superficies: Story = {
+  render: () => (
+    <>
+      <AlertDialogHost />
+      <div className="flex flex-wrap gap-3">
+        {(["default", "outline", "elevated"] as const).map((surface) => (
+          <Button
+            key={surface}
+            variant="outline"
+            onClick={() =>
+              confirmAlert({
+                title: `Confirmación ${surface}`,
+                description: "Elige la superficie adecuada para el contexto de la aplicación.",
+                confirmLabel: "Confirmar",
+                surface,
+                onConfirm: () => {},
+              })
+            }
+          >
+            {surface}
+          </Button>
+        ))}
+      </div>
+    </>
+  ),
+};

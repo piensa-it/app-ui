@@ -23,6 +23,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const Showcase: Story = {
+  name: "Vista general",
+  render: () => (
+    <div className="grid gap-5">
+      <div>
+        <h3 className="text-ui-title font-semibold">Iconografía para producto</h3>
+        <p className="mt-1 text-ui-body-sm text-muted-foreground">
+          Acciones, navegación y estados con superficies intercambiables.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-4">
+        <IconTile icon={LibraryIcons.DashboardIcon} iconSize="lg" containerSize="lg" />
+        <IconTile icon={LibraryIcons.SearchIcon} iconSize="lg" containerSize="lg" variant="outline" />
+        <IconTile icon={LibraryIcons.SaveIcon} iconSize="lg" containerSize="lg" variant="elevated" />
+        <IconTile icon={LibraryIcons.SuccessIcon} iconSize="lg" containerSize="lg" color="success" containerColor="success" />
+        <IconTile icon={LibraryIcons.WarningIcon} iconSize="lg" containerSize="lg" color="warning" containerColor="warning" />
+        <IconTile icon={LibraryIcons.BellIcon} iconSize="lg" containerSize="lg" variant="outline" shape="circle" />
+      </div>
+    </div>
+  ),
+};
+
 export const Sizes: Story = {
   name: "Tamaños",
   render: () => (

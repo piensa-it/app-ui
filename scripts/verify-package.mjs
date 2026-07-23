@@ -25,6 +25,11 @@ if (missingFiles.length > 0) {
 }
 
 const esm = readFileSync(new URL("dist/ui-library.es.js", rootUrl), "utf8");
+const versionSource = readFileSync(new URL("src/version.ts", rootUrl), "utf8");
+const sourceVersion = versionSource.match(/UI_LIBRARY_VERSION = "([^"]+)"/)?.[1];
+if (sourceVersion !== pkg.version) {
+  throw new Error(`La versión pública (${sourceVersion}) no coincide con package.json (${pkg.version}).`);
+}
 // Plugins usados exclusivamente por el preset publicado no deben aparecer en
 // el runtime de React, aunque vivan en `dependencies` para que el consumidor
 // pueda cargar el preset.
@@ -42,7 +47,9 @@ if (missingExternalImports.length > 0) {
   );
 }
 
-const maxEsmBytes = 100 * 1024;
+// Presupuesto del entry público. La API de gráficas compuestas y referencias
+// añadió capacidades reales manteniendo Recharts externalizado.
+const maxEsmBytes = 105 * 1024;
 const esmEntry = packed.files.find((file) => file.path === "dist/ui-library.es.js");
 if (!esmEntry || esmEntry.size > maxEsmBytes) {
   throw new Error(`El bundle ESM supera ${maxEsmBytes} bytes: ${esmEntry?.size ?? "desconocido"}`);

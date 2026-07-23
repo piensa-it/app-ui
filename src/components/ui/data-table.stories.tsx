@@ -33,6 +33,35 @@ const usuarios: Usuario[] = [
   { nombre: "Marta Ruiz", correo: "marta@piensait.com", estado: "inactivo" },
 ];
 
+export const Showcase: Story = {
+  name: "Vista operativa",
+  render: () => (
+    <DataTable
+      value={[...usuarios, ...usuarios.map((usuario, index) => ({ ...usuario, correo: `${index + 1}.${usuario.correo}` }))]}
+      title="Miembros del equipo"
+      description="Busca, ordena y administra accesos desde una sola vista."
+      searchable
+      striped
+      rows={5}
+      rowsPerPageOptions={[5, 10, 25]}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm"><Download /> Exportar</Button>
+          <Button size="sm"><Plus /> Agregar miembro</Button>
+        </div>
+      }
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>}
+      />
+    </DataTable>
+  ),
+};
+
 export const Default: Story = {
   render: () => (
     <DataTable value={usuarios}>

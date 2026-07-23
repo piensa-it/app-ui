@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   ResponsiveContainer,
   BarChart,
+  ComposedChart,
   Bar,
   LineChart,
   Line,
@@ -15,6 +16,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
 } from "recharts";
 
 const DEFAULT_COLORS = [
@@ -31,13 +33,26 @@ export interface ChartSeries {
   /** Etiqueta legible (leyenda/tooltip). Por defecto usa `key`. */
   label?: string;
   color?: string;
+  /** Permite combinar barras, líneas y áreas dentro de `type="composed"`. */
+  type?: "bar" | "line" | "area";
+  /** Patrón SVG, útil para diferenciar pronósticos de datos reales. */
+  strokeDasharray?: string;
+  opacity?: number;
+  stackId?: string;
+}
+
+export interface ChartReferenceLine {
+  value: number;
+  label?: string;
+  color?: string;
+  strokeDasharray?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica de datos de la gráfica.
 export type ChartDatum = Record<string, any>;
 
 export interface ChartProps {
-  type: "bar" | "line" | "area" | "pie" | "donut";
+  type: "bar" | "line" | "area" | "pie" | "donut" | "composed";
   data: ChartDatum[];
   /** Campo usado como eje X (o como etiqueta de cada porción en pie/donut). */
   categoryKey: string;
@@ -57,6 +72,10 @@ export interface ChartProps {
   emptyMessage?: React.ReactNode;
   /** Muestra superficie, borde y encabezado de panel. @default true */
   framed?: boolean;
+  /** Líneas horizontales para metas, presupuestos o límites. */
+  referenceLines?: ChartReferenceLine[];
+  /** Formatea los valores de ejes y tooltips (moneda, porcentaje, unidades). */
+  valueFormatter?: (value: number) => string;
   className?: string;
 }
 
@@ -100,6 +119,8 @@ function Chart({
   loading = false,
   emptyMessage = "No hay datos para visualizar.",
   framed = true,
+  referenceLines = [],
+  valueFormatter,
   className,
 }: ChartProps) {
   const colored = series.map((item, index) => ({
@@ -135,7 +156,8 @@ function Chart({
       </div>
     );
   } else {
-    const ChartComponent = type === "bar" ? BarChart : type === "line" ? LineChart : AreaChart;
+    const ChartComponent =
+      type === "bar" ? BarChart : type === "line" ? LineChart : type === "area" ? AreaChart : ComposedChart;
     visualization = (
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -150,15 +172,43 @@ function Chart({
             </defs>
             {showGrid ? <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" /> : null}
             <XAxis dataKey={categoryKey} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }} />
+            <YAxis
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={valueFormatter}
+            />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }}
+              formatter={valueFormatter ? (value) => valueFormatter(Number(value)) : undefined}
+            />
             {showLegend ? (
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "0.8125rem", paddingTop: "12px" }} />
             ) : null}
-            {colored.map((item) =>
-              type === "bar" ? (
-                <Bar key={item.key} dataKey={item.key} name={item.label ?? item.key} fill={item.color} radius={[6, 6, 2, 2]} />
-              ) : type === "line" ? (
+            {referenceLines.map((reference) => (
+              <ReferenceLine
+                key={`${reference.label}-${reference.value}`}
+                y={reference.value}
+                label={reference.label ? { value: reference.label, position: "insideTopRight", fill: "hsl(var(--muted-foreground))", fontSize: 11 } : undefined}
+                stroke={reference.color ?? "hsl(var(--muted-foreground))"}
+                strokeDasharray={reference.strokeDasharray ?? "5 5"}
+              />
+            ))}
+            {colored.map((item) => {
+              const seriesType = item.type ?? (type === "composed" ? "line" : type);
+              return seriesType === "bar" ? (
+                <Bar
+                  key={item.key}
+                  dataKey={item.key}
+                  name={item.label ?? item.key}
+                  fill={item.color}
+                  fillOpacity={item.opacity}
+                  stackId={item.stackId}
+                  radius={[6, 6, 2, 2]}
+                />
+              ) : seriesType === "line" ? (
                 <Line
                   key={item.key}
                   type="monotone"
@@ -166,6 +216,8 @@ function Chart({
                   name={item.label ?? item.key}
                   stroke={item.color}
                   strokeWidth={2}
+                  strokeDasharray={item.strokeDasharray}
+                  opacity={item.opacity}
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 2, fill: "hsl(var(--card))" }}
                 />
@@ -179,9 +231,12 @@ function Chart({
                   strokeWidth={2}
                   fill={`url(#${chartId}-${item.key})`}
                   fillOpacity={1}
+                  strokeDasharray={item.strokeDasharray}
+                  opacity={item.opacity}
+                  stackId={item.stackId}
                 />
-              ),
-            )}
+              );
+            })}
           </ChartComponent>
         </ResponsiveContainer>
       </div>

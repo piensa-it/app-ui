@@ -33,6 +33,25 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const Showcase: Story = {
+  name: "Vista general",
+  render: () => (
+    <div className="grid gap-5">
+      <div>
+        <h3 className="text-ui-title font-semibold">Acciones con jerarquía clara</h3>
+        <p className="mt-1 text-ui-body-sm text-muted-foreground">Combina énfasis, superficie y tamaño según la decisión.</p>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Button>Guardar cambios</Button>
+        <Button variant="surface"><Mail /> Enviar correo</Button>
+        <Button variant="outline">Vista previa</Button>
+        <Button variant="subtle">Guardar borrador</Button>
+        <Button variant="destructive">Eliminar</Button>
+      </div>
+    </div>
+  ),
+};
+
 export const Default: Story = {};
 
 export const Subtle: Story = { args: { variant: "subtle" } };

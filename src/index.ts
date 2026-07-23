@@ -10,6 +10,13 @@
 //   import "@piensa-it/ui-library/styles.css";
 import "./styles/globals.css";
 
+export {
+  UI_LIBRARY_VERSION,
+  UI_LIBRARY_RELEASES,
+  type LibraryRelease,
+  type ReleaseChannel,
+} from "./version";
+
 // --- Proveedor raíz ---
 export { UiProvider, type UiProviderProps } from "./components/providers/UiProvider";
 
@@ -51,7 +58,13 @@ export { Toaster, toast, type ToastOptions } from "./components/ui/toast";
 // --- Datos complejos (Ark UI / TanStack Table / Recharts + tema Piensa IT) ---
 export { DataTable, Column, type DataTableProps, type ColumnProps, type DataTableValue } from "./components/ui/data-table";
 export { DatePicker, type DatePickerProps } from "./components/ui/date-picker";
-export { Chart, type ChartProps, type ChartSeries, type ChartDatum } from "./components/ui/chart";
+export {
+  Chart,
+  type ChartProps,
+  type ChartSeries,
+  type ChartDatum,
+  type ChartReferenceLine,
+} from "./components/ui/chart";
 export { FileUpload, type FileUploadProps } from "./components/ui/file-upload";
 
 // --- Layout ---

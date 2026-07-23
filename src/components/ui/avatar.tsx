@@ -12,16 +12,39 @@ export interface AvatarProps extends Omit<ArkAvatar.RootProps, "children"> {
   /** Ícono a mostrar cuando no hay imagen ni `label` (ej. un ícono de lucide-react). */
   icon?: React.ReactNode;
   shape?: "circle" | "square";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  variant?: "soft" | "outline" | "elevated";
 }
 
 /** Avatar de usuario sobre Ark UI (headless): imagen con fallback a iniciales o ícono. */
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
-  ({ className, src, alt = "", label, icon, shape = "circle", ...props }, ref) => (
+  (
+    {
+      className,
+      src,
+      alt = "",
+      label,
+      icon,
+      shape = "circle",
+      size = "md",
+      variant = "soft",
+      ...props
+    },
+    ref,
+  ) => (
     <ArkAvatar.Root
       ref={ref}
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center overflow-hidden bg-secondary text-sm font-medium text-secondary-foreground",
-        shape === "circle" ? "rounded-full" : "rounded-md",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden font-semibold",
+        size === "xs" && "h-6 w-6 text-[0.625rem]",
+        size === "sm" && "h-8 w-8 text-xs",
+        size === "md" && "h-10 w-10 text-sm",
+        size === "lg" && "h-12 w-12 text-base",
+        size === "xl" && "h-16 w-16 text-lg",
+        variant === "soft" && "bg-secondary text-secondary-foreground",
+        variant === "outline" && "border border-border bg-background text-foreground",
+        variant === "elevated" && "border border-border/80 bg-card text-foreground shadow-md",
+        shape === "circle" ? "rounded-full" : "rounded-xl",
         className,
       )}
       {...props}

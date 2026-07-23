@@ -12,6 +12,7 @@ export interface ConfirmAlertOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "default" | "destructive";
+  surface?: "default" | "outline" | "elevated";
   onConfirm: () => void;
   onCancel?: () => void;
 }
@@ -80,6 +81,8 @@ function AlertDialogHost() {
           <ArkDialog.Content
             className={cn(
               "w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg outline-none",
+              current?.surface === "outline" && "border-2 shadow-none",
+              current?.surface === "elevated" && "rounded-2xl border-border/70 shadow-2xl",
               elevationRing,
               dialogContentAnimation,
             )}

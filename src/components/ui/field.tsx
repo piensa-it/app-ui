@@ -15,6 +15,8 @@ export interface FieldProps {
   required?: boolean;
   optionalLabel?: React.ReactNode;
   orientation?: "vertical" | "horizontal";
+  variant?: "plain" | "outline" | "surface" | "subtle";
+  density?: "compact" | "comfortable";
   className?: string;
 }
 
@@ -30,6 +32,8 @@ export function Field({
   required = false,
   optionalLabel,
   orientation = "vertical",
+  variant = "plain",
+  density = "comfortable",
   className,
 }: FieldProps) {
   const generatedId = React.useId();
@@ -42,6 +46,10 @@ export function Field({
     <div
       className={cn(
         "grid gap-2",
+        density === "compact" ? "gap-1.5" : "gap-2",
+        variant === "outline" && "rounded-xl border border-border bg-background p-4",
+        variant === "surface" && "rounded-xl border border-surface-border bg-surface p-4 shadow-sm",
+        variant === "subtle" && "rounded-xl border border-transparent bg-subtle p-4",
         orientation === "horizontal" && "sm:grid-cols-[minmax(10rem,0.4fr)_minmax(0,1fr)] sm:gap-x-6",
         className,
       )}

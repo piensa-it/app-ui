@@ -34,3 +34,24 @@ export const ConError: Story = {
     children: <Input defaultValue="correo-invalido" />,
   },
 };
+
+export const Superficies: Story = {
+  args: {
+    label: "Campo",
+    children: <Input />,
+  },
+  render: () => (
+    <div className="grid max-w-lg gap-4">
+      {(["plain", "outline", "surface", "subtle"] as const).map((variant) => (
+        <Field
+          key={variant}
+          variant={variant}
+          label={`Campo ${variant}`}
+          description="La superficie se adapta al nivel de agrupación requerido."
+        >
+          <Input variant={variant === "plain" ? "surface" : variant === "outline" ? "outline" : variant} />
+        </Field>
+      ))}
+    </div>
+  ),
+};
