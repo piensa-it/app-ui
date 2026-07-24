@@ -8,12 +8,23 @@ import {
   flexRender,
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Search,
+  Settings2,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica, igual que el `DataTableValue` anterior sobre PrimeReact.
 export type DataTableValue = Record<string, any>;
@@ -23,6 +34,10 @@ export interface ColumnProps<TValue extends DataTableValue> {
   field: string;
   header: React.ReactNode;
   sortable?: boolean;
+  /** Permite ocultar la columna desde el configurador. @default true */
+  hideable?: boolean;
+  /** Estado inicial antes de aplicar preferencias persistidas. @default true */
+  defaultVisible?: boolean;
   /** Contenido personalizado de la celda. Si se omite, se muestra el valor crudo del campo. */
   body?: (row: TValue) => React.ReactNode;
   className?: string;
@@ -58,6 +73,12 @@ export interface DataTableProps<TValue extends DataTableValue> {
   density?: "compact" | "default" | "comfortable";
   /** Alterna un fondo sutil entre filas. */
   striped?: boolean;
+  /** Muestra el configurador de columnas en la barra superior. */
+  configurableColumns?: boolean;
+  /** Clave de localStorage para recordar columnas visibles por tabla/usuario. */
+  preferencesKey?: string;
+  /** Notifica cambios para persistencia externa en perfiles de usuario. */
+  onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;
   className?: string;
 }
 
@@ -92,36 +113,78 @@ function DataTable<TValue extends DataTableValue>({
   loading = false,
   density = "default",
   striped = false,
+  configurableColumns = false,
+  preferencesKey,
+  onColumnVisibilityChange,
   className,
 }: DataTableProps<TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: rows });
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [columnQuery, setColumnQuery] = React.useState("");
+  const [activeDensity, setActiveDensity] = React.useState(density);
+
+  const columnSpecs = React.useMemo(
+    () =>
+      React.Children.toArray(children).filter(
+        (child): child is React.ReactElement<ColumnProps<TValue>> =>
+          React.isValidElement(child) && child.type === Column,
+      ),
+    [children],
+  );
+
+  const defaultVisibility = React.useMemo<VisibilityState>(
+    () => Object.fromEntries(columnSpecs.map((spec) => [spec.props.field, spec.props.defaultVisible !== false])),
+    [columnSpecs],
+  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+    if (!preferencesKey || typeof window === "undefined") return defaultVisibility;
+    try {
+      const stored = window.localStorage.getItem(`ui-table:${preferencesKey}:columns`);
+      return stored ? { ...defaultVisibility, ...JSON.parse(stored) } : defaultVisibility;
+    } catch {
+      return defaultVisibility;
+    }
+  });
+
+  React.useEffect(() => {
+    if (!preferencesKey || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(`ui-table:${preferencesKey}:columns`, JSON.stringify(columnVisibility));
+    } catch {
+      // La tabla sigue funcionando cuando el navegador bloquea almacenamiento.
+    }
+  }, [columnVisibility, preferencesKey]);
 
   const columnDefs = React.useMemo<Array<ColumnDef<TValue>>>(() => {
-    const specs = React.Children.toArray(children).filter(
-      (child): child is React.ReactElement<ColumnProps<TValue>> => React.isValidElement(child) && child.type === Column,
-    );
-    return specs.map((spec) => ({
+    return columnSpecs.map((spec) => ({
       id: spec.props.field,
       accessorKey: spec.props.field,
       header: () => spec.props.header,
       enableSorting: spec.props.sortable ?? false,
+      enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
         className: spec.props.className,
         ariaLabel: typeof spec.props.header === "string" ? spec.props.header : spec.props.field,
       },
     }));
-  }, [children]);
+  }, [columnSpecs]);
 
   const table = useReactTable({
     data: value,
     columns: columnDefs,
-    state: { sorting, pagination: paginator ? pagination : undefined, globalFilter },
+    state: { sorting, pagination: paginator ? pagination : undefined, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: (updater) => {
+      setColumnVisibility((current) => {
+        const next = typeof updater === "function" ? updater(current) : updater;
+        onColumnVisibilityChange?.(next);
+        return next;
+      });
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -134,11 +197,11 @@ function DataTable<TValue extends DataTableValue>({
     compact: "px-4 py-2",
     default: "px-4 py-3",
     comfortable: "px-4 py-4",
-  }[density];
+  }[activeDensity];
 
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm", className)}>
-      {title || description || actions || searchable ? (
+      {title || description || actions || searchable || configurableColumns ? (
         <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             {title ? <div className="font-heading text-base font-semibold text-foreground">{title}</div> : null}
@@ -161,6 +224,129 @@ function DataTable<TValue extends DataTableValue>({
               </div>
             ) : null}
             {actions}
+            {configurableColumns ? (
+              <Popover positioning={{ placement: "bottom-end" }}>
+                <PopoverTrigger>
+                  <button
+                    type="button"
+                    aria-label="Configurar columnas"
+                    className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Settings2 aria-hidden="true" className="size-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[24rem] p-0">
+                  <div className="border-b border-border px-5 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold">Personalizar tabla</p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Ajusta las columnas y la densidad de esta vista.
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-subtle px-2.5 py-1 text-xs font-semibold text-subtle-foreground">
+                        {table.getVisibleLeafColumns().length}/{table.getAllLeafColumns().length} visibles
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 border-b border-border p-4">
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Densidad</p>
+                      <div className="grid grid-cols-3 rounded-lg bg-muted p-1">
+                        {(["compact", "default", "comfortable"] as const).map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            aria-pressed={activeDensity === option}
+                            onClick={() => setActiveDensity(option)}
+                            className={cn(
+                              "min-h-9 rounded-md px-2 text-xs font-medium transition-colors",
+                              activeDensity === option
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground",
+                            )}
+                          >
+                            {option === "compact" ? "Compacta" : option === "default" ? "Normal" : "Cómoda"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={columnQuery}
+                        onChange={(event) => setColumnQuery(event.target.value)}
+                        placeholder="Buscar columna…"
+                        aria-label="Buscar columna"
+                        className="pl-9"
+                        size="sm"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Columnas</p>
+                      <button
+                        type="button"
+                        onClick={() => table.getAllLeafColumns().forEach((column) => column.getCanHide() && column.toggleVisibility(true))}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Mostrar todas
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto p-2">
+                    {table.getAllLeafColumns().filter((column) => {
+                      const label = (column.columnDef.meta as { ariaLabel?: string } | undefined)?.ariaLabel ?? column.id;
+                      return label.toLocaleLowerCase().includes(columnQuery.trim().toLocaleLowerCase());
+                    }).map((column) => {
+                      const visibleCount = table.getVisibleLeafColumns().length;
+                      const cannotHideLast = column.getIsVisible() && visibleCount === 1;
+                      return (
+                        <button
+                          type="button"
+                          key={column.id}
+                          disabled={!column.getCanHide() || cannotHideLast}
+                          onClick={() => column.toggleVisibility()}
+                          className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-accent disabled:cursor-default disabled:opacity-70"
+                        >
+                          <span className="min-w-0 flex-1 truncate">
+                            {(column.columnDef.meta as { ariaLabel?: string } | undefined)?.ariaLabel ?? column.id}
+                          </span>
+                          {!column.getCanHide() ? <span className="text-[0.6875rem] text-muted-foreground">Fija</span> : null}
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              "inline-flex h-6 w-10 items-center rounded-full p-0.5 transition-colors",
+                              column.getIsVisible() ? "bg-primary" : "bg-muted",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "size-5 rounded-full bg-background shadow-sm transition-transform",
+                                column.getIsVisible() && "translate-x-4",
+                              )}
+                            />
+                          </span>
+                          <span className="sr-only">{column.getIsVisible() ? "Ocultar" : "Mostrar"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t border-border p-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setColumnVisibility(defaultVisibility);
+                        onColumnVisibilityChange?.(defaultVisibility);
+                      }}
+                      className="flex min-h-9 w-full items-center justify-center gap-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                    >
+                      <RotateCcw aria-hidden="true" className="size-3.5" />
+                      Restaurar columnas
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -219,7 +405,7 @@ function DataTable<TValue extends DataTableValue>({
             {loading ? (
               Array.from({ length: Math.min(rows, 5) }).map((_, rowIndex) => (
                 <tr key={`loading-${rowIndex}`} className="border-b border-border last:border-0">
-                  {columnDefs.map((column, columnIndex) => (
+                  {table.getVisibleLeafColumns().map((column, columnIndex) => (
                     <td key={`${column.id ?? columnIndex}`} className={cellPadding}>
                       <div className={cn("h-4 animate-pulse rounded bg-muted", columnIndex === 0 ? "w-3/5" : columnIndex % 2 ? "w-4/5" : "w-2/5")} />
                     </td>
@@ -228,7 +414,7 @@ function DataTable<TValue extends DataTableValue>({
               ))
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columnDefs.length} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={table.getVisibleLeafColumns().length} className="px-4 py-8 text-center text-muted-foreground">
                   {emptyMessage}
                 </td>
               </tr>

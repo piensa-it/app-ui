@@ -56,4 +56,24 @@ describe("DataTable", () => {
     expect(screen.getByRole("button", { name: "Ir a la página anterior" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ir a la página siguiente" })).toBeInTheDocument();
   });
+
+  it("permite configurar la visibilidad de columnas y conserva columnas fijas", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        value={[{ nombre: "Ana", correo: "ana@example.com" }]}
+        configurableColumns
+      >
+        <Column field="nombre" header="Nombre" hideable={false} />
+        <Column field="correo" header="Correo" />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Configurar columnas" }));
+    expect(screen.getByText("Personalizar tabla")).toBeInTheDocument();
+    expect(screen.getByText("Fija")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Correo/i }));
+    expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+  });
 });

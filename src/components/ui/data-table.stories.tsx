@@ -25,6 +25,12 @@ interface Usuario {
   nombre: string;
   correo: string;
   estado: "activo" | "inactivo";
+  area?: string;
+  cargo?: string;
+  ultimoAcceso?: string;
+  sede?: string;
+  supervisor?: string;
+  costoMensual?: number;
 }
 
 const usuarios: Usuario[] = [
@@ -33,17 +39,51 @@ const usuarios: Usuario[] = [
   { nombre: "Marta Ruiz", correo: "marta@piensait.com", estado: "inactivo" },
 ];
 
+const usuariosErp: Usuario[] = [
+  ["Ana Gómez", "Finanzas", "Analista senior", "Bogotá", "Carolina Ríos"],
+  ["Luis Pérez", "Operaciones", "Coordinador", "Medellín", "Julián Mora"],
+  ["Marta Ruiz", "Compras", "Compradora", "Bogotá", "Carolina Ríos"],
+  ["Carlos Díaz", "Tecnología", "Administrador", "Cali", "Andrés Gil"],
+  ["Laura Soto", "Talento", "Líder", "Medellín", "Julián Mora"],
+  ["Diego León", "Ventas", "Ejecutivo", "Barranquilla", "María Vega"],
+  ["Sofía Torres", "Servicio", "Especialista", "Bogotá", "Carolina Ríos"],
+  ["Jorge Ramírez", "Logística", "Planificador", "Cali", "Andrés Gil"],
+  ["Valentina Castro", "Finanzas", "Tesorera", "Medellín", "Julián Mora"],
+  ["Samuel Herrera", "Tecnología", "Desarrollador", "Bogotá", "Andrés Gil"],
+  ["Camila Vargas", "Marketing", "Diseñadora", "Cali", "María Vega"],
+  ["Nicolás Mejía", "Ventas", "Ejecutivo senior", "Bogotá", "María Vega"],
+  ["Isabella Rojas", "Compras", "Analista", "Barranquilla", "Carolina Ríos"],
+  ["Mateo Navarro", "Operaciones", "Supervisor", "Medellín", "Julián Mora"],
+  ["Mariana Arias", "Talento", "Generalista", "Bogotá", "Carolina Ríos"],
+  ["Felipe Mendoza", "Logística", "Coordinador", "Cali", "Andrés Gil"],
+  ["Gabriela Ortiz", "Servicio", "Agente senior", "Barranquilla", "María Vega"],
+  ["Tomás Silva", "Tecnología", "Arquitecto", "Medellín", "Andrés Gil"],
+  ["Sara Cárdenas", "Marketing", "Analista", "Bogotá", "María Vega"],
+  ["Juan Esteban López", "Finanzas", "Contador", "Cali", "Carolina Ríos"],
+].map(([nombre, area, cargo, sede, supervisor], index) => ({
+  nombre,
+  correo: `${nombre.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ /g, ".")}@piensait.com`,
+  estado: index === 2 || index === 12 ? "inactivo" as const : "activo" as const,
+  area,
+  cargo,
+  sede,
+  supervisor,
+  ultimoAcceso: index % 3 === 0 ? "Hoy, 08:42" : index % 3 === 1 ? "Ayer, 17:15" : "22 jul, 09:30",
+  costoMensual: 4200 + index * 185,
+}));
+
 export const Showcase: Story = {
   name: "Vista operativa",
   render: () => (
     <DataTable
-      value={[...usuarios, ...usuarios.map((usuario, index) => ({ ...usuario, correo: `${index + 1}.${usuario.correo}` }))]}
+      value={usuariosErp}
       title="Miembros del equipo"
-      description="Busca, ordena y administra accesos desde una sola vista."
+      description="Busca, ordena y personaliza las columnas de esta vista operativa."
       searchable
+      configurableColumns
       striped
-      rows={5}
-      rowsPerPageOptions={[5, 10, 25]}
+      rows={10}
+      rowsPerPageOptions={[10, 25, 50]}
       actions={
         <div className="flex gap-2">
           <Button variant="outline" size="sm"><Download /> Exportar</Button>
@@ -53,9 +93,21 @@ export const Showcase: Story = {
     >
       <Column field="nombre" header="Nombre" sortable />
       <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column field="cargo" header="Cargo" defaultVisible={false} />
+      <Column field="sede" header="Sede" sortable />
+      <Column field="supervisor" header="Supervisor" defaultVisible={false} />
+      <Column
+        field="costoMensual"
+        header="Costo mensual"
+        defaultVisible={false}
+        body={(row: Usuario) => `$${row.costoMensual?.toLocaleString("es-CO")}`}
+      />
+      <Column field="ultimoAcceso" header="Último acceso" />
       <Column
         field="estado"
         header="Estado"
+        hideable={false}
         body={(row: Usuario) => <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>}
       />
     </DataTable>
@@ -86,6 +138,7 @@ export const Workspace: Story = {
       title="Miembros del equipo"
       description="Administra accesos, estados y datos de contacto."
       searchable
+      configurableColumns
       striped
       rows={5}
       rowsPerPageOptions={[5, 10, 25]}
