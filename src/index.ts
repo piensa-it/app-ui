@@ -48,6 +48,28 @@ export { Dialog, DialogHeader, DialogFooter, DialogTitle, DialogDescription, typ
 export { AlertDialogHost, confirmAlert, type ConfirmAlertOptions } from "./components/ui/alert-dialog";
 export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sidebar";
 export { Popover, PopoverTrigger, PopoverContent, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps } from "./components/ui/popover";
+export {
+  Menu,
+  MenuTrigger,
+  MenuContent,
+  MenuItem,
+  MenuItemGroup,
+  MenuItemGroupLabel,
+  MenuSeparator,
+  MenuCheckboxItem,
+  MenuRadioItemGroup,
+  MenuRadioItem,
+  type MenuProps,
+  type MenuTriggerProps,
+  type MenuContentProps,
+  type MenuItemProps,
+  type MenuItemGroupProps,
+  type MenuItemGroupLabelProps,
+  type MenuSeparatorProps,
+  type MenuCheckboxItemProps,
+  type MenuRadioItemGroupProps,
+  type MenuRadioItemProps,
+} from "./components/ui/menu";
 export { Tooltip, type TooltipProps } from "./components/ui/tooltip";
 export { Tabs, TabPanel, type TabsProps, type TabPanelProps } from "./components/ui/tabs";
 export { Accordion, AccordionTab, type AccordionProps, type AccordionTabProps } from "./components/ui/accordion";
