@@ -79,6 +79,7 @@ export { Toaster, toast, type ToastOptions } from "./components/ui/toast";
 
 // --- Datos complejos (Ark UI / TanStack Table / Recharts + tema Piensa IT) ---
 export { DataTable, Column, type DataTableProps, type ColumnProps, type DataTableValue } from "./components/ui/data-table";
+export { Pagination, type PaginationProps } from "./components/ui/pagination";
 export {
   PivotTable,
   type PivotTableProps,

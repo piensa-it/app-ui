@@ -10,21 +10,12 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  Search,
-  Settings2,
-} from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Search, Settings2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Pagination } from "@/components/ui/pagination";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica, igual que el `DataTableValue` anterior sobre PrimeReact.
 export type DataTableValue = Record<string, any>;
@@ -445,61 +436,15 @@ function DataTable<TValue extends DataTableValue>({
         </table>
       </div>
       {paginator && !loading ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span>Filas por página</span>
-            <Select
-              className="w-20"
-              aria-label="Filas por página"
-              options={rowsPerPageOptions.map((n) => ({ label: String(n), value: n }))}
-              value={pagination.pageSize}
-              onChange={(v) => table.setPageSize(Number(v))}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <span>
-              {totalRows === 0
-                ? "0 de 0"
-                : `${pagination.pageIndex * pagination.pageSize + 1}-${Math.min(
-                    (pagination.pageIndex + 1) * pagination.pageSize,
-                    totalRows,
-                  )} de ${totalRows}`}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label="Ir a la página anterior"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                className={cn(
-                  "flex h-control-default w-control-default items-center justify-center rounded-md border border-input",
-                  "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  "disabled:pointer-events-none disabled:opacity-50",
-                )}
-              >
-                <ChevronLeft aria-hidden="true" className="h-4 w-4" />
-              </button>
-              <span className="px-1 tabular-nums">
-                {pageCount === 0 ? 0 : pagination.pageIndex + 1} / {pageCount}
-              </span>
-              <button
-                type="button"
-                aria-label="Ir a la página siguiente"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                className={cn(
-                  "flex h-control-default w-control-default items-center justify-center rounded-md border border-input",
-                  "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  "disabled:pointer-events-none disabled:opacity-50",
-                )}
-              >
-                <ChevronRight aria-hidden="true" className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          pageIndex={pagination.pageIndex}
+          pageCount={pageCount}
+          pageSize={pagination.pageSize}
+          totalItems={totalRows}
+          pageSizeOptions={rowsPerPageOptions}
+          onPageIndexChange={(index) => table.setPageIndex(index)}
+          onPageSizeChange={(size) => table.setPageSize(size)}
+        />
       ) : null}
     </div>
   );
