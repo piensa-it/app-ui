@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Select } from "../components/ui/select";
 
 describe("Select", () => {
@@ -27,5 +27,24 @@ describe("Select", () => {
       />,
     );
     expect(screen.getAllByText("México").length).toBeGreaterThan(0);
+  });
+
+  it("despliega opciones y permite seleccionar una", async () => {
+    const onChange = vi.fn();
+    render(
+      <Select
+        aria-label="Seleccionar país"
+        options={[
+          { label: "Colombia", value: "co" },
+          { label: "México", value: "mx" },
+        ]}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Seleccionar país" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Colombia" }));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith("co"));
   });
 });

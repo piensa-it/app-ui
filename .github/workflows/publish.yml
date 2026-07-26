@@ -27,9 +27,20 @@ jobs:
 
       - run: npm run lint
 
+      - name: TypeScript strict check
+        run: npx tsc --noEmit -p tsconfig.app.json
+
       - run: npm run test:run
 
-      - run: npm run build
+      # Defensa en profundidad: ci.yml ya corre esto en el PR, pero repetirlo
+      # acá evita publicar a npm si el estado de `main` cambió entre el merge
+      # y la creación del Release (o si el Release apunta a un commit distinto
+      # al que pasó CI). verify:package hace `npm run build` + valida que
+      # React/Ark UI/TanStack/Recharts sigan externalizados y que el bundle
+      # no exceda el presupuesto de tamaño — es estrictamente más que
+      # `npm run build` solo, así que reemplaza ese paso.
+      - name: Verificar build, tipos y tamaño del paquete
+        run: npm run verify:package
 
       - name: Publicar en GitHub Packages
         run: npm publish

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
 
@@ -75,5 +75,26 @@ describe("DataTable", () => {
 
     await user.click(screen.getByRole("button", { name: /Correo/i }));
     expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+  });
+
+  it("cierra la configuración de columnas al continuar con la búsqueda", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        value={[{ nombre: "Ana", correo: "ana@example.com" }]}
+        configurableColumns
+        searchable
+      >
+        <Column field="nombre" header="Nombre" />
+        <Column field="correo" header="Correo" />
+      </DataTable>,
+    );
+
+    const settings = screen.getByRole("button", { name: "Configurar columnas" });
+    await user.click(settings);
+    expect(settings).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(screen.getByRole("textbox", { name: "Buscar en la tabla" }));
+    await waitFor(() => expect(settings).toHaveAttribute("aria-expanded", "false"));
   });
 });

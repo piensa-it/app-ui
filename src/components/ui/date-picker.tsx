@@ -7,6 +7,7 @@ import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import { fieldControlVariants, floatingPanelStyles, iconButtonStyles } from "@/lib/recipes/field-control";
 
 function toCalendarDate(date: Date): CalendarDate {
@@ -42,15 +43,39 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
       size,
       "aria-label": ariaLabel,
       id,
+      open: controlledOpen,
+      defaultOpen,
+      onOpenChange,
       ...props
     },
     ref,
-  ) => (
+  ) => {
+    const [internalOpen, setInternalOpen] = React.useState(defaultOpen ?? false);
+    const open = controlledOpen ?? internalOpen;
+    const rootRef = React.useRef<HTMLDivElement | null>(null);
+    const contentRef = React.useRef<HTMLDivElement | null>(null);
+    const assignRootRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        rootRef.current = node;
+        assignForwardedRef(ref, node);
+      },
+      [ref],
+    );
+
+    const dismiss = React.useCallback(() => setInternalOpen(false), []);
+    useOverlayDismiss(open, controlledOpen === undefined, rootRef, contentRef, dismiss);
+
+    return (
     <ArkDatePicker.Root
-      ref={ref}
+      ref={assignRootRef}
       id={id ? `${id}-root` : undefined}
       locale="es"
       selectionMode="single"
+      open={open}
+      onOpenChange={(details) => {
+        if (controlledOpen === undefined) setInternalOpen(details.open);
+        onOpenChange?.(details);
+      }}
       value={value ? [toCalendarDate(value)] : []}
       onValueChange={(details) => {
         const next = details.value[0];
@@ -82,6 +107,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
       <Portal>
         <ArkDatePicker.Positioner>
           <ArkDatePicker.Content
+            ref={contentRef}
             className={cn(
               floatingPanelStyles,
               "w-[min(22rem,calc(100vw-2rem))] p-3 sm:p-4",
@@ -161,7 +187,8 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
         </ArkDatePicker.Positioner>
       </Portal>
     </ArkDatePicker.Root>
-  ),
+    );
+  },
 );
 DatePicker.displayName = "DatePicker";
 

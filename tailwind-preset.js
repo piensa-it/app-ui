@@ -73,10 +73,20 @@ const preset = {
           5: "hsl(var(--chart-5))",
         },
       },
+      // `xl`/`2xl` no son solo un "más grande" de Tailwind por defecto: se
+      // derivan de `--radius` con un offset fijo (+2px / +6px), calculado
+      // para que con el `--radius` por defecto (0.625rem) den exactamente
+      // los mismos 12px/16px que ya se venían usando. Antes eran valores
+      // fijos de Tailwind (0.75rem/1rem) sin relación con el token — una
+      // app que sobreescribe `--radius` para su marca tenía a Card/Button
+      // (rounded-lg) siguiendo el cambio, pero Field/AlertDialog/PivotTable
+      // (rounded-xl/2xl) no.
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 2px)",
+        lg: "var(--radius)",
+        xl: "calc(var(--radius) + 2px)",
+        "2xl": "calc(var(--radius) + 6px)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],

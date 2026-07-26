@@ -2,6 +2,8 @@ import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 export interface LinkComponentProps {
   to: string;
   className?: string;
@@ -65,9 +67,12 @@ export const PublicHeader = ({
 
   return (
     <header
-      className={`${position === "static" ? "relative" : `${position} top-0`} z-50 w-full border-b bg-background/95 backdrop-blur-xl transition-[border-color,box-shadow,background-color] duration-normal ${
-        scrolled ? "border-border shadow-sm" : "border-transparent"
-      } ${className}`}
+      className={cn(
+        position === "static" ? "relative" : `${position} top-0`,
+        "z-50 w-full border-b bg-background/95 backdrop-blur-xl transition-[border-color,box-shadow,background-color] duration-normal",
+        scrolled ? "border-border shadow-sm" : "border-transparent",
+        className,
+      )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center justify-between gap-4">

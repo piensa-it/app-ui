@@ -7,3 +7,8 @@ class ResizeObserverMock implements ResizeObserver {
 }
 
 globalThis.ResizeObserver = ResizeObserverMock
+
+Object.defineProperty(Element.prototype, "scrollTo", {
+  configurable: true,
+  value: () => {},
+})

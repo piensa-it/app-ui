@@ -49,12 +49,22 @@ export const Showcase: Story = {
           <div>
             <h3 className="text-ui-title font-semibold">País de operación</h3>
             <p className="mt-1 text-ui-body-sm text-muted-foreground">
-              Abre el control para recorrer {paises.length} opciones con teclado o puntero.
+              Haz clic en el campo para desplegar {paises.length} opciones. También puedes usar Enter, Espacio y las flechas del teclado.
             </p>
           </div>
-          <Select options={paises} value={value} onChange={setValue} placeholder="Selecciona un país" size="lg" variant="surface" />
+          <Select
+            aria-label="Seleccionar país"
+            options={paises}
+            value={value}
+            onChange={setValue}
+            placeholder="Haz clic para seleccionar un país"
+            size="lg"
+            variant="surface"
+          />
           <p className="min-h-5 text-ui-body-sm text-muted-foreground">
-            {value ? `Código seleccionado: ${value}` : "Aún no has seleccionado un país."}
+            {value
+              ? <>Selección actual: <strong className="text-foreground">{paises.find((pais) => pais.value === value)?.label}</strong></>
+              : "Ningún país seleccionado todavía."}
           </p>
         </div>
       );

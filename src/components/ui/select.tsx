@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Select as ArkSelect, createListCollection } from "@ark-ui/react/select";
+import { Select as ArkSelect, createListCollection, useSelect } from "@ark-ui/react/select";
 import { Portal } from "@ark-ui/react/portal";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
@@ -53,19 +53,30 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         }),
       [options],
     );
+    const select = useSelect({
+      id: id ? `${id}-root` : undefined,
+      collection,
+      value: value === null || value === undefined ? [] : [String(value)],
+      onValueChange: (details) => {
+        const raw = details.items[0]?.value;
+        onChange?.(raw === undefined ? null : raw);
+      },
+      ...props,
+    });
+    const isOpen = select.open;
+    const reposition = select.reposition;
+
+    React.useEffect(() => {
+      if (!isOpen) return;
+      const frame = window.requestAnimationFrame(() => reposition());
+      return () => window.cancelAnimationFrame(frame);
+    }, [isOpen, reposition]);
 
     return (
-      <ArkSelect.Root
+      <ArkSelect.RootProvider
         ref={ref}
-        id={id ? `${id}-root` : undefined}
-        collection={collection}
-        value={value === null || value === undefined ? [] : [String(value)]}
-        onValueChange={(details) => {
-          const raw = details.items[0]?.value;
-          onChange?.(raw === undefined ? null : raw);
-        }}
+        value={select}
         className={cn("w-full", className)}
-        {...props}
       >
         <ArkSelect.Control>
           <ArkSelect.Trigger
@@ -73,14 +84,17 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             aria-label={ariaLabel}
             className={cn(
               fieldControlVariants({ variant, size }),
-              "flex items-center justify-between gap-3",
+              "group flex cursor-pointer items-center justify-between gap-3",
             )}
           >
             <ArkSelect.ValueText
               placeholder={placeholder}
               className="truncate text-left data-[placeholder-shown]:text-muted-foreground"
             />
-            <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180"
+            />
           </ArkSelect.Trigger>
         </ArkSelect.Control>
         <Portal>
@@ -109,7 +123,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           </ArkSelect.Positioner>
         </Portal>
         <ArkSelect.HiddenSelect />
-      </ArkSelect.Root>
+      </ArkSelect.RootProvider>
     );
   },
 );

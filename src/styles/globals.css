@@ -47,7 +47,10 @@
     --subtle-hover: 243 65% 92%;
     --subtle-foreground: 243 55% 34%;
 
-    --destructive: 4 90% 58%;
+    /* L bajado de 58%→45% a propósito: con blanco encima, 58% da 3.72:1
+       (falla WCAG AA de texto normal, que exige 4.5:1). 45% da ~5.2:1,
+       sigue siendo un rojo vívido reconocible como "peligro". */
+    --destructive: 4 86% 45%;
     --destructive-foreground: 0 0% 100%;
 
     /* Verde suficientemente oscuro para funcionar como fondo y como texto
@@ -188,7 +191,9 @@
   --subtle-hover: 243 38% 23%;
   --subtle-foreground: 243 78% 82%;
 
-  --destructive: 4 85% 62%;
+  /* Mismo motivo que en :root: 62% de luminosidad con texto blanco daba
+     3.40:1 (falla AA). 45% da ~5.2:1. */
+  --destructive: 4 85% 45%;
   --destructive-foreground: 0 0% 100%;
 
   --success: 142.1 70.6% 45.3%;

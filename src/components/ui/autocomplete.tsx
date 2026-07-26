@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Combobox as ArkCombobox, createListCollection } from "@ark-ui/react/combobox";
+import { Combobox as ArkCombobox, createListCollection, useCombobox } from "@ark-ui/react/combobox";
 import { Portal } from "@ark-ui/react/portal";
 import { Check, ChevronsUpDown } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
 export interface AutoCompleteProps extends VariantProps<typeof fieldControlVariants> {
@@ -50,6 +51,16 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
     },
     ref,
   ) => {
+    const [open, setOpen] = React.useState(false);
+    const rootRef = React.useRef<HTMLDivElement | null>(null);
+    const contentRef = React.useRef<HTMLDivElement | null>(null);
+    const assignRootRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        rootRef.current = node;
+        assignForwardedRef(ref, node);
+      },
+      [ref],
+    );
     const items = React.useMemo(() => suggestions.map((s) => ({ label: s, value: s })), [suggestions]);
     const collection = React.useMemo(
       () =>
@@ -60,24 +71,41 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
         }),
       [items],
     );
+    const combobox = useCombobox({
+      id: id ? `${id}-root` : undefined,
+      collection,
+      inputValue: value,
+      disabled,
+      open,
+      openOnClick: true,
+      onOpenChange: (details) => setOpen(details.open),
+      onInteractOutside: () => setOpen(false),
+      onInputValueChange: (details) => {
+        onChange(details.inputValue);
+        onQueryChange(details.inputValue);
+      },
+      onValueChange: (details) => {
+        const next = details.items[0]?.value;
+        if (next !== undefined) onChange(next);
+      },
+      ...props,
+    });
+    const reposition = combobox.reposition;
+
+    React.useEffect(() => {
+      if (!open) return;
+      const frame = window.requestAnimationFrame(() => reposition());
+      return () => window.cancelAnimationFrame(frame);
+    }, [open, reposition]);
+
+    const dismiss = React.useCallback(() => setOpen(false), []);
+    useOverlayDismiss(open, true, rootRef, contentRef, dismiss);
 
     return (
-      <ArkCombobox.Root
-        ref={ref}
-        id={id ? `${id}-root` : undefined}
-        collection={collection}
-        inputValue={value}
-        disabled={disabled}
-        onInputValueChange={(details) => {
-          onChange(details.inputValue);
-          onQueryChange(details.inputValue);
-        }}
-        onValueChange={(details) => {
-          const next = details.items[0]?.value;
-          if (next !== undefined) onChange(next);
-        }}
+      <ArkCombobox.RootProvider
+        ref={assignRootRef}
+        value={combobox}
         className={cn("w-full", className)}
-        {...props}
       >
         <ArkCombobox.Control
           aria-invalid={ariaInvalid}
@@ -91,10 +119,16 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
             aria-label={ariaLabel}
             aria-invalid={ariaInvalid}
             placeholder={placeholder}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" || event.key === "Tab") setOpen(false);
+            }}
             className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
           />
           <ArkCombobox.Trigger
             aria-label="Mostrar sugerencias"
+            onKeyDown={(event) => {
+              if (event.key === "Escape" || event.key === "Tab") setOpen(false);
+            }}
             className="-mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <ChevronsUpDown aria-hidden="true" className="size-4" />
@@ -103,6 +137,7 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
         <Portal>
           <ArkCombobox.Positioner>
             <ArkCombobox.Content
+              ref={contentRef}
               className={cn(
                 floatingPanelStyles,
                 "max-h-72 min-w-[var(--reference-width)] p-1.5",
@@ -128,7 +163,7 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
             </ArkCombobox.Content>
           </ArkCombobox.Positioner>
         </Portal>
-      </ArkCombobox.Root>
+      </ArkCombobox.RootProvider>
     );
   },
 );

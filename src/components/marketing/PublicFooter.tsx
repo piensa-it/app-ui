@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type { LinkComponent } from "./PublicHeader";
 
+import { cn } from "@/lib/utils";
+
 interface SocialLink {
   href: string;
   label: string;
@@ -33,6 +35,7 @@ export interface PublicFooterProps {
   credit?: ReactNode;
   copyrightHolder?: string;
   linkComponent?: LinkComponent;
+  className?: string;
 }
 
 const DefaultLink: LinkComponent = ({ to, children, ...rest }) => (
@@ -56,12 +59,13 @@ export const PublicFooter = ({
   credit,
   copyrightHolder,
   linkComponent: Link = DefaultLink,
+  className,
 }: PublicFooterProps) => {
   const hasLegal = legalLinks.length > 0;
   const hasSocial = socialLinks.length > 0;
 
   return (
-    <footer className="bg-muted/30 py-12">
+    <footer className={cn("bg-muted/30 py-12", className)}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 grid gap-8 md:grid-cols-4">
           <div>

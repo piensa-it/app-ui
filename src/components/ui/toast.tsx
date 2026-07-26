@@ -61,6 +61,7 @@ function Toaster() {
             </div>
             {toast.closable !== false ? (
               <ArkToast.CloseTrigger
+                aria-label="Cerrar notificación"
                 className={cn(
                   "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",

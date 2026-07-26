@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Select as ArkSelect, createListCollection } from "@ark-ui/react/select";
+import { Select as ArkSelect, createListCollection, useSelect } from "@ark-ui/react/select";
 import { Portal } from "@ark-ui/react/portal";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
+import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import type { SelectOption } from "@/components/ui/select";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
@@ -36,10 +37,25 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
       id,
       variant,
       size,
+      open: controlledOpen,
+      defaultOpen,
+      onOpenChange,
+      onInteractOutside,
       ...props
     },
     ref,
   ) => {
+    const [internalOpen, setInternalOpen] = React.useState(defaultOpen ?? false);
+    const open = controlledOpen ?? internalOpen;
+    const rootRef = React.useRef<HTMLDivElement | null>(null);
+    const contentRef = React.useRef<HTMLDivElement | null>(null);
+    const assignRootRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        rootRef.current = node;
+        assignForwardedRef(ref, node);
+      },
+      [ref],
+    );
     const collection = React.useMemo(
       () =>
         createListCollection({
@@ -55,6 +71,37 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
       () => new Map(options.map((option) => [String(option.value), option.label])),
       [options],
     );
+    const select = useSelect({
+      id: id ? `${id}-root` : undefined,
+      collection,
+      multiple: true,
+      value: selected,
+      open,
+      onOpenChange: (details) => {
+        if (controlledOpen === undefined) setInternalOpen(details.open);
+        onOpenChange?.(details);
+      },
+      onInteractOutside: (event) => {
+        if (controlledOpen === undefined) setInternalOpen(false);
+        onInteractOutside?.(event);
+      },
+      onValueChange: (details) => {
+        const next = details.items.map((item) => item.value);
+        onChange?.(next);
+      },
+      ...props,
+    });
+    const isOpen = select.open;
+    const reposition = select.reposition;
+
+    React.useEffect(() => {
+      if (!isOpen) return;
+      const frame = window.requestAnimationFrame(() => reposition());
+      return () => window.cancelAnimationFrame(frame);
+    }, [isOpen, reposition]);
+
+    const dismiss = React.useCallback(() => setInternalOpen(false), []);
+    useOverlayDismiss(open, controlledOpen === undefined, rootRef, contentRef, dismiss);
 
     const removeValue = (raw: string) => {
       const next = value.filter((item) => String(item) !== raw);
@@ -62,23 +109,16 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
     };
 
     return (
-      <ArkSelect.Root
-        ref={ref}
-        id={id ? `${id}-root` : undefined}
-        collection={collection}
-        multiple
-        value={selected}
-        onValueChange={(details) => {
-          const next = details.items.map((item) => item.value);
-          onChange?.(next);
-        }}
+      <ArkSelect.RootProvider
+        ref={assignRootRef}
+        value={select}
         className={cn("w-full", className)}
-        {...props}
       >
         <ArkSelect.Control
+          onClick={() => select.setOpen(true)}
           className={cn(
             fieldControlVariants({ variant, size }),
-            "flex flex-wrap items-center gap-1.5 py-1.5",
+            "group flex cursor-pointer flex-wrap items-center gap-1.5 py-1.5",
           )}
         >
             {selected.length === 0 ? (
@@ -117,12 +157,16 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
               aria-label={ariaLabel ?? "Mostrar opciones"}
               className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <ChevronsUpDown aria-hidden="true" className="size-4" />
+              <ChevronDown
+                aria-hidden="true"
+                className="size-4 transition-transform duration-150 group-data-[state=open]:rotate-180"
+              />
             </ArkSelect.Trigger>
         </ArkSelect.Control>
         <Portal>
           <ArkSelect.Positioner>
             <ArkSelect.Content
+              ref={contentRef}
               className={cn(
                 floatingPanelStyles,
                 "max-h-72 min-w-[var(--reference-width)] p-1.5",
@@ -146,7 +190,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
           </ArkSelect.Positioner>
         </Portal>
         <ArkSelect.HiddenSelect />
-      </ArkSelect.Root>
+      </ArkSelect.RootProvider>
     );
   },
 );
