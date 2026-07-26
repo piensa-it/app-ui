@@ -155,7 +155,29 @@ Importa siempre desde la raíz del paquete (`@piensa-it/ui-library`), nunca desd
 
 ## Theming por marca (white-labeling)
 
-Los componentes no tienen colores hardcodeados: todo sale de variables CSS. Cada producto sobreescribe esas variables con su propia paleta, sin tocar un solo componente — ve la página **Tokens** en el sidebar para ver la paleta completa y cómo sobreescribirla.
+Los componentes no tienen colores hardcodeados: todo sale de variables CSS (`--primary`, `--background`, `--success`...). Cada producto sobreescribe esas variables con su propia paleta, sin tocar un solo componente — ve la página **Tokens** en el sidebar para ver la paleta completa.
+
+La forma más rápida: aplicar una de las seis paletas incluidas en un ancestro de la app (o de una sola sección):
+
+```tsx
+<div data-ui-palette="ocean">
+  <UiProvider>{children}</UiProvider>
+</div>
+```
+
+Valores disponibles: `indigo`, `ocean`, `violet`, `emerald`, `ruby`, `amber`. Cambia identidad, foco, selección y énfasis — nunca el significado universal de `success`, `warning` o `destructive`.
+
+Para una identidad 100% propia (no una de las seis), sobreescribe los tokens directamente después de importar `styles.css`:
+
+```css
+/* estilos globales de tu app */
+:root {
+  --primary: 158 64% 32%; /* verde MisFin, por ejemplo */
+  --primary-foreground: 0 0% 100%;
+}
+```
+
+Lo mismo aplica a tipografía (`data-ui-font="inter"`, o sobreescribir `--font-sans`/`--font-heading` directamente) — ver el README del repo para la lista completa de tokens sobreescribibles.
 
 ## ¿Dudas o falta un componente?
 

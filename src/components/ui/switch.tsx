@@ -3,6 +3,7 @@ import { Switch as ArkSwitch } from "@ark-ui/react/switch";
 
 import { cn } from "@/lib/utils";
 import { transition } from "@/lib/style-helpers";
+import { switchControlSizeVariants, switchThumbSizeVariants } from "@/lib/recipes/switch";
 
 export interface SwitchProps
   extends Omit<ArkSwitch.RootProps, "checked" | "children" | "onCheckedChange" | "label"> {
@@ -10,11 +11,13 @@ export interface SwitchProps
   onCheckedChange?: (checked: boolean) => void;
   label?: React.ReactNode;
   description?: React.ReactNode;
+  /** @default "md" */
+  size?: "sm" | "md" | "lg";
 }
 
 /** Interruptor on/off sobre Ark UI (headless), con el tema Tailwind de la librería. */
 const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
-  ({ className, checked = false, onCheckedChange, label, description, ...props }, ref) => (
+  ({ className, checked = false, onCheckedChange, label, description, size = "md", ...props }, ref) => (
     <ArkSwitch.Root
       ref={ref}
       className={cn(
@@ -28,7 +31,8 @@ const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
     >
       <ArkSwitch.Control
         className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input shadow-inner",
+          "relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-input shadow-inner",
+          switchControlSizeVariants({ size }),
           "data-[state=checked]:bg-primary",
           "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
           "data-[focus-visible]:outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-2",
@@ -37,8 +41,8 @@ const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
       >
         <ArkSwitch.Thumb
           className={cn(
-            "block size-5 translate-x-0.5 rounded-full bg-background shadow-sm transition-transform duration-normal motion-reduce:transition-none",
-            "data-[state=checked]:translate-x-5",
+            "block translate-x-0.5 rounded-full bg-background shadow-sm transition-transform duration-normal motion-reduce:transition-none",
+            switchThumbSizeVariants({ size }),
           )}
         />
       </ArkSwitch.Control>

@@ -56,6 +56,25 @@ const elevationTokens = [
   { name: "lg", className: "shadow-lg" },
 ];
 
+// No son variables CSS (a diferencia de color/radio/elevación) — es la
+// escala de Tailwind, pero usada con un criterio fijo: el padding
+// horizontal interno de un control escala junto con su altura
+// (`--control-compact/default/comfortable`). Cualquier componente nuevo
+// con tamaños `sm`/`md`/`lg` debería tomar estos mismos valores en vez de
+// inventar los suyos — así lo hacen ya Button y los controles de Field.
+const spacingTokens = [
+  { name: "sm", px: "0.625rem (10px)", className: "px-2.5", pairsWith: "h-control-compact / h-9" },
+  { name: "md", px: "0.875rem (14px)", className: "px-3.5", pairsWith: "h-control-default" },
+  { name: "lg", px: "1rem (16px)", className: "px-4", pairsWith: "h-control-comfortable" },
+];
+
+const gapTokens = [
+  { name: "compacto", className: "gap-1.5", usage: "Ícono + texto en un control pequeño" },
+  { name: "por defecto", className: "gap-2", usage: "Entre controles relacionados (Button, Toolbar)" },
+  { name: "sección", className: "gap-4", usage: "Entre bloques/campos de un formulario" },
+  { name: "layout", className: "gap-6", usage: "Entre secciones de una página" },
+];
+
 const palettes = [
   { value: "indigo", label: "Índigo" },
   { value: "ocean", label: "Océano" },
@@ -205,6 +224,47 @@ export const Densidad: Story = {
           <p className="text-xs text-muted-foreground">{token.value}</p>
         </div>
       ))}
+    </div>
+  ),
+};
+
+export const Espaciado: Story = {
+  name: "Espaciado",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "No es una variable CSS propia — es la escala de Tailwind, adoptada con un criterio fijo para que los tamaños `sm`/`md`/`lg` de todos los controles sean predecibles entre sí. Un componente nuevo con variantes de tamaño debería reusar esta tabla en vez de elegir su propio padding.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {spacingTokens.map((token) => (
+          <div key={token.name} className="rounded-lg border border-border p-4">
+            <div className={`inline-flex items-center rounded-md border border-dashed border-primary/40 bg-subtle ${token.className} py-2 text-sm font-medium text-subtle-foreground`}>
+              {token.className}
+            </div>
+            <p className="mt-3 text-sm font-semibold">{token.name}</p>
+            <p className="text-xs text-muted-foreground">{token.px}</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">junto a {token.pairsWith}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="mb-3 text-sm font-semibold">Separación entre elementos (`gap-*`)</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {gapTokens.map((token) => (
+            <div key={token.name} className="rounded-lg border border-border p-3">
+              <code className="font-mono text-xs text-foreground">{token.className}</code>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {token.name} — {token.usage}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   ),
 };

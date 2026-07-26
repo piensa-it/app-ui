@@ -3,6 +3,7 @@ import { RadioGroup as ArkRadioGroup } from "@ark-ui/react/radio-group";
 
 import { cn } from "@/lib/utils";
 import { transition } from "@/lib/style-helpers";
+import { radioControlSizeVariants } from "@/lib/recipes/radio-group";
 
 export interface RadioGroupProps extends Omit<ArkRadioGroup.RootProps, "value" | "onValueChange"> {
   value?: string;
@@ -31,6 +32,8 @@ export interface RadioGroupItemProps {
   /** Texto de la opción. */
   label?: React.ReactNode;
   description?: React.ReactNode;
+  /** @default "md" */
+  size?: "sm" | "md" | "lg";
 }
 
 /**
@@ -40,7 +43,7 @@ export interface RadioGroupItemProps {
  * el nombre exacto del atributo `data-*` de Ark para el estado seleccionado.
  */
 const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
-  ({ value, id, disabled, className, label, description }, ref) => (
+  ({ value, id, disabled, className, label, description, size = "md" }, ref) => (
     <ArkRadioGroup.Item
       ref={ref}
       value={value}
@@ -54,8 +57,9 @@ const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
       <ArkRadioGroup.ItemHiddenInput id={id} className="peer sr-only" />
       <ArkRadioGroup.ItemControl
         className={cn(
-          "relative mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-background shadow-sm",
-          "after:size-2.5 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-normal",
+          radioControlSizeVariants({ size }),
+          "shrink-0",
+          "after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-normal",
           "peer-checked:border-primary",
           "peer-checked:after:scale-100",
           "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
