@@ -19,6 +19,10 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    // Composición de demostración (sin `component`, estado interno vía
+    // useState) — no hay args que controlar desde el panel.
+    controls: { disable: true },
+    actions: { disable: true },
     docs: {
       description: {
         component: "Prueba de composición responsive para revisar alineación, densidad, estados y ritmo vertical de los controles.",

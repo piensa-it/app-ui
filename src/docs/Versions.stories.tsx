@@ -7,6 +7,9 @@ const meta = {
   title: "Versiones",
   parameters: {
     layout: "padded",
+    // Página de referencia estática — sin controles ni acciones que mostrar.
+    controls: { disable: true },
+    actions: { disable: true },
     docs: {
       description: {
         component:

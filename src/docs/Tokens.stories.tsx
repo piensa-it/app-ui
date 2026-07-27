@@ -7,6 +7,12 @@ const meta = {
   title: "Tokens",
   parameters: {
     layout: "padded",
+    // Página de referencia estática (sin `component`) — nunca va a tener
+    // controles ni acciones que mostrar, así que el panel inferior solo
+    // ocuparía espacio con "This story has no controls". Ver el mismo ajuste
+    // en Versions.stories.tsx y ControlShowcase.stories.tsx.
+    controls: { disable: true },
+    actions: { disable: true },
     docs: {
       description: {
         component:
