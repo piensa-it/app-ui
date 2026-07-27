@@ -30,8 +30,16 @@
     line-height: 1.08;
   }
 
+  /*
+   * !important en margin-top: el propio bundle de @storybook/addon-docs trae
+   * una regla `:first-of-type` que fuerza `margin-top: 0` en el primer h2/h3
+   * del documento (asume que siempre sigue a texto plano). En Introduction.mdx
+   * ese primer h2 ("Explora el sistema") viene después de una card a medida,
+   * no de un párrafo — sin el !important, esa regla de Storybook gana por
+   * especificidad y el heading queda pegado al bloque anterior sin espacio.
+   */
   .sbdocs-content > h2 {
-    margin-top: 40px;
+    margin-top: 40px !important;
     margin-bottom: 12px;
     padding-bottom: 10px;
     border-bottom: 1px solid hsl(var(--border));
@@ -41,7 +49,7 @@
   }
 
   .sbdocs-content > h3 {
-    margin-top: 28px;
+    margin-top: 28px !important;
     margin-bottom: 8px;
     font-size: 1.125rem;
     font-weight: 620;
