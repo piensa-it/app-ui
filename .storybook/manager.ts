@@ -50,10 +50,14 @@ addons.setConfig({
  * o si lo vuelve a abrir manualmente en una story que sí tiene contenido.
  */
 addons.register("piensa-it/auto-hide-empty-panel", (api) => {
-  api.on(STORY_CHANGED, (storyId: string) => {
-    const parameters = api.getParameters(storyId) as Record<string, { disable?: boolean } | undefined> | undefined;
+  api.on(STORY_CHANGED, () => {
+    // STORY_CHANGED no trae el storyId como argumento del callback (a
+    // diferencia de STORY_PREPARED) — hay que leer la story activa desde el
+    // propio store con getCurrentParameter, no con getParameters(storyId).
     const panelKeys = ["controls", "actions", "interactions", "a11y"] as const;
-    const hasNoPanels = panelKeys.every((key) => parameters?.[key]?.disable === true);
+    const hasNoPanels = panelKeys.every(
+      (key) => api.getCurrentParameter<{ disable?: boolean } | undefined>(key)?.disable === true,
+    );
 
     if (hasNoPanels && api.getIsPanelShown()) {
       api.togglePanel(false);
