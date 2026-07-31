@@ -1,4 +1,5 @@
 import { addons } from "storybook/manager-api";
+import { STORY_CHANGED } from "storybook/internal/core-events";
 import { create } from "storybook/theming";
 
 /**
@@ -32,4 +33,30 @@ const uiLibraryTheme = create({
 
 addons.setConfig({
   theme: uiLibraryTheme,
+});
+
+/**
+ * Auto-oculta el panel inferior de addons (Controls/Actions/Interactions/
+ * A11y) al navegar a una story que desactivó los 4 — páginas de referencia
+ * estática como Tokens, Versions o Introducción (ver esos archivos, que
+ * setean `parameters.controls.disable`, etc.). Sin esto, el panel se queda
+ * abierto (si el usuario lo abrió en cualquier story anterior) mostrando el
+ * placeholder genérico "Storybook add-ons / Explore integrations catalog" en
+ * vez de simplemente desaparecer — quita visibilidad sin aportar nada, que
+ * es justo lo que se buscaba evitar al desactivar esas 4 pestañas.
+ *
+ * Solo CIERRA el panel al entrar a una de estas stories; nunca lo abre por
+ * su cuenta, así que no pelea con el usuario si lo prefiere cerrado siempre
+ * o si lo vuelve a abrir manualmente en una story que sí tiene contenido.
+ */
+addons.register("piensa-it/auto-hide-empty-panel", (api) => {
+  api.on(STORY_CHANGED, (storyId: string) => {
+    const parameters = api.getParameters(storyId) as Record<string, { disable?: boolean } | undefined> | undefined;
+    const panelKeys = ["controls", "actions", "interactions", "a11y"] as const;
+    const hasNoPanels = panelKeys.every((key) => parameters?.[key]?.disable === true);
+
+    if (hasNoPanels && api.getIsPanelShown()) {
+      api.togglePanel(false);
+    }
+  });
 });
