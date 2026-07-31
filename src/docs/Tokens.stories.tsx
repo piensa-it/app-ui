@@ -8,11 +8,15 @@ const meta = {
   parameters: {
     layout: "padded",
     // Página de referencia estática (sin `component`) — nunca va a tener
-    // controles ni acciones que mostrar, así que el panel inferior solo
-    // ocuparía espacio con "This story has no controls". Ver el mismo ajuste
-    // en Versions.stories.tsx y ControlShowcase.stories.tsx.
+    // controles, acciones, pruebas de interacción ni auditoría de a11y que
+    // mostrar, así que apagamos las 4 pestañas del panel inferior en vez de
+    // dejarlas vacías ocupando espacio. Ver el mismo ajuste en
+    // Versions.stories.tsx y ControlShowcase.stories.tsx (esta última deja
+    // Accessibility activo porque sí es un formulario real interactivo).
     controls: { disable: true },
     actions: { disable: true },
+    interactions: { disable: true },
+    a11y: { disable: true },
     docs: {
       description: {
         component:

@@ -20,9 +20,13 @@ const meta = {
   parameters: {
     layout: "fullscreen",
     // Composición de demostración (sin `component`, estado interno vía
-    // useState) — no hay args que controlar desde el panel.
+    // useState) — no hay args que controlar ni interacciones grabadas que
+    // reproducir. Accessibility SÍ se deja activo: a diferencia de
+    // Tokens/Versiones, esta página es un formulario real compuesto con
+    // controles reales — vale la pena poder auditar contraste/ARIA aquí.
     controls: { disable: true },
     actions: { disable: true },
+    interactions: { disable: true },
     docs: {
       description: {
         component: "Prueba de composición responsive para revisar alineación, densidad, estados y ritmo vertical de los controles.",

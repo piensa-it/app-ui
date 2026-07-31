@@ -7,9 +7,13 @@ const meta = {
   title: "Versiones",
   parameters: {
     layout: "padded",
-    // Página de referencia estática — sin controles ni acciones que mostrar.
+    // Página de referencia estática — sin controles, acciones, pruebas de
+    // interacción ni auditoría de a11y que mostrar (apagamos las 4 pestañas
+    // del panel inferior; ver la nota más completa en Tokens.stories.tsx).
     controls: { disable: true },
     actions: { disable: true },
+    interactions: { disable: true },
+    a11y: { disable: true },
     docs: {
       description: {
         component:
