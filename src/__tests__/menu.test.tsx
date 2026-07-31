@@ -55,7 +55,21 @@ describe("Menu", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Acciones" }));
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
+    const item = await screen.findByRole("menuitem", { name: "Editar" });
+    // Ark UI (zag-js) solo dispara onSelect si el ítem quedó "highlighted"
+    // antes del click — eso lo hace el propio pointerdown real en un browser.
+    // `pointerType: "mouse"` replica el evento real (zag-js sí distingue
+    // mouse/touch/pen en otros handlers del ítem, aunque no en éste).
+    // La máquina de estados de zag-js procesa el `send()` del pointerdown de
+    // forma asíncrona (no en el mismo tick síncrono en que se despacha el
+    // evento) — por eso hay que esperar a que `data-highlighted` aparezca en
+    // el DOM antes de disparar el click. Si se encadenan pointerdown+click
+    // sin ese `await`, el click siempre llega con `highlightedValue` en
+    // `null` (la actualización aún no se aplicó) y Ark descarta la selección
+    // en silencio, sin lanzar error.
+    fireEvent.pointerDown(item, { pointerType: "mouse" });
+    await waitFor(() => expect(item).toHaveAttribute("data-highlighted"));
+    fireEvent.click(item);
 
     await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1));
   });
