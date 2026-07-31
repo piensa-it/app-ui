@@ -1,6 +1,6 @@
 # @piensa-it/ui-library — Contexto del proyecto
 
-> Este repo (`app-ui`) dejó de ser la app "Mis Finanzas". Ahora es la **librería de componentes UI** compartida de Piensa IT, instalable vía npm en los demás repos (MisFin, Lynx, etc.). No contiene lógica de negocio, auth ni Supabase — eso vive en el repo de cada aplicación.
+> Este repo (`app-ui`) es la **librería de componentes UI** compartida de Piensa IT instalable vía npm en varios otros proyectos. No contiene lógica de negocio, auth, eso vive en el repo de cada aplicación.
 
 ## Stack
 
@@ -63,3 +63,8 @@ src/
 
 - **Paquete npm**: se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".
 - **Sitio de documentación**: se redespliega solo, en cada push a `main` (sitio Netlify `piensait-ui`, config en `netlify.toml`), sin necesidad de release ni bump de versión — siempre refleja el código fuente actual.
+
+## Instrucciones para agentes de IA
+
+- Este archivo (`.claude/CLAUDE.md`) es el **único** origen de instrucciones del proyecto. `AGENTS.md` en la raíz es un symlink a él, para que otros agentes (Cursor, Codex...) lean exactamente lo mismo — edita siempre este archivo, nunca el symlink.
+- Preferencias personales de cada quien: copia `CLAUDE.local.md.example` a `CLAUDE.local.md` (está en `.gitignore`). No metas preferencias individuales aquí.

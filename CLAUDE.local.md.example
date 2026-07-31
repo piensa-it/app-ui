@@ -1,0 +1,39 @@
+# Preferencias personales (plantilla)
+
+> Cópiate este archivo como `CLAUDE.local.md` en la raíz del repo:
+>
+> ```bash
+> cp CLAUDE.local.md.example CLAUDE.local.md
+> ```
+>
+> `CLAUDE.local.md` está en `.gitignore`: es tuyo, no se comparte con el equipo.
+> Claude Code lo carga en cada sesión **después** de `.claude/CLAUDE.md`, así que
+> lo que escribas aquí tiene la última palabra sobre las convenciones del proyecto.
+>
+> Úsalo para preferencias tuyas, no para reglas del proyecto — esas van en
+> `.claude/CLAUDE.md` (versionado). Borra los ejemplos que no apliquen.
+
+## Mi entorno
+
+<!-- Ejemplos: puertos que sueles usar, gestor de paquetes, ruta de otro repo que
+     tengas clonado al lado y contra el que pruebas la librería con `npm link`. -->
+
+- Pruebo los cambios de la librería contra: `~/ruta/a/mi-app`
+- Storybook lo levanto en el puerto: 6006
+
+## Cómo prefiero trabajar
+
+<!-- Ejemplos: idioma de las respuestas, nivel de detalle, si quieres que corra
+     los tests solo o que te pregunte antes. -->
+
+- Antes de dar por terminado un componente, corre `npm run test:run` y `npm run lint`.
+- No hagas commit ni push salvo que te lo pida explícitamente.
+
+## Preferencias compartidas entre todos mis proyectos
+
+<!-- Si tienes preferencias que aplican a TODOS tus repos, no las repitas aquí:
+     escríbelas una vez en ~/.claude/CLAUDE.md, que Claude carga siempre.
+     Si además trabajas con git worktrees, importa un archivo del home para que
+     tus preferencias sobrevivan a cada worktree nuevo: -->
+
+<!-- @~/.claude/piensait-ui.md -->

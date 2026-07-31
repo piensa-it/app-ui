@@ -18,3 +18,8 @@ coverage/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Claude Code — preferencias personales, no se comparten con el equipo
+# (las instrucciones compartidas viven en .claude/CLAUDE.md, sí versionado)
+CLAUDE.local.md
+.claude/settings.local.json
