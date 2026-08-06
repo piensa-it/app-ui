@@ -1,10 +1,29 @@
 {
   "name": "@piensa-it/ui-library",
-  "description": "Librería de componentes UI y lineamientos de FrontEnd de Piensa IT — React + TypeScript + Tailwind + Ark UI, instalable en todos los sitios web de la compañía.",
+  "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
   "version": "0.1.0",
   "private": false,
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "Piensa IT",
+  "homepage": "https://piensait-ui.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piensa-it/app-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/piensa-it/app-ui/issues"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "design-system",
+    "component-library",
+    "accessibility",
+    "tailwindcss",
+    "ark-ui",
+    "storybook"
+  ],
   "files": [
     "dist",
     "tailwind-preset.js"
@@ -100,7 +119,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.0.2",
     "lint-staged": "^17.3.0",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.26",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "storybook": "^10.5.3",

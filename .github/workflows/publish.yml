@@ -1,4 +1,4 @@
-name: Publish package
+name: Release integrity and publish
 
 # Se dispara al publicar un Release en GitHub (crea el tag automáticamente).
 # Flujo recomendado: bump de "version" en package.json vía PR -> merge a
@@ -15,15 +15,23 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           registry-url: "https://npm.pkg.github.com"
           scope: "@piensa-it"
 
       - run: npm ci
+
+      - name: Verificar tag semántico y versión del paquete
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/validate-release.mjs
 
       - run: npm run lint
 
