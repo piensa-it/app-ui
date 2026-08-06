@@ -9,6 +9,8 @@ import { Label } from "../components/ui/label";
 import { Field } from "../components/ui/field";
 import { MultiSelect } from "../components/ui/multi-select";
 import { Select } from "../components/ui/select";
+import { AnimatedBanner } from "../components/ui/animated-banner";
+import { Illustration } from "../components/ui/illustration";
 
 async function expectNoA11yViolations(container: HTMLElement) {
   const result = await axe.run(container, {
@@ -51,6 +53,24 @@ describe("accesibilidad base", () => {
         <Field label="País"><Select options={options} value="co" /></Field>
         <Field label="Mercados"><MultiSelect options={options} value={["co"]} /></Field>
       </div>,
+    );
+
+    await expectNoA11yViolations(container);
+  });
+
+  it("no detecta violaciones en contenedores con ilustración", async () => {
+    const { container } = render(
+      <AnimatedBanner
+        title="Proceso terminado"
+        illustration={
+          <Illustration motion="none">
+            <svg role="img" aria-label="Persona celebrando" />
+          </Illustration>
+        }
+        action={<Button>Continuar</Button>}
+      >
+        Los cambios están disponibles.
+      </AnimatedBanner>,
     );
 
     await expectNoA11yViolations(container);

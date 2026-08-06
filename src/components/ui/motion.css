@@ -1,0 +1,110 @@
+[data-ui-motion] {
+  --ui-motion-duration: 500ms;
+  --ui-motion-iterations: 1;
+  animation-duration: var(--ui-motion-duration);
+  animation-fill-mode: both;
+  animation-iteration-count: var(--ui-motion-iterations);
+  animation-play-state: running;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+[data-ui-motion][data-paused="true"] {
+  animation-play-state: paused;
+}
+
+[data-ui-motion="enter"] {
+  animation-name: ui-motion-enter;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-ui-motion="float"] {
+  animation-name: ui-motion-float;
+  animation-timing-function: ease-in-out;
+}
+
+[data-ui-motion="point"] {
+  animation-name: ui-motion-point;
+  animation-timing-function: ease-in-out;
+}
+
+[data-ui-motion="celebrate"] {
+  animation-name: ui-motion-celebrate;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-ui-motion="warn"] {
+  animation-name: ui-motion-warn;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes ui-motion-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ui-motion-float {
+  0%, 100% {
+    transform: translateY(0) rotate(-0.35deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.35deg);
+  }
+}
+
+@keyframes ui-motion-point {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+  }
+  35% {
+    transform: translateX(9px) scale(1.015);
+  }
+  60% {
+    transform: translateX(5px) scale(1.01);
+  }
+}
+
+@keyframes ui-motion-celebrate {
+  0%, 100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+  35% {
+    transform: translateY(-22px) rotate(-2.5deg) scale(1.025);
+  }
+  65% {
+    transform: translateY(-7px) rotate(2deg) scale(1.01);
+  }
+}
+
+@keyframes ui-motion-warn {
+  0%, 100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-8px) rotate(-0.8deg);
+  }
+  40% {
+    transform: translateX(7px) rotate(0.8deg);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui-motion] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}

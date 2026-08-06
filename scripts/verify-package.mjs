@@ -49,14 +49,21 @@ if (missingExternalImports.length > 0) {
 
 // Presupuesto del entry público. Incluye gráficas compuestas, configuración
 // ERP y el motor liviano de agregación de PivotTable; TanStack y Recharts
-// permanecen externalizados. Subido de 126 a 133 KB por el componente Menu
-// (nuevo, compound sobre Ark UI) y las vistas de mes/año del DatePicker
-// (antes solo tenía vista de día) — Pagination se extrajo de DataTable sin
-// agregar código nuevo, es neutro en tamaño.
-const maxEsmBytes = 133 * 1024;
+// permanecen externalizados. Subido de 133 a 136 KB al incorporar Motion,
+// Illustration y AnimatedBanner. Las animaciones son CSS-first y no agregan
+// un runtime nuevo al bundle.
+const maxEsmBytes = 136 * 1024;
 const esmEntry = packed.files.find((file) => file.path === "dist/ui-library.es.js");
 if (!esmEntry || esmEntry.size > maxEsmBytes) {
   throw new Error(`El bundle ESM supera ${maxEsmBytes} bytes: ${esmEntry?.size ?? "desconocido"}`);
+}
+
+const motionCss = readFileSync(new URL("src/components/ui/motion.css", rootUrl), "utf8");
+if (!motionCss.includes("prefers-reduced-motion: reduce")) {
+  throw new Error("Motion debe conservar soporte para prefers-reduced-motion.");
+}
+if (!motionCss.includes("animation-play-state: paused")) {
+  throw new Error("Motion debe conservar pausa real mediante animation-play-state.");
 }
 
 console.log(
