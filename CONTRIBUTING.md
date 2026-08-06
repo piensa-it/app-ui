@@ -34,6 +34,7 @@ npm run storybook
 npm run typecheck
 npm run lint
 npm run test:run
+npm run test:browser
 npm run verify:package
 npm run build-storybook
 ```
