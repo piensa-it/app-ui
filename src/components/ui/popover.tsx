@@ -8,8 +8,8 @@ import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 export type PopoverProps = ArkPopover.RootProps;
 
 interface PopoverDismissContextValue {
-  triggerRef: React.MutableRefObject<HTMLButtonElement | null>;
-  contentRef: React.MutableRefObject<HTMLDivElement | null>;
+  setTriggerRef: (node: HTMLButtonElement | null) => void;
+  setContentRef: (node: HTMLDivElement | null) => void;
 }
 
 const PopoverDismissContext = React.createContext<PopoverDismissContextValue | null>(null);
@@ -26,12 +26,20 @@ const Popover = ({
   const open = controlledOpen ?? internalOpen;
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);
   const contentRef = React.useRef<HTMLDivElement | null>(null);
+  const dismissContext = {
+    setTriggerRef: (node: HTMLButtonElement | null) => {
+      triggerRef.current = node;
+    },
+    setContentRef: (node: HTMLDivElement | null) => {
+      contentRef.current = node;
+    },
+  };
 
   const dismiss = React.useCallback(() => setInternalOpen(false), []);
   useOverlayDismiss(open, controlledOpen === undefined, triggerRef, contentRef, dismiss);
 
   return (
-    <PopoverDismissContext.Provider value={{ triggerRef, contentRef }}>
+    <PopoverDismissContext.Provider value={dismissContext}>
       <ArkPopover.Root
         open={open}
         onOpenChange={(details) => {
@@ -53,7 +61,7 @@ const PopoverTrigger = React.forwardRef<HTMLButtonElement, PopoverTriggerProps>(
   const dismiss = React.useContext(PopoverDismissContext);
   const assignRef = React.useCallback(
     (node: HTMLButtonElement | null) => {
-      if (dismiss) dismiss.triggerRef.current = node;
+      dismiss?.setTriggerRef(node);
       assignForwardedRef(ref, node);
     },
     [dismiss, ref],
@@ -68,7 +76,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({ 
   const dismiss = React.useContext(PopoverDismissContext);
   const assignRef = React.useCallback(
     (node: HTMLDivElement | null) => {
-      if (dismiss) dismiss.contentRef.current = node;
+      dismiss?.setContentRef(node);
       assignForwardedRef(ref, node);
     },
     [dismiss, ref],
