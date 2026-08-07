@@ -4,6 +4,22 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const seoHead = () => `
+  <title>Piensa IT UI Library | Componentes React accesibles</title>
+  <meta name="description" content="Piensa IT UI Library: componentes React accesibles, responsive y personalizables con TypeScript, Ark UI y Tailwind CSS." />
+  <meta name="application-name" content="Piensa IT UI Library" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Piensa IT" />
+  <meta property="og:title" content="Piensa IT UI Library | Componentes React accesibles" />
+  <meta property="og:description" content="Una librería white-label de componentes React accesibles, responsive y personalizables para productos web profesionales." />
+  <meta property="og:image" content="/favicon.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Piensa IT UI Library | Componentes React accesibles" />
+  <meta name="twitter:description" content="Componentes React accesibles, responsive y personalizables para productos web profesionales." />
+  <meta name="twitter:image" content="/favicon.png" />
+`;
+
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(ts|tsx)"],
   addons: [
@@ -21,6 +37,8 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
+  managerHead: seoHead,
+  previewHead: seoHead,
   viteFinal: async (viteConfig) => {
     viteConfig.resolve = viteConfig.resolve ?? {};
     viteConfig.resolve.alias = {

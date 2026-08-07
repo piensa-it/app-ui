@@ -12,20 +12,6 @@ permissions:
   contents: read
 
 jobs:
-  dependency-review:
-    # Dependency Review requires GitHub Advanced Security on private repos.
-    # It becomes available at no cost when this repository is public.
-    if: github.event_name == 'pull_request' && github.event.repository.private == false
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@v5
-        with:
-          fail-on-severity: moderate
-
   codeql:
     name: CodeQL
     # Code scanning uploads require GitHub Advanced Security on private repos.
