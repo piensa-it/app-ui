@@ -9,6 +9,10 @@ on:
 
 jobs:
   publish:
+    environment: package-release
+    concurrency:
+      group: package-release
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,6 +29,11 @@ jobs:
           cache: "npm"
           registry-url: "https://npm.pkg.github.com"
           scope: "@piensa-it"
+
+      - name: Verify that the release commit belongs to main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
 
       - run: npm ci
 

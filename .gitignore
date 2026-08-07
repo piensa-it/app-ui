@@ -8,6 +8,8 @@ storybook-static/
 
 # Tests
 coverage/
+playwright-report/
+test-results/
 
 # Entorno
 .env

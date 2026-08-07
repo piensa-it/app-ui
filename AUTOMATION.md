@@ -7,6 +7,8 @@ The public repository uses four free automation pillars.
 Runs on every pull request and on pushes to `main`. It validates PR metadata,
 production dependency health, lint, TypeScript, tests, package boundaries,
 bundle budgets, and the Storybook build.
+The Browser Gate uses Playwright and Chromium to exercise Ark UI behavior,
+reduced-motion policies, and selected visual baselines.
 
 ## 2. Security
 
@@ -24,9 +26,15 @@ same Quality Gate and Security checks as a human contribution.
 
 A published GitHub Release must use a semantic tag such as `v1.2.3` that
 exactly matches `package.json`. The workflow checks out that immutable tag,
-repeats all package validation, and only then publishes to GitHub Packages.
+verifies that its commit belongs to `main`, repeats all package validation, and
+only then requests permission to publish to GitHub Packages through the
+protected `package-release` environment.
+
+Repository administrators must configure that environment with required
+maintainers and prevent administrators from bypassing its approval rule. An
+approval authorizes one release execution; it does not authorize future
+releases.
 
 Repository administrators must additionally enable Dependabot alerts and
 security updates, private vulnerability reporting, code scanning, and immutable
 releases in GitHub Settings.
-
