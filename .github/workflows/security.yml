@@ -13,7 +13,9 @@ permissions:
 
 jobs:
   dependency-review:
-    if: github.event_name == 'pull_request'
+    # Dependency Review requires GitHub Advanced Security on private repos.
+    # It becomes available at no cost when this repository is public.
+    if: github.event_name == 'pull_request' && github.event.repository.private == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,6 +28,9 @@ jobs:
 
   codeql:
     name: CodeQL
+    # Code scanning uploads require GitHub Advanced Security on private repos.
+    # Keep the workflow ready so it activates automatically after publication.
+    if: github.event.repository.private == false
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -41,4 +46,3 @@ jobs:
         uses: github/codeql-action/autobuild@v4
       - name: Analyze
         uses: github/codeql-action/analyze@v4
-
