@@ -6,6 +6,11 @@ Development follows [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md). Create a
 short-lived branch from `main`, use Conventional Commits, and open a pull
 request. Direct pushes to `main` are not part of the workflow.
 
+Repository decisions and release authority are described in
+[GOVERNANCE.md](./GOVERNANCE.md). Every pull request requires successful
+automated checks and CODEOWNER approval. Automated or AI-assisted review is
+additional evidence, not a replacement for maintainer approval.
+
 ## Design principles
 
 - Keep components independent from business logic, routers, backends, and
@@ -40,3 +45,6 @@ npm run build-storybook
 
 Pull requests that change visuals should include screenshots or a recording.
 Call out breaking API, token, preset, or peer-dependency changes explicitly.
+Breaking changes also require a linked issue, migration notes, and an explicit
+major-version plan. Contributors cannot publish packages or bypass protected
+branch rules.

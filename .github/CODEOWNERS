@@ -1,0 +1,10 @@
+# All changes require review from the Piensa IT library maintainer.
+* @amontoyag8
+
+# Treat automation, package boundaries, and release metadata as sensitive.
+/.github/ @amontoyag8
+/package.json @amontoyag8
+/package-lock.json @amontoyag8
+/src/index.ts @amontoyag8
+/tailwind-preset.js @amontoyag8
+/src/styles/globals.css @amontoyag8
