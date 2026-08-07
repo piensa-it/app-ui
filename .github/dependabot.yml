@@ -9,6 +9,9 @@ updates:
       time: "09:00"
       timezone: America/Bogota
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "@ark-ui/react"
+      - dependency-name: "@zag-js/*"
     groups:
       npm-minor-and-patch:
         update-types:
