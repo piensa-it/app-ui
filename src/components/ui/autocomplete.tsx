@@ -72,7 +72,8 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
       [items],
     );
     const combobox = useCombobox({
-      id: id ? `${id}-root` : undefined,
+      // El id externo (Field/label) va al input vía `ids`, sin pisar el id de Zag.
+      ids: id ? { input: id } : undefined,
       collection,
       inputValue: value,
       disabled,
@@ -115,7 +116,6 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
           )}
         >
           <ArkCombobox.Input
-            id={id}
             aria-label={ariaLabel}
             aria-invalid={ariaInvalid}
             placeholder={placeholder}

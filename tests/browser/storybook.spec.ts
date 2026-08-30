@@ -46,6 +46,32 @@ test.describe("Storybook browser gate", () => {
     expect(errors).toEqual([]);
   });
 
+  test("opens and selects an Ark Select nested inside the dialog", async ({ page }) => {
+    const errors: Error[] = [];
+    // El runtime de Storybook instrumenta `HTMLElement.prototype.focus` con un getter y
+    // Zag (`@zag-js/focus-visible`) lo dispara al abrir cualquier Select — también fuera
+    // de un diálogo. Es ruido del entorno, no de la librería: se ignora solo ese caso.
+    page.on("pageerror", (error) => {
+      if (error.message.includes("Illegal invocation")) return;
+      errors.push(error);
+    });
+    await page.goto(storyUrl("ui-dialog--con-select-dentro"));
+
+    await page.getByRole("button", { name: "Abrir formulario" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByRole("combobox", { name: "Ciudad" }).click();
+    const listbox = page.getByRole("listbox");
+    await expect(listbox).toBeVisible();
+    await listbox.getByRole("option", { name: "Medellín" }).click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByTestId("ciudad-elegida")).toHaveText("Elegida: medellin");
+    await expect(listbox).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
   test("disables shared motion when reduced motion is preferred", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(storyUrl("primitivas-motion--basico"));
