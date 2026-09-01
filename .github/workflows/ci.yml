@@ -75,3 +75,37 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  deploy-docs:
+    # El sitio de documentación se publicaba por la integración Git de
+    # Netlify, que construía por su cuenta sin mirar los checks — y que dejó
+    # de dispararse en agosto, congelando el sitio casi un mes sin aviso.
+    # Publicarlo desde acá lo vuelve visible junto al resto del CI y garantiza
+    # que solo salga a producción lo que ya pasó calidad y navegador.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [quality-gate, browser-gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Build del sitio de documentación (Storybook)
+        run: npm run build-storybook
+      - name: Publicar en Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          # Via env var y no interpolado en el `run`: el mensaje de commit es
+          # texto arbitrario y no debe llegar al shell como código.
+          DEPLOY_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          npx --yes netlify-cli@27 deploy \
+            --dir=storybook-static \
+            --prod \
+            --message "$DEPLOY_MESSAGE"
