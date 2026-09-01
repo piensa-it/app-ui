@@ -1,14 +1,24 @@
 import * as React from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
+  useTable,
+  tableFeatures,
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  globalFilteringFeature,
+  rowPaginationFeature,
+  rowSortingFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
   flexRender,
   type ColumnDef,
+  type ColumnVisibilityState,
   type SortingState,
-  type VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Search, Settings2 } from "lucide-react";
 
@@ -16,6 +26,31 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pagination } from "@/components/ui/pagination";
+
+/**
+ * Desde la v9 de TanStack Table las features ya no vienen incluidas: hay que
+ * registrar explícitamente las que se usan, junto con los row models y las
+ * funciones de orden/filtro que antes se resolvían solas. Se declara a nivel de
+ * módulo —no dentro del componente— para que la identidad del objeto sea
+ * estable entre renders.
+ */
+const dataTableFeatures = tableFeatures({
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  globalFilteringFeature,
+  rowPaginationFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica, igual que el `DataTableValue` anterior sobre PrimeReact.
 export type DataTableValue = Record<string, any>;
@@ -124,11 +159,11 @@ function DataTable<TValue extends DataTableValue>({
     [children],
   );
 
-  const defaultVisibility = React.useMemo<VisibilityState>(
+  const defaultVisibility = React.useMemo<ColumnVisibilityState>(
     () => Object.fromEntries(columnSpecs.map((spec) => [spec.props.field, spec.props.defaultVisible !== false])),
     [columnSpecs],
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(() => {
     if (!preferencesKey || typeof window === "undefined") return defaultVisibility;
     try {
       const stored = window.localStorage.getItem(`ui-table:${preferencesKey}:columns`);
@@ -147,7 +182,7 @@ function DataTable<TValue extends DataTableValue>({
     }
   }, [columnVisibility, preferencesKey]);
 
-  const columnDefs = React.useMemo<Array<ColumnDef<TValue>>>(() => {
+  const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
     return columnSpecs.map((spec) => ({
       id: spec.props.field,
       accessorKey: spec.props.field,
@@ -162,10 +197,20 @@ function DataTable<TValue extends DataTableValue>({
     }));
   }, [columnSpecs]);
 
-  const table = useReactTable({
+  // Con `paginator` desactivado ya no se puede omitir el row model de
+  // paginación: en la v9 las features son estáticas. Se deja registrada y se
+  // fuerza una sola página que abarca todas las filas — mismo resultado
+  // visible que antes daba no registrar el row model.
+  const effectivePagination = React.useMemo(
+    () => (paginator ? pagination : { pageIndex: 0, pageSize: Math.max(value.length, 1) }),
+    [paginator, pagination, value.length],
+  );
+
+  const table = useTable({
+    features: dataTableFeatures,
     data: value,
     columns: columnDefs,
-    state: { sorting, pagination: paginator ? pagination : undefined, globalFilter, columnVisibility },
+    state: { sorting, pagination: effectivePagination, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
@@ -176,10 +221,6 @@ function DataTable<TValue extends DataTableValue>({
         return next;
       });
     },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: paginator ? getPaginationRowModel() : undefined,
   });
 
   const totalRows = table.getFilteredRowModel().rows.length;
