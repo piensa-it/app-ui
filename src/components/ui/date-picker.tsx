@@ -106,7 +106,8 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
     return (
     <ArkDatePicker.Root
       ref={assignRootRef}
-      id={id ? `${id}-root` : undefined}
+      // El id externo (Field/label) va al input vía `ids`, sin pisar el id de Zag.
+      ids={id ? { input: () => id } : undefined}
       locale="es"
       selectionMode="single"
       open={open}
@@ -130,7 +131,6 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
       >
         <ArkDatePicker.Input
           index={0}
-          id={id}
           aria-label={ariaLabel}
           placeholder={placeholder}
           className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"

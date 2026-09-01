@@ -72,7 +72,9 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
       [options],
     );
     const select = useSelect({
-      id: id ? `${id}-root` : undefined,
+      // Igual que en Select: el id externo va al trigger vía `ids`, sin pisar el
+      // atributo id que Zag usa para localizar sus partes (posicionamiento).
+      ids: id ? { trigger: id } : undefined,
       collection,
       multiple: true,
       value: selected,
@@ -153,7 +155,6 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
               ))
             )}
             <ArkSelect.Trigger
-              id={id}
               aria-label={ariaLabel ?? "Mostrar opciones"}
               className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
