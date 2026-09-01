@@ -97,4 +97,39 @@ describe("DataTable", () => {
     await user.click(screen.getByRole("textbox", { name: "Buscar en la tabla" }));
     await waitFor(() => expect(settings).toHaveAttribute("aria-expanded", "false"));
   });
+
+  it("sin paginador muestra todas las filas, no solo la primera página", () => {
+    const value: Fila[] = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
+    const { rerender } = render(
+      <DataTable value={value}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    // Con el paginador activo (por defecto) solo entran 10 filas por página.
+    expect(screen.queryByText("Persona 12")).not.toBeInTheDocument();
+
+    rerender(
+      <DataTable value={value} paginator={false}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    expect(screen.getByText("Persona 1")).toBeInTheDocument();
+    expect(screen.getByText("Persona 12")).toBeInTheDocument();
+  });
+
+  it("el buscador filtra las filas por el texto ingresado", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable value={[{ nombre: "Ana" }, { nombre: "Luis" }] as Fila[]} searchable>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    await user.type(screen.getByRole("textbox", { name: "Buscar en la tabla" }), "Ana");
+
+    await waitFor(() => expect(screen.queryByText("Luis")).not.toBeInTheDocument());
+    expect(screen.getByText("Ana")).toBeInTheDocument();
+  });
 });
