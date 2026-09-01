@@ -50,9 +50,10 @@ if (missingExternalImports.length > 0) {
 // Presupuesto del entry público. Incluye gráficas compuestas, configuración
 // ERP y el motor liviano de agregación de PivotTable; TanStack y Recharts
 // permanecen externalizados. Subido de 133 a 136 KB al incorporar Motion,
-// Illustration y AnimatedBanner. Las animaciones son CSS-first y no agregan
-// un runtime nuevo al bundle.
-const maxEsmBytes = 136 * 1024;
+// Illustration y AnimatedBanner, y de 136 a 140 KB con Motion fase 2
+// (Stagger, Reveal, AnimatedNumber y presets de Skeleton, +3,2 KB) — también
+// CSS-first/rAF, sin runtime de animación nuevo.
+const maxEsmBytes = 140 * 1024;
 const esmEntry = packed.files.find((file) => file.path === "dist/ui-library.es.js");
 if (!esmEntry || esmEntry.size > maxEsmBytes) {
   throw new Error(`El bundle ESM supera ${maxEsmBytes} bytes: ${esmEntry?.size ?? "desconocido"}`);

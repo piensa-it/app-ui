@@ -30,7 +30,19 @@ export { Label } from "./components/ui/label";
 export { Separator } from "./components/ui/separator";
 export { Field, type FieldProps } from "./components/ui/field";
 export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps } from "./components/ui/alert";
-export { Skeleton, type SkeletonProps } from "./components/ui/skeleton";
+export {
+  Skeleton,
+  SkeletonCard,
+  SkeletonKpi,
+  SkeletonTable,
+  type SkeletonProps,
+  type SkeletonCardProps,
+  type SkeletonKpiProps,
+  type SkeletonTableProps,
+} from "./components/ui/skeleton";
+export { Stagger, type StaggerProps } from "./components/ui/stagger";
+export { Reveal, type RevealProps } from "./components/ui/reveal";
+export { AnimatedNumber, type AnimatedNumberProps } from "./components/ui/animated-number";
 export { EmptyState, type EmptyStateProps } from "./components/ui/empty-state";
 export { InputGroup, InputGroupAddon, InputGroupAction, type InputGroupProps } from "./components/ui/input-group";
 export { Icon, IconTile, type IconProps, type IconTileProps } from "./components/ui/icon";

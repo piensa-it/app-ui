@@ -7,9 +7,10 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.1.0";
+export const UI_LIBRARY_VERSION = "0.2.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   { version: UI_LIBRARY_VERSION, channel: "current" },
+  { version: "0.1.0", channel: "maintenance", publishedAt: "2026-07-31" },
 ];
