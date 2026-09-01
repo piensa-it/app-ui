@@ -54,7 +54,12 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       [options],
     );
     const select = useSelect({
-      id: id ? `${id}-root` : undefined,
+      // El `id` externo (p. ej. el que inyecta Field para asociar el <label>) se
+      // aplica al trigger VÍA `ids`, nunca sobreescribiendo el atributo id del
+      // Trigger: Zag localiza sus partes por id (`select:*:trigger`) y si el
+      // trigger tiene otro id no lo encuentra, no posiciona el desplegable y lo
+      // deja fuera de pantalla (translate -100vh). Visto dentro de Dialog en app-lynx.
+      ids: id ? { trigger: id } : undefined,
       collection,
       value: value === null || value === undefined ? [] : [String(value)],
       onValueChange: (details) => {
@@ -76,11 +81,15 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       <ArkSelect.RootProvider
         ref={ref}
         value={select}
+        // El desplegable se monta solo al abrir: si existe desde el inicio, un Dialog
+        // modal que se abra después lo marca aria-hidden (hideOthers) y, al estar antes
+        // en el DOM con el mismo z-index, lo tapa — el Select "no abre" dentro del diálogo.
+        lazyMount
+        unmountOnExit
         className={cn("w-full", className)}
       >
         <ArkSelect.Control>
           <ArkSelect.Trigger
-            id={id}
             aria-label={ariaLabel}
             className={cn(
               fieldControlVariants({ variant, size }),
