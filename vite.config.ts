@@ -51,6 +51,11 @@ export default defineConfig(({ mode }) => ({
       name: "PiensaItUiLibrary",
       formats: ["es", "cjs"],
       fileName: (format) => `ui-library.${format === "es" ? "es" : "cjs"}.js`,
+      // Desde Vite 6 el CSS de una librería se nombra a partir del `fileName`
+      // de la entrada (daría `ui-library.css`). Se fija explícitamente para
+      // seguir emitiendo `dist/style.css`, que es la ruta que package.json
+      // publica como "./styles.css" y la que ya importan los consumidores.
+      cssFileName: "style",
     },
     rollupOptions: {
       external: isExternalDependency,
