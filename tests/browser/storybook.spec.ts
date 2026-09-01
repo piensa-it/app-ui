@@ -72,6 +72,22 @@ test.describe("Storybook browser gate", () => {
     expect(errors).toEqual([]);
   });
 
+  test("staggers children and stands still under reduced motion", async ({ page }) => {
+    await page.goto(storyUrl("ui-stagger--default"));
+    const items = page.locator("[data-ui-stagger-item]");
+    await expect(items).toHaveCount(4);
+    expect(await items.nth(0).evaluate((el) => getComputedStyle(el).animationDelay)).toBe("0s");
+    expect(await items.nth(2).evaluate((el) => getComputedStyle(el).animationDelay)).toBe("0.16s");
+    await expect(items.nth(3)).toBeVisible();
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(storyUrl("ui-stagger--default"));
+    expect(
+      await page.locator("[data-ui-stagger-item]").first().evaluate((el) => getComputedStyle(el).animationName),
+    ).toBe("none");
+    await expect(page.locator("[data-ui-stagger-item]").first()).toBeVisible();
+  });
+
   test("disables shared motion when reduced motion is preferred", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(storyUrl("primitivas-motion--basico"));

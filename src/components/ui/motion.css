@@ -108,3 +108,24 @@
     will-change: auto;
   }
 }
+
+/* ── Stagger: entrada escalonada de hijos (stagger.tsx) ─────────────────── */
+[data-ui-stagger-item] {
+  animation: ui-motion-enter 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--ui-stagger-delay, 0ms);
+}
+
+/* ── Reveal: oculto hasta entrar al viewport (reveal.tsx) ───────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  [data-ui-reveal="pending"] {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui-stagger-item] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
