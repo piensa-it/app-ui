@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
@@ -329,5 +329,95 @@ describe("DataTable — fila de totales", () => {
     await user.click(screen.getByRole("button", { name: /Valor/i }));
     const foot = screen.getByRole("rowgroup", { name: "Totales" });
     expect(within(foot).queryByText("suma")).not.toBeInTheDocument();
+  });
+});
+
+describe("DataTable — columnas de presentación", () => {
+  interface Cliente {
+    nombre: string;
+    correo: string;
+    telefono: string;
+  }
+  const clientes: Cliente[] = [
+    { nombre: "Ana Gómez", correo: "ana@acme.co", telefono: "310 555 0101" },
+  ];
+
+  it("una columna sin campo se declara con `id` y `body`", () => {
+    render(
+      <DataTable value={clientes}>
+        <Column<Cliente> field="nombre" header="Nombre" />
+        <Column<Cliente>
+          id="contacto"
+          header="Contacto"
+          body={(fila) => (
+            <span>
+              {fila.correo} · {fila.telefono}
+            </span>
+          )}
+        />
+      </DataTable>,
+    );
+    expect(screen.getByRole("columnheader", { name: "Contacto" })).toBeInTheDocument();
+    expect(screen.getByText(/ana@acme\.co · 310 555 0101/)).toBeInTheDocument();
+  });
+
+  it("una columna de acciones no necesita ningún campo de la fila", async () => {
+    const user = userEvent.setup();
+    const onEditar = vi.fn();
+    render(
+      <DataTable value={clientes}>
+        <Column<Cliente> field="nombre" header="Nombre" />
+        <Column<Cliente>
+          id="acciones"
+          header="Acciones"
+          align="right"
+          body={(fila) => (
+            <button type="button" onClick={() => onEditar(fila.nombre)}>
+              Editar
+            </button>
+          )}
+        />
+      </DataTable>,
+    );
+    await user.click(screen.getByRole("button", { name: "Editar" }));
+    expect(onEditar).toHaveBeenCalledWith("Ana Gómez");
+  });
+
+  it("`id` distingue dos columnas del mismo campo", () => {
+    render(
+      <DataTable value={clientes}>
+        <Column<Cliente> id="nombre-corto" field="nombre" header="Corto" body={(f) => f.nombre.split(" ")[0]} />
+        <Column<Cliente> id="nombre-completo" field="nombre" header="Completo" />
+      </DataTable>,
+    );
+    expect(screen.getByRole("columnheader", { name: "Corto" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Completo" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Ana" })).toBeInTheDocument();
+  });
+
+  it("una columna de presentación se puede ocultar y no se puede ordenar", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable value={clientes} configurableColumns>
+        <Column<Cliente> field="nombre" header="Nombre" sortable />
+        <Column<Cliente> id="acciones" header="Acciones" body={() => <span>—</span>} />
+      </DataTable>,
+    );
+    // Sin campo del que leer un valor, no hay nada por lo que ordenar.
+    expect(screen.queryByRole("button", { name: "Ordenar por Acciones" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Configurar columnas" }));
+    expect(screen.getByRole("button", { name: /Acciones/i })).toBeInTheDocument();
+  });
+
+  it("el buscador no rompe con columnas sin campo", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable value={clientes} searchable>
+        <Column<Cliente> field="nombre" header="Nombre" />
+        <Column<Cliente> id="acciones" header="Acciones" body={() => <span>—</span>} />
+      </DataTable>,
+    );
+    await user.type(screen.getByRole("textbox", { name: "Buscar en la tabla" }), "Ana");
+    await waitFor(() => expect(screen.getByText("Ana Gómez")).toBeInTheDocument());
   });
 });

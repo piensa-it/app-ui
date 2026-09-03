@@ -131,6 +131,29 @@ test.describe("Tokens", () => {
   }
 });
 
+test.describe("Armazón", () => {
+  // Los fallos de tipografía y de `asChild` de la 0.4.0 eran de bulto y se
+  // veían a simple vista, pero ninguna prueba de tipos los detecta. Estas
+  // capturas los habrían frenado antes de publicar.
+  const shellStories = [
+    ["armazon-completo", "layout-appshell--default"],
+    ["armazon-plegado", "layout-appshell--plegado"],
+    ["armazon-router", "layout-appshell--con-router"],
+    ["armazon-secciones", "layout-appshell--secciones-plegables"],
+  ] as const;
+
+  for (const [name, id] of shellStories) {
+    test(`${name} se mantiene visualmente estable`, async ({ page }) => {
+      await page.goto(storyUrl(id));
+      await stabilize(page);
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`${name}.png`, {
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      });
+    });
+  }
+});
+
 test.describe("Capas encadenadas (Dialog → Sheet)", () => {
   test("el panel abierto desde un diálogo que se cierra sigue abierto y el foco no lo cierra", async ({ page }) => {
     const errors: Error[] = [];

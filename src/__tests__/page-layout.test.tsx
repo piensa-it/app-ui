@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
 import { AppVersion } from "../components/layout/app-version";
@@ -97,5 +97,44 @@ describe("AppVersion", () => {
   it("funciona sin fecha de compilación", () => {
     render(<AppVersion version="1.4.2" />);
     expect(screen.getByText(/1\.4\.2/)).toBeInTheDocument();
+  });
+});
+
+describe("AppVersion — fecha de compilación", () => {
+  // `new Date("2026-09-03")` es medianoche UTC. Al formatear en una zona al
+  // oeste retrocede un día, y ese formato es justo el que produce
+  // `new Date().toISOString().slice(0, 10)`, que es lo que se inyecta en el
+  // build.
+  const original = process.env.TZ;
+  afterEach(() => {
+    process.env.TZ = original;
+  });
+
+  it.each(["America/Bogota", "UTC", "Pacific/Honolulu"])(
+    "una fecha ISO sin hora se ve igual en %s",
+    (timeZone) => {
+      process.env.TZ = timeZone;
+      render(<AppVersion version="0.1.0" buildDate="2026-09-03" />);
+      expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
+      cleanup();
+    },
+  );
+
+  it("una marca de tiempo completa se sigue interpretando como instante", () => {
+    process.env.TZ = "UTC";
+    render(<AppVersion version="0.1.0" buildDate="2026-09-03T10:15:00Z" />);
+    expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
+  });
+
+  it("acepta un objeto Date y un número", () => {
+    const { rerender } = render(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3)} />);
+    expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
+    rerender(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3).getTime()} />);
+    expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
+  });
+
+  it("una fecha ilegible no rompe la línea de versión", () => {
+    render(<AppVersion version="0.1.0" buildDate="no es una fecha" />);
+    expect(screen.getByText(/0\.1\.0/)).toBeInTheDocument();
   });
 });

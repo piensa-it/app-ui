@@ -6,6 +6,34 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-03
+
+Correcciones encontradas al integrar el armazón en MiDivisa. Nada obligatorio
+al subir: si parcheaste alguna de estas cosas en tu aplicación, ya puedes
+quitar el parche.
+
+### Fixed
+
+- **`cn` se comía la escala tipográfica de la propia librería.** `tailwind-merge` venía con la configuración de fábrica, que no conoce ni la escala `ui-*` ni la de espaciado. Pasaban dos cosas, las dos malas: un tamaño seguido de un color —el orden natural al escribir `cn`— perdía el tamaño, y el menú lateral se veía un tercio más grande de lo diseñado; y dos espaciados del mismo grupo (`gap-sm` con `gap-md`) sobrevivían los dos, así que `className` no podía anular el espaciado de un componente. Ahora se declaran las cuatro escalas propias: tipografía, espaciado, alturas de control y duraciones. **`cn` es público, así que toda aplicación que lo use arrastraba el mismo fallo.** La auditoría encontró 44 literales afectados en siete componentes, más de los tres reportados: también `PivotTable`, `Stat` y `PageHeader`.
+- **`asChild` de `SidebarNavItem` no delegaba el elemento.** Los hijos se pasaban a `Slot` dentro de un fragmento, y Radix busca el marcador entre sus hijos directos: el `NavLink` del consumidor salía sin clases, sin espaciado y sin estado activo, con el icono fuera del enlace. Era la vía documentada para integrar el router de cada aplicación, así que el ejemplo del JSDoc no funcionaba. Ahora hay una prueba con React Router de verdad.
+- **`AppVersion` mostraba el día anterior.** `new Date("2026-09-03")` es medianoche UTC, y al formatear en una zona al oeste retrocedía un día. Es el formato que produce `toISOString().slice(0, 10)`, que es justo lo que recomienda el JSDoc para inyectar la fecha en el build. Una fecha de calendario se construye ahora en horario local. Verificado en cuatro husos.
+- **El menú lateral se iba con el desplazamiento.** El `<aside>` iba en el flujo y crecía con el documento: en una pantalla con tabla larga se subía y el pie con la versión quedaba fuera de vista. Ahora es `sticky top-0 h-screen`, con el desplazamiento interno que ya tenía la navegación.
+
+### Changed
+
+- **`Column` distingue identidad de origen del dato.** La 0.4.0 exigía `field: keyof TValue & string`, y toda tabla real tiene columnas que no corresponden a ningún campo: acciones de fila, un estado derivado de dos campos, un contacto que junta correo y teléfono. Una columna de presentación se declara ahora con `id` y `body`, y `field` solo hace falta para ordenar o buscar por ella. La comprobación de campos mal escritos se mantiene para las columnas que sí son campos.
+- **El distintivo de entorno deja de ir en versales y en negrita**, que competían con el nombre de la organización. `uppercase: true` lo devuelve a como estaba.
+
+### Added
+
+- **`SidebarNavGroup` plegable**: `collapsible`, `defaultOpen` y `groupId`. Las secciones cerradas se recuerdan junto a la preferencia de plegado del menú. Con el menú en iconos no hay encabezado ni control, y los enlaces se muestran siempre.
+
+### Docs
+
+- Historia de `AppShell` con React Router, incluido cómo se marca el destino actual: lo decide la aplicación con `active`, porque la librería no conoce el router.
+- Cuatro capturas comparadas del armazón. Los dos fallos de bulto de esta versión no los detecta ninguna prueba de tipos, pero una captura sí.
+- La guía de migración de cada versión recoge ahora los cambios que se descubren al integrar: las fuentes que salieron de `styles.css` en la 0.3.0 y el endurecimiento de `Column` en la 0.4.0.
+
 ## [0.4.0] - 2026-09-03
 
 Cierra los huecos que detectó la aplicación de ejemplo de 0.3.0. Todo es

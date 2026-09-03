@@ -36,6 +36,18 @@ export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const storageKeyFor = (key: string) => `ui-shell:${key}:collapsed`;
+const groupsKeyFor = (key: string) => `ui-shell:${key}:groups`;
+
+function readStoredGroups(key: string | undefined): readonly string[] {
+  if (!key || typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem(groupsKeyFor(key));
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
 
 function readStoredCollapsed(key: string | undefined, fallback: boolean): boolean {
   if (!key || typeof window === "undefined") return fallback;
@@ -99,6 +111,26 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const collapsed = controlledCollapsed ?? internalCollapsed;
 
+    // Las secciones cerradas se recuerdan junto al plegado del menú: es la
+    // misma preferencia de este dispositivo sobre esta aplicación.
+    const [closedGroups, setClosedGroups] = React.useState<readonly string[]>(() =>
+      readStoredGroups(storageKey),
+    );
+
+    const toggleGroup = (groupId: string, open: boolean) => {
+      setClosedGroups((current) => {
+        const next = open ? current.filter((id) => id !== groupId) : [...current, groupId];
+        if (storageKey && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem(groupsKeyFor(storageKey), JSON.stringify(next));
+          } catch {
+            // Las secciones siguen abriéndose aunque no se puedan recordar.
+          }
+        }
+        return next;
+      });
+    };
+
     const setCollapsed = (next: boolean) => {
       if (controlledCollapsed === undefined) setInternalCollapsed(next);
       onCollapsedChange?.(next);
@@ -134,11 +166,15 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       collapsed,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: false,
+      closedGroups,
+      toggleGroup,
     };
     const mobileState: SidebarState = {
       collapsed: false,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: true,
+      closedGroups,
+      toggleGroup,
     };
 
     return (
@@ -150,6 +186,11 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           style={{ backdropFilter: "blur(var(--sidebar-blur))" }}
           className={cn(
             "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar py-sm text-sidebar-foreground md:flex",
+            // Fijo y del alto de la ventana: si va en el flujo, crece con el
+            // documento y en una pantalla con tabla larga el menú se sube,
+            // dejando el pie con la versión fuera de vista. El desplazamiento
+            // interno lo tiene el <nav>.
+            "sticky top-0 h-screen",
             // La animación de ancho vive aquí y no en cada aplicación.
             "transition-[width] duration-normal ease-standard motion-reduce:transition-none",
             collapsed ? "w-[4.5rem]" : "w-64",

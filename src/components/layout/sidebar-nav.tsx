@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
+import { Slot, Slottable } from "@radix-ui/react-slot";
+import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
@@ -21,24 +22,76 @@ SidebarNav.displayName = "SidebarNav";
 export interface SidebarNavGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Encabezado del grupo. Se oculta con el menú plegado. */
   label: React.ReactNode;
+  /**
+   * Permite abrir y cerrar la sección. Con muchas entradas repartidas en varias
+   * secciones, tenerlas todas abiertas obliga a desplazar el menú para llegar
+   * a la última.
+   * @default false
+   */
+  collapsible?: boolean;
+  /** Estado inicial cuando no hay preferencia guardada. @default true */
+  defaultOpen?: boolean;
+  /**
+   * Identidad de la sección, para recordar si quedó cerrada. Si se omite se usa
+   * la etiqueta, cuando es texto.
+   */
+  groupId?: string;
   children: React.ReactNode;
 }
 
 /** Sección con título dentro del menú, para menús largos. */
 export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupProps>(
-  ({ label, className, children, ...props }, ref) => {
-    const { collapsed } = useSidebar();
+  ({ label, collapsible = false, defaultOpen = true, groupId, className, children, ...props }, ref) => {
+    const { collapsed, closedGroups, toggleGroup } = useSidebar();
+    const contentId = React.useId();
+    const id = groupId ?? (typeof label === "string" ? label : contentId);
+    // La preferencia guardada manda sobre `defaultOpen`, que solo decide la
+    // primera vez.
+    const open = closedGroups.includes(id) ? false : defaultOpen;
+
+    if (collapsed) {
+      // Con el menú en iconos no hay sitio para el encabezado ni para el
+      // control: los enlaces se muestran siempre y una línea separa secciones.
+      return (
+        <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+          <hr className="mx-auto my-2xs w-6 border-sidebar-border" />
+          {children}
+        </div>
+      );
+    }
+
     return (
       <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
-        {collapsed ? (
-          // Plegado no hay sitio para el título: una línea separa los grupos.
-          <hr className="mx-auto my-2xs w-6 border-sidebar-border" />
+        {collapsible ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={contentId}
+            onClick={() => toggleGroup(id, !open)}
+            className={cn(
+              "flex items-center justify-between gap-xs rounded-md px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide",
+              "text-sidebar-muted transition-colors hover:text-sidebar-foreground",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+            )}
+          >
+            {label}
+            <ChevronDown
+              aria-hidden="true"
+              className={cn("size-3.5 transition-transform duration-normal", !open && "-rotate-90")}
+            />
+          </button>
         ) : (
           <p className="px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide text-sidebar-muted">
             {label}
           </p>
         )}
-        {children}
+        {/* Sin renderizar, no solo oculto: una sección cerrada no debe dejar
+            enlaces alcanzables con el tabulador. */}
+        {!collapsible || open ? (
+          <div id={contentId} className="flex flex-col gap-2xs">
+            {children}
+          </div>
+        ) : null}
       </div>
     );
   },
@@ -55,7 +108,21 @@ export interface SidebarNavItemProps extends React.HTMLAttributes<HTMLElement> {
   /**
    * Usa el hijo como elemento del enlace, para el `Link`/`NavLink` del router de
    * cada aplicación. La librería no conoce ningún router.
-   * @example <SidebarNavItem asChild icon={<HomeIcon />}><NavLink to="/">Inicio</NavLink></SidebarNavItem>
+   *
+   * Envuelve la etiqueta en un elemento —normalmente un `<span>`— en vez de
+   * dejarla como texto suelto: es lo que permite ocultarla cuando el menú se
+   * pliega, dejando solo el icono.
+   *
+   * El estado activo sigue decidiéndolo `active`: la librería no conoce el
+   * router, así que la ruta actual la sabe la aplicación.
+   *
+   * @example
+   * ```tsx
+   * const { pathname } = useLocation();
+   * <SidebarNavItem asChild icon={<HomeIcon />} active={pathname === "/inicio"}>
+   *   <NavLink to="/inicio"><span>Inicio</span></NavLink>
+   * </SidebarNavItem>
+   * ```
    */
   asChild?: boolean;
   /** Destino cuando no se usa `asChild`. @default "#" */
@@ -76,18 +143,14 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
     const { collapsed, closeMobile } = useSidebar();
     const Component = asChild ? Slot : "a";
 
-    const content = (
-      <>
-        {icon ? (
-          <span aria-hidden="true" className="grid size-4 shrink-0 place-items-center [&_svg]:size-4">
-            {icon}
-          </span>
-        ) : null}
-        {/* Plegado el texto deja de verse, pero el enlace conserva su nombre. */}
-        <span className={cn("min-w-0 flex-1 truncate", collapsed && "sr-only")}>{children}</span>
-        {badge && !collapsed ? <span className="shrink-0">{badge}</span> : null}
-      </>
-    );
+    const iconNode = icon ? (
+      <span aria-hidden="true" className="grid size-4 shrink-0 place-items-center [&_svg]:size-4">
+        {icon}
+      </span>
+    ) : null;
+    // Plegado el texto deja de verse, pero el enlace conserva su nombre.
+    const labelClassName = cn("min-w-0 flex-1 truncate", collapsed && "sr-only");
+    const badgeNode = badge && !collapsed ? <span className="shrink-0">{badge}</span> : null;
 
     return (
       <li>
@@ -109,11 +172,27 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
               ? "bg-sidebar-active font-medium text-sidebar-active-foreground"
               : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",
             collapsed && "justify-center px-0",
+            // Con `asChild` el contenido es del consumidor y no se puede
+            // envolver para ocultarlo al plegar. Se ocultan sus hijos salvo el
+            // icono, que va marcado como decorativo: por eso la etiqueta debe
+            // ir dentro de un elemento, no como texto suelto.
+            collapsed && asChild && "[&>*:not([aria-hidden])]:sr-only",
             className,
           )}
           {...props}
         >
-          {content}
+          {/* Los hijos van sueltos y no dentro de un fragmento: `Slot` busca el
+              `Slottable` entre sus hijos directos y no mira dentro de un
+              fragmento, así que envolverlos dejaba al enlace del consumidor sin
+              clases y con el icono fuera. */}
+          {iconNode}
+          {asChild ? (
+            // `Slottable` marca cuál de los hijos es el elemento a clonar.
+            <Slottable>{React.isValidElement(children) ? children : <span>{children}</span>}</Slottable>
+          ) : (
+            <span className={labelClassName}>{children}</span>
+          )}
+          {badgeNode}
         </Component>
       </li>
     );

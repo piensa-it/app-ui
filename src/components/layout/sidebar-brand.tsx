@@ -27,7 +27,7 @@ export interface SidebarBrandOption {
    * Evita declarar el entorno dos veces: la opción y el distintivo son lo
    * mismo visto desde dos sitios.
    */
-  badge?: { label: React.ReactNode; tone?: "neutral" | "warning" | "danger" };
+  badge?: { label: React.ReactNode; tone?: "neutral" | "warning" | "danger"; uppercase?: boolean };
   disabled?: boolean;
 }
 
@@ -52,7 +52,12 @@ export interface SidebarBrandProps extends Omit<React.HTMLAttributes<HTMLDivElem
    * Distintivo de entorno: "UAT", "Pruebas", "Local". Si se omite, se deriva
    * del `badge` de la opción elegida en cualquiera de los grupos.
    */
-  environment?: { label: React.ReactNode; tone?: "neutral" | "warning" | "danger" };
+  environment?: {
+    label: React.ReactNode;
+    tone?: "neutral" | "warning" | "danger";
+    /** Escribe el distintivo en versales. @default false */
+    uppercase?: boolean;
+  };
   /**
    * Grupos de opciones del menú. Son arbitrarios: empresa, entorno, sucursal,
    * periodo… Sin grupos, el componente es solo una etiqueta y no pinta ningún
@@ -146,7 +151,10 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
     const badge = shown ? (
       <span
         className={cn(
-          "rounded-full px-2 py-0.5 text-ui-caption font-semibold uppercase tracking-wide",
+          // Sin versales ni negrita por defecto: así se lee como la etiqueta
+          // que es, y no compite con el nombre de la organización.
+          "rounded-full px-2 py-0.5 text-ui-caption font-medium",
+          shown.uppercase && "uppercase tracking-wide",
           TONES[shown.tone ?? "neutral"],
         )}
       >

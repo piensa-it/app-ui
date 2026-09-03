@@ -70,13 +70,7 @@ const ALIGNMENTS = {
   right: "text-right tabular-nums",
 } as const;
 
-export interface ColumnProps<TValue extends DataTableValue> {
-  /**
-   * Campo de la fila a mostrar. Anota el tipo de la fila
-   * (`<Column<Movimiento> field="valor" />`) para que un campo mal escrito sea
-   * un error de compilación en vez de una columna vacía en silencio.
-   */
-  field: keyof TValue & string;
+interface ColumnBase<TValue extends DataTableValue> {
   header: React.ReactNode;
   sortable?: boolean;
   /** Permite ocultar la columna desde el configurador. @default true */
@@ -105,6 +99,34 @@ export interface ColumnProps<TValue extends DataTableValue> {
   /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
   headerClassName?: string;
 }
+
+/**
+ * Una columna es de una de dos clases, y la identidad no es lo mismo que el
+ * origen del dato:
+ *
+ * - **De campo**: lee un campo de la fila. Se puede ordenar y buscar por ella.
+ *   Anota el tipo (`<Column<Movimiento> field="valor" />`) para que un campo
+ *   mal escrito sea un error de compilación y no una columna vacía.
+ * - **De presentación**: no corresponde a ningún campo —acciones de fila, un
+ *   estado derivado de dos campos, un contacto que junta correo y teléfono—.
+ *   Se identifica con `id` y pinta con `body`.
+ */
+export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
+  (
+    | {
+        /** Campo de la fila a mostrar. */
+        field: keyof TValue & string;
+        /** Identidad de la columna. Por defecto, el propio campo. Úsalo para tener dos columnas del mismo campo. */
+        id?: string;
+      }
+    | {
+        field?: undefined;
+        /** Identidad de la columna. Obligatoria cuando no hay campo. */
+        id: string;
+        /** Una columna sin campo tiene que pintar algo. */
+        body: (row: TValue) => React.ReactNode;
+      }
+  );
 
 /**
  * Marcador de columna — no se renderiza directamente. `DataTable` recorre
@@ -202,7 +224,10 @@ function DataTable<TValue extends DataTableValue>({
   );
 
   const defaultVisibility = React.useMemo<ColumnVisibilityState>(
-    () => Object.fromEntries(columnSpecs.map((spec) => [spec.props.field, spec.props.defaultVisible !== false])),
+    () =>
+      Object.fromEntries(
+        columnSpecs.map((spec) => [spec.props.id ?? spec.props.field, spec.props.defaultVisible !== false]),
+      ),
     [columnSpecs],
   );
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(() => {
@@ -226,10 +251,14 @@ function DataTable<TValue extends DataTableValue>({
 
   const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
     return columnSpecs.map((spec) => ({
-      id: spec.props.field,
-      accessorKey: spec.props.field,
+      // Uno de los dos existe siempre: el tipo de `ColumnProps` exige `id`
+      // cuando no hay `field`.
+      id: (spec.props.id ?? spec.props.field) as string,
+      // Sin campo no hay valor que leer: la columna solo pinta lo que diga
+      // `body`, y no se puede ordenar ni buscar por ella.
+      ...(spec.props.field ? { accessorKey: spec.props.field } : {}),
       header: () => spec.props.header,
-      enableSorting: spec.props.sortable ?? false,
+      enableSorting: Boolean(spec.props.field) && (spec.props.sortable ?? false),
       enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
@@ -240,7 +269,8 @@ function DataTable<TValue extends DataTableValue>({
           spec.props.headerClassName ?? spec.props.className,
         ),
         footer: spec.props.footer,
-        ariaLabel: typeof spec.props.header === "string" ? spec.props.header : spec.props.field,
+        ariaLabel:
+          typeof spec.props.header === "string" ? spec.props.header : (spec.props.id ?? spec.props.field),
       },
     }));
   }, [columnSpecs]);

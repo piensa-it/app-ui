@@ -13,13 +13,26 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.4.0";
+export const UI_LIBRARY_VERSION = "0.4.1";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Nada obligatorio: 0.4.1 son correcciones. Si parcheaste alguna de estas cosas en tu aplicación, ya puedes quitar el parche.",
+      "Quita cualquier regla propia que forzara el tamaño de letra del menú lateral: `cn` ya no descarta la clase de tamaño al combinarla con un color.",
+      "Quita la regla que fijaba el menú lateral al desplazar: `AppShell` lo trae fijo y del alto de la ventana.",
+      "Quita el envoltorio de `Column` que abría el tipo de `field`: una columna sin campo se declara ahora con `id` y `body`.",
+      "Si usas `asChild` en `SidebarNavItem`, envuelve la etiqueta en un elemento (`<NavLink to=\"/x\"><span>Inicio</span></NavLink>`) para que se pueda ocultar al plegar el menú.",
+      "El distintivo de entorno ya no va en versales. Pasa `uppercase: true` si lo prefieres como estaba.",
+    ],
+  },
+  {
+    version: "0.4.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-03",
     migration: [
       "Todo lo de esta versión es aditivo: subir desde 0.3.0 no requiere cambios.",
       "Sustituye `className=\"text-right tabular-nums\"` en columnas de cifras por `align=\"right\"`, que lo trae incluido.",
@@ -41,6 +54,7 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
       "El espaciado tiene escala publicada. Sustituye los números sueltos (`p-6`, `gap-4`) por los nombres de rol (`p-inset`, `space-y-stack`, `gap-field`) en los componentes que envuelvan a los de la librería.",
       "La densidad se elige una vez con `<UiProvider density>` en vez de por componente.",
       "Quita la dependencia directa de `lucide-react` e importa los iconos desde la librería. La tabla de equivalencias está en `docs/ICONS.md`.",
+      "Las fuentes salieron de `styles.css`: si usas alguno de los presets tipográficos, añade `import \"@piensa-it/ui-library/fonts.css\"`. Si usas tu propia tipografía, no hagas nada y te ahorras 180 KB.",
       "Si extiendes el preset de Tailwind, `content` ahora lo exporta el propio preset: `content: [...uiLibraryContent, \"./src/**/*.{ts,tsx}\"]`.",
     ],
   },

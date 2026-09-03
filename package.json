@@ -1,7 +1,7 @@
 {
   "name": "@piensa-it/ui-library",
   "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -127,6 +127,7 @@
     "postcss": "^8.5.26",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6",
     "storybook": "^10.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",

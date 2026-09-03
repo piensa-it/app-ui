@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AppShell } from "./app-shell";
 import { SidebarBrand } from "./sidebar-brand";
-import { SidebarNav, SidebarNavItem } from "./sidebar-nav";
+import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "./sidebar-nav";
+import { MemoryRouter, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { AppVersion } from "./app-version";
 import { PageContainer } from "./page-container";
 import { PageHeader } from "./page-header";
@@ -156,6 +157,89 @@ export const Plegado: Story = {
     >
       <PageContainer>
         <PageHeader title="Movimientos" description="El menú recuerda si lo dejaste plegado." />
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * El estado activo lo decide la aplicación con `active`, porque la librería no
+ * conoce el router. Con React Router se calcula desde `useLocation`.
+ */
+function NavegacionConRouter() {
+  const { pathname } = useLocation();
+  return (
+    <SidebarNav>
+      {ENLACES.map(({ id, label, icon: Icon }) => (
+        <SidebarNavItem key={id} asChild icon={<Icon />} active={pathname === `/${id}`}>
+          <NavLink to={`/${id}`}>
+            <span>{label}</span>
+          </NavLink>
+        </SidebarNavItem>
+      ))}
+    </SidebarNav>
+  );
+}
+
+/**
+ * `asChild` con el router de la aplicación, que es para lo que existe: el
+ * `NavLink` recibe el estilo del menú y conserva lo suyo.
+ *
+ * La etiqueta va dentro de un `<span>`. Es lo que permite ocultarla cuando el
+ * menú se pliega, dejando solo el icono.
+ */
+export const ConRouter: Story = {
+  name: "Con React Router (asChild)",
+  render: () => (
+    <MemoryRouter initialEntries={["/inicio"]}>
+      <AppShell
+        storageKey="demo-router"
+        brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+        sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+        sidebar={<NavegacionConRouter />}
+      >
+        <Routes>
+          {ENLACES.map(({ id, label }) => (
+            <Route
+              key={id}
+              path={`/${id}`}
+              element={
+                <PageContainer>
+                  <PageHeader title={label} description="El menú marca el destino actual desde el propio router." />
+                </PageContainer>
+              }
+            />
+          ))}
+        </Routes>
+      </AppShell>
+    </MemoryRouter>
+  ),
+};
+
+/** Secciones plegables, para menús con muchas entradas. */
+export const SeccionesPlegables: Story = {
+  name: "Secciones plegables",
+  render: () => (
+    <AppShell
+      storageKey="demo-grupos"
+      brand={<SidebarBrand name="Acme S.A." />}
+      sidebar={
+        <SidebarNav>
+          <SidebarNavGroup label="Operación" collapsible groupId="operacion">
+            <SidebarNavItem icon={<ReceiptIcon />} active>
+              Movimientos
+            </SidebarNavItem>
+            <SidebarNavItem icon={<UsersIcon />}>Clientes</SidebarNavItem>
+          </SidebarNavGroup>
+          <SidebarNavGroup label="Administración" collapsible groupId="administracion" defaultOpen={false}>
+            <SidebarNavItem icon={<SettingsIcon />}>Usuarios</SidebarNavItem>
+            <SidebarNavItem icon={<SettingsIcon />}>Permisos</SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      }
+    >
+      <PageContainer>
+        <PageHeader title="Movimientos" description="Las secciones cerradas se recuerdan en este dispositivo." />
       </PageContainer>
     </AppShell>
   ),
