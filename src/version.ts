@@ -13,13 +13,22 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.4.1";
+export const UI_LIBRARY_VERSION = "0.4.2";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Nada obligatorio: 0.4.2 son correcciones de presentación.",
+      "Si tienes pantallas que comparten componente entre rutas, pásale `animateKey={pathname}` a `PageContainer` para que la entrada se repita en todas y no solo en algunas.",
+    ],
+  },
+  {
+    version: "0.4.1",
+    channel: "maintenance",
+    publishedAt: "2026-09-03",
     migration: [
       "Nada obligatorio: 0.4.1 son correcciones. Si parcheaste alguna de estas cosas en tu aplicación, ya puedes quitar el parche.",
       "Quita cualquier regla propia que forzara el tamaño de letra del menú lateral: `cn` ya no descarta la clase de tamaño al combinarla con un color.",

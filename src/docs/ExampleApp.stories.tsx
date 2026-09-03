@@ -8,7 +8,16 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    // En la página de documentación las historias se pintan una tras otra: sin
+    // acotar la altura, un armazón a pantalla completa deja una página
+    // interminable y el menú se pierde de vista. Con marco propio se ve como
+    // lo que es, una aplicación, y cada historia trae su propio desplazamiento.
     docs: {
+      // En la página de documentación las historias se pintan una tras otra:
+      // sin acotar la altura, un armazón a pantalla completa deja una página
+      // interminable y el menú se pierde de vista. Con marco propio se ve como
+      // lo que es, una aplicación, y con su propio desplazamiento.
+      story: { height: "620px", inline: false },
       description: {
         component: [
           "Una aplicación de tesorería completa —menú, barra superior, tabla y formulario— montada",

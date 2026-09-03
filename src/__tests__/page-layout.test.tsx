@@ -138,3 +138,51 @@ describe("AppVersion — fecha de compilación", () => {
     expect(screen.getByText(/0\.1\.0/)).toBeInTheDocument();
   });
 });
+
+describe("PageContainer — la entrada se repite en cada pantalla", () => {
+  function Pantalla({ vista }: { vista: string }) {
+    // Dos rutas que comparten componente: React lo reutiliza en vez de
+    // montarlo de nuevo, así que sin `animateKey` la segunda entra sin animar
+    // y la aplicación se siente irregular.
+    return (
+      <PageContainer animateKey={vista}>
+        <section>{vista}</section>
+      </PageContainer>
+    );
+  }
+
+  it("cambiar de pantalla vuelve a montar los bloques, para que la entrada se repita", () => {
+    const { container, rerender } = render(<Pantalla vista="Conciliación" />);
+    const primero = container.querySelector("[data-ui-stagger-item]");
+
+    rerender(<Pantalla vista="Reportes" />);
+    const segundo = container.querySelector("[data-ui-stagger-item]");
+
+    expect(segundo).not.toBeNull();
+    // Nodo distinto: se volvió a montar y la animación de entrada arranca.
+    expect(segundo).not.toBe(primero);
+    expect(segundo).toHaveTextContent("Reportes");
+  });
+
+  it("sin cambiar la clave, los bloques no se remontan al repintar", () => {
+    const { container, rerender } = render(<Pantalla vista="Reportes" />);
+    const primero = container.querySelector("[data-ui-stagger-item]");
+    rerender(<Pantalla vista="Reportes" />);
+    expect(container.querySelector("[data-ui-stagger-item]")).toBe(primero);
+  });
+
+  it("sin `animateKey` se comporta como antes", () => {
+    const { container, rerender } = render(
+      <PageContainer>
+        <section>Uno</section>
+      </PageContainer>,
+    );
+    const primero = container.querySelector("[data-ui-stagger-item]");
+    rerender(
+      <PageContainer>
+        <section>Dos</section>
+      </PageContainer>,
+    );
+    expect(container.querySelector("[data-ui-stagger-item]")).toBe(primero);
+  });
+});

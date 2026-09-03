@@ -66,23 +66,41 @@ const elevationTokens = [
   { name: "lg", className: "shadow-lg" },
 ];
 
-// No son variables CSS (a diferencia de color/radio/elevación) — es la
-// escala de Tailwind, pero usada con un criterio fijo: el padding
-// horizontal interno de un control escala junto con su altura
-// (`--control-compact/default/comfortable`). Cualquier componente nuevo
-// con tamaños `sm`/`md`/`lg` debería tomar estos mismos valores en vez de
-// inventar los suyos — así lo hacen ya Button y los controles de Field.
-const spacingTokens = [
-  { name: "sm", px: "0.625rem (10px)", className: "px-2.5", pairsWith: "h-control-compact / h-9" },
-  { name: "md", px: "0.875rem (14px)", className: "px-3.5", pairsWith: "h-control-default" },
-  { name: "lg", px: "1rem (16px)", className: "px-4", pairsWith: "h-control-comfortable" },
+// La escala de espaciado sí son variables CSS (`--space-*`) desde la 0.3.0, y
+// alimentan padding, margin, gap y space-y. Encima de los siete pasos hay
+// cuatro nombres por ROL, que son los que deben usar los componentes: cambiar
+// un rol cambia toda la interfaz de una vez.
+const spacingScale = [
+  { name: "2xs", value: "0.25rem", px: 4 },
+  { name: "xs", value: "0.5rem", px: 8 },
+  { name: "sm", value: "0.75rem", px: 12 },
+  { name: "md", value: "1rem", px: 16 },
+  { name: "lg", value: "1.5rem", px: 24 },
+  { name: "xl", value: "2rem", px: 32 },
+  { name: "2xl", value: "3rem", px: 48 },
 ];
 
-const gapTokens = [
-  { name: "compacto", className: "gap-1.5", usage: "Ícono + texto en un control pequeño" },
-  { name: "por defecto", className: "gap-2", usage: "Entre controles relacionados (Button, Toolbar)" },
-  { name: "sección", className: "gap-4", usage: "Entre bloques/campos de un formulario" },
-  { name: "layout", className: "gap-6", usage: "Entre secciones de una página" },
+const spacingRoles = [
+  {
+    name: "p-inset",
+    equivale: "lg · 24px",
+    usage: "Relleno interior de un contenedor: tarjeta, diálogo, panel.",
+  },
+  {
+    name: "p-inset-compact",
+    equivale: "md · 16px",
+    usage: "Lo mismo en pantallas de captura, donde importa cuántas filas caben.",
+  },
+  {
+    name: "space-y-stack",
+    equivale: "lg · 24px",
+    usage: "Ritmo vertical entre bloques de primer nivel. Lo aplica PageContainer.",
+  },
+  {
+    name: "gap-field",
+    equivale: "xs · 8px",
+    usage: "Entre una etiqueta y su control. Lo aplica Field.",
+  },
 ];
 
 const palettes = [
@@ -244,37 +262,73 @@ export const Espaciado: Story = {
     docs: {
       description: {
         story:
-          "No es una variable CSS propia — es la escala de Tailwind, adoptada con un criterio fijo para que los tamaños `sm`/`md`/`lg` de todos los controles sean predecibles entre sí. Un componente nuevo con variantes de tamaño debería reusar esta tabla en vez de elegir su propio padding.",
+          "Siete pasos en variables CSS (`--space-*`) que alimentan `p-*`, `m-*`, `gap-*` y `space-y-*`. Encima hay cuatro nombres por rol: son los que usan los componentes, y los que hay que usar para que dos aplicaciones respiren igual.",
       },
     },
   },
   render: () => (
-    <div className="flex flex-col gap-8">
-      <div className="grid gap-4 sm:grid-cols-3">
-        {spacingTokens.map((token) => (
-          <div key={token.name} className="rounded-lg border border-border p-4">
-            <div className={`inline-flex items-center rounded-md border border-dashed border-primary/40 bg-subtle ${token.className} py-2 text-sm font-medium text-subtle-foreground`}>
-              {token.className}
+    <div className="flex flex-col gap-2xl">
+      <section>
+        <h3 className="text-ui-title-sm font-semibold">La escala</h3>
+        <p className="mb-md mt-2xs text-ui-body-sm text-muted-foreground">
+          Cada paso es visiblemente mayor que el anterior. La barra mide exactamente el valor del token.
+        </p>
+        <div className="flex flex-col gap-xs">
+          {spacingScale.map((token) => (
+            <div key={token.name} className="flex items-center gap-md">
+              <code className="w-16 shrink-0 font-mono text-ui-caption text-muted-foreground">{token.name}</code>
+              <div className="h-4 bg-primary" style={{ width: token.value }} />
+              <span className="text-ui-caption text-muted-foreground">
+                {token.value} · {token.px}px
+              </span>
             </div>
-            <p className="mt-3 text-sm font-semibold">{token.name}</p>
-            <p className="text-xs text-muted-foreground">{token.px}</p>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">junto a {token.pairsWith}</p>
-          </div>
-        ))}
-      </div>
-      <div>
-        <p className="mb-3 text-sm font-semibold">Separación entre elementos (`gap-*`)</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {gapTokens.map((token) => (
-            <div key={token.name} className="rounded-lg border border-border p-3">
-              <code className="font-mono text-xs text-foreground">{token.className}</code>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {token.name} — {token.usage}
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="text-ui-title-sm font-semibold">Los cuatro roles</h3>
+        <p className="mb-md mt-2xs text-ui-body-sm text-muted-foreground">
+          Un componente no elige un número: elige un rol. Así se puede cambiar el relleno de todas las tarjetas
+          de todas las aplicaciones tocando un token.
+        </p>
+        <div className="grid gap-sm sm:grid-cols-2">
+          {spacingRoles.map((role) => (
+            <div key={role.name} className="rounded-lg border border-border p-md">
+              <div className="flex items-baseline justify-between gap-xs">
+                <code className="font-mono text-ui-body-sm font-semibold text-foreground">{role.name}</code>
+                <span className="text-ui-caption text-muted-foreground">{role.equivale}</span>
+              </div>
+              <p className="mt-2xs text-ui-body-sm text-muted-foreground">{role.usage}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="text-ui-title-sm font-semibold">Cómo se ve la diferencia</h3>
+        <p className="mb-md mt-2xs text-ui-body-sm text-muted-foreground">
+          La misma tarjeta con el relleno normal y con el compacto. Es la diferencia entre una pantalla de
+          consulta y una de captura.
+        </p>
+        <div className="grid gap-md sm:grid-cols-2">
+          {[
+            { label: "p-inset", className: "p-inset" },
+            { label: "p-inset-compact", className: "p-inset-compact" },
+          ].map((variant) => (
+            <div key={variant.label} className="rounded-lg border border-dashed border-primary/40">
+              <div className={variant.className}>
+                <div className="rounded-md bg-subtle p-sm">
+                  <p className="text-ui-body-sm font-medium text-subtle-foreground">Contenido</p>
+                </div>
+              </div>
+              <p className="border-t border-border px-sm py-2xs text-center font-mono text-ui-caption text-muted-foreground">
+                {variant.label}
               </p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   ),
 };

@@ -309,7 +309,11 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
 
 function VistaPendiente({ titulo, descripcion }: { titulo: string; descripcion: string }) {
   return (
-    <PageContainer>
+    // `animateKey` porque estas tres vistas comparten componente: React lo
+    // reutiliza al cambiar de una a otra y, sin volver a montarlo, la entrada
+    // no se dispararía. Unas pantallas entrarían animadas y otras no.
+    // Las otras dos vistas son componentes distintos y ya se montan solas.
+    <PageContainer animateKey={titulo}>
       <PageHeader title={titulo} description={descripcion} />
       <EmptyState
         icon={<HelpCircle aria-hidden="true" className="size-5" />}

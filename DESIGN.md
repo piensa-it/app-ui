@@ -219,6 +219,15 @@ configuración: con esa preferencia activa el contenido aparece de golpe, sin
 desplazamiento ni retraso. No hay que hacer nada para que sea accesible, y no se
 puede desactivar por descuido.
 
+Una advertencia que cuesta ver: la entrada se dispara **al montar**. Dos rutas
+que comparten componente de página no lo remontan —React lo reutiliza— así que
+la segunda entraría sin animar, y unas pantallas se sentirían distintas de
+otras. Para esos casos, `animateKey`:
+
+```tsx
+<PageContainer animateKey={pathname}>
+```
+
 ---
 
 ## Datos y cifras

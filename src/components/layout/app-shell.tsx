@@ -185,18 +185,21 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           data-state={collapsed ? "collapsed" : "expanded"}
           style={{ backdropFilter: "blur(var(--sidebar-blur))" }}
           className={cn(
-            "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar py-sm text-sidebar-foreground md:flex",
-            // Fijo y del alto de la ventana: si va en el flujo, crece con el
-            // documento y en una pantalla con tabla larga el menú se sube,
-            // dejando el pie con la versión fuera de vista. El desplazamiento
-            // interno lo tiene el <nav>.
-            "sticky top-0 h-screen",
+            // La columna se estira con el contenido: así la franja oscura llega
+            // hasta abajo por muy larga que sea la página. Lo que se queda a la
+            // vista es su contenido, no la columna.
+            "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex",
             // La animación de ancho vive aquí y no en cada aplicación.
             "transition-[width] duration-normal ease-standard motion-reduce:transition-none",
             collapsed ? "w-[4.5rem]" : "w-64",
           )}
         >
-          <SidebarProvider value={desktopState}>{navigation("Navegación principal")}</SidebarProvider>
+          {/* Pegado arriba y del alto de la ventana: sin esto el menú se sube
+              con el desplazamiento y el pie con la versión queda fuera de
+              vista. El desplazamiento interno lo tiene el <nav>. */}
+          <div className="sticky top-0 flex h-screen flex-col py-sm">
+            <SidebarProvider value={desktopState}>{navigation("Navegación principal")}</SidebarProvider>
+          </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">

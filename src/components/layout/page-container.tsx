@@ -24,6 +24,17 @@ export interface PageContainerProps extends React.HTMLAttributes<HTMLDivElement>
   animate?: boolean;
   /** Milisegundos entre la entrada de un bloque y el siguiente. @default 60 */
   staggerGap?: number;
+  /**
+   * Vuelve a lanzar la entrada cuando este valor cambia. Pásale la ruta actual.
+   *
+   * Hace falta porque dos rutas que comparten componente de página no lo
+   * remontan —React lo reutiliza— y sin remontaje no hay animación de entrada:
+   * unas pantallas entrarían animadas y otras no, que es justo lo que esta
+   * librería existe para evitar.
+   *
+   * @example <PageContainer animateKey={pathname}>
+   */
+  animateKey?: string | number;
   children: React.ReactNode;
 }
 
@@ -51,7 +62,7 @@ const WIDTHS: Record<NonNullable<PageContainerProps["width"]>, string> = {
  * ```
  */
 export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps>(
-  ({ width = "default", animate = true, staggerGap = 60, className, children, ...props }, ref) => {
+  ({ width = "default", animate = true, staggerGap = 60, animateKey, className, children, ...props }, ref) => {
     const classes = cn(
       "mx-auto w-full px-md py-lg sm:px-lg",
       WIDTHS[width],
@@ -70,7 +81,7 @@ export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps
     }
 
     return (
-      <Stagger ref={ref} gap={staggerGap} className={classes} {...props}>
+      <Stagger key={animateKey} ref={ref} gap={staggerGap} className={classes} {...props}>
         {children}
       </Stagger>
     );
