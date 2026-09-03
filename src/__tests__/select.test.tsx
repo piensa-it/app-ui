@@ -102,3 +102,22 @@ describe("Select — opciones con label ReactNode", () => {
     expect(trigger.textContent).toContain("Colombia");
   });
 });
+
+describe("Select — ancho", () => {
+  const options = [
+    { label: "Septiembre 2026", value: "2026-09" },
+    { label: "Agosto 2026", value: "2026-08" },
+  ];
+
+  it("por defecto ocupa el ancho disponible, como en un formulario", () => {
+    const { container } = render(<Select aria-label="Periodo" options={options} />);
+    expect(container.firstElementChild).toHaveClass("w-full");
+  });
+
+  it("`width=auto` se ajusta a su contenido, para una barra de herramientas", () => {
+    const { container } = render(<Select aria-label="Periodo" width="auto" options={options} />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).not.toHaveClass("w-full");
+    expect(root.className).toMatch(/w-auto/);
+  });
+});

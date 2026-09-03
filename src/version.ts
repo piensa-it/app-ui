@@ -13,13 +13,26 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.3.0";
+export const UI_LIBRARY_VERSION = "0.4.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo lo de esta versión es aditivo: subir desde 0.3.0 no requiere cambios.",
+      "Sustituye `className=\"text-right tabular-nums\"` en columnas de cifras por `align=\"right\"`, que lo trae incluido.",
+      "Sustituye las tarjetas de indicadores hechas a mano por `Stat` y `StatGroup`; deja de usar un encabezado para la cifra.",
+      "Sustituye `grid gap-… sm:grid-cols-2` en formularios por `FormGrid`, y `className=\"sm:col-span-2\"` en un campo por `span=\"full\"`.",
+      "Un `Select` dentro de una barra de herramientas ya no necesita un contenedor de ancho fijo: usa `width=\"auto\"`.",
+      "Anota el tipo de la fila en las columnas (`<Column<Movimiento> field=\"valor\" />`) para que un campo mal escrito falle al compilar.",
+    ],
+  },
+  {
+    version: "0.3.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-03",
     migration: [
       "El fondo de la página deja de ser blanco: `--background` pasa a ser el nivel `ground` (un gris muy claro) y `--card` el nivel `raised`. Si tu aplicación bajaba el fondo por su cuenta, quita ese parche.",
       "Si un componente propio usa `bg-background` esperando blanco, cámbialo a `bg-raised`. `bg-background` sigue existiendo, pero ahora es el fondo de la página.",

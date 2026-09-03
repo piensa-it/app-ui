@@ -32,6 +32,13 @@ export interface SelectProps
   placeholder?: string;
   /** Nombre accesible cuando el trigger no tiene un Label asociado. */
   "aria-label"?: string;
+  /**
+   * `full` ocupa el ancho disponible, que es lo que quiere un formulario.
+   * `auto` se ajusta al contenido, para una barra de herramientas donde el
+   * control comparte fila con otros.
+   * @default "full"
+   */
+  width?: "full" | "auto";
   className?: string;
 }
 
@@ -49,6 +56,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       name,
       variant,
       size,
+      width = "full",
       ...props
     },
     ref,
@@ -104,7 +112,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         // en el DOM con el mismo z-index, lo tapa — el Select "no abre" dentro del diálogo.
         lazyMount
         unmountOnExit
-        className={cn("w-full", className)}
+        className={cn(width === "full" ? "w-full" : "w-auto", className)}
       >
         <ArkSelect.Control>
           <ArkSelect.Trigger

@@ -221,6 +221,39 @@ puede desactivar por descuido.
 
 ---
 
+## Datos y cifras
+
+- **Una columna numérica se declara con `align="right"`**, no con clases. Trae
+  las cifras de ancho fijo (`tabular-nums`) incluidas: sin ellas los dígitos
+  bailan entre filas y las magnitudes dejan de compararse de un vistazo.
+- **Una fila de totales se declara con `footer` en la columna.** Recibe todas
+  las filas que quedan tras filtrar, no las de la página visible: un total de
+  página no es un total.
+- **Una cifra suelta es un `Stat`**, no una tarjeta con un título. `Stat` usa
+  `<dl>`/`<dt>`/`<dd>`, porque un encabezado cuyo texto es una cantidad ensucia
+  el esquema de la página para quien navega por encabezados.
+- En un `Stat` con variación, el sentido se anuncia además de pintarse. Y
+  cuando subir es malo —gastos, mora, incidencias— hay que decirlo con
+  `goodWhenUp={false}`, o el verde dirá lo contrario de lo que pasa.
+- Anota el tipo de la fila (`<Column<Movimiento> field="valor" />`) para que un
+  campo mal escrito sea un error de compilación y no una columna vacía.
+
+---
+
+## Composición
+
+| Pieza | Para qué |
+|---|---|
+| `FormGrid` | Rejilla de campos. Un campo ancho se declara con `span="full"` en el `Field`, sin escribir clases de rejilla. |
+| `Toolbar`, `ToolbarSeparator` | Fila de controles con el espaciado del sistema. El separador empuja a la derecha lo que venga después. |
+| `StatGroup` | Fila de indicadores. |
+
+Un `Select` dentro de una barra de herramientas necesita `width="auto"`: por
+defecto ocupa el ancho disponible, que es lo que quiere un formulario y no una
+barra.
+
+---
+
 ## Color y contraste
 
 - Ningún componente lleva un color literal. Todo sale de tokens, para que una

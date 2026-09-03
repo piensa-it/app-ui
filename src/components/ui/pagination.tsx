@@ -1,3 +1,4 @@
+import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +39,16 @@ function Pagination({
   totalItems,
   className,
 }: PaginationProps) {
+  // Un `pageSize` fuera de las opciones dejaba el selector mostrando el
+  // placeholder, como si no hubiera ningún tamaño elegido. Se inserta en su
+  // sitio para que la lista siga leyéndose de menor a mayor.
+  const sizeOptions = React.useMemo(
+    () =>
+      pageSizeOptions.includes(pageSize)
+        ? pageSizeOptions
+        : [...pageSizeOptions, pageSize].sort((a, b) => a - b),
+    [pageSizeOptions, pageSize],
+  );
   const canPreviousPage = pageIndex > 0;
   const canNextPage = pageIndex < pageCount - 1;
 
@@ -54,7 +65,7 @@ function Pagination({
           <Select
             className="w-20"
             aria-label="Filas por página"
-            options={pageSizeOptions.map((n) => ({ label: String(n), value: n }))}
+            options={sizeOptions.map((n) => ({ label: String(n), value: n }))}
             value={pageSize}
             onChange={(value) => onPageSizeChange(Number(value))}
           />
