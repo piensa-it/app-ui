@@ -11,7 +11,7 @@ export const sliderTrackSizeVariants = cva("w-full overflow-hidden rounded-full 
   defaultVariants: { size: "md" },
 });
 
-export const sliderThumbSizeVariants = cva("rounded-full border-2 border-primary bg-background shadow-md", {
+export const sliderThumbSizeVariants = cva("rounded-full border-2 border-primary bg-raised shadow-md", {
   variants: {
     size: {
       sm: "size-4",

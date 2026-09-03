@@ -1,4 +1,4 @@
-import { Children, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { Children, forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -29,11 +29,14 @@ export interface StaggerProps extends HTMLAttributes<HTMLDivElement> {
  *   {kpis.map((k) => <KpiCard key={k.id} {...k} />)}
  * </Stagger>
  */
-export function Stagger({ gap = 60, itemClassName, className, children, ...props }: StaggerProps) {
+export const Stagger = forwardRef<HTMLDivElement, StaggerProps>(function Stagger(
+  { gap = 60, itemClassName, className, children, ...props },
+  ref,
+) {
   // toArray descarta null/booleanos, así el índice cuenta solo hijos reales.
   const items = Children.toArray(children);
   return (
-    <div {...props} data-ui-stagger className={cn(className)}>
+    <div ref={ref} {...props} data-ui-stagger className={cn(className)}>
       {items.map((child, index) => (
         <div
           key={index}
@@ -46,4 +49,4 @@ export function Stagger({ gap = 60, itemClassName, className, children, ...props
       ))}
     </div>
   );
-}
+});

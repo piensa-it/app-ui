@@ -6,6 +6,7 @@ import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { splitAriaProps } from "@/lib/aria-props";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import { fieldControlVariants, floatingPanelStyles, iconButtonStyles } from "@/lib/recipes/field-control";
@@ -103,6 +104,10 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
     const dismiss = React.useCallback(() => setInternalOpen(false), []);
     useOverlayDismiss(open, controlledOpen === undefined, rootRef, contentRef, dismiss);
 
+    // Los aria-* que inyecta `Field` van al <input>, no al div raíz: en el raíz
+    // quedarían sobre un nodo sin rol y ningún lector los asociaría al control.
+    const [ariaProps, rootProps] = React.useMemo(() => splitAriaProps(props), [props]);
+
     return (
     <ArkDatePicker.Root
       ref={assignRootRef}
@@ -121,7 +126,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
         onChange?.(next ? toNativeDate(next) : null);
       }}
       className={cn("w-full", className)}
-      {...props}
+      {...rootProps}
     >
       <ArkDatePicker.Control
         className={cn(
@@ -132,6 +137,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
         <ArkDatePicker.Input
           index={0}
           aria-label={ariaLabel}
+          {...ariaProps}
           placeholder={placeholder}
           className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
         />

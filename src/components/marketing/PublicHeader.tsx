@@ -69,7 +69,7 @@ export const PublicHeader = ({
     <header
       className={cn(
         position === "static" ? "relative" : `${position} top-0`,
-        "z-50 w-full border-b bg-background/95 backdrop-blur-xl transition-[border-color,box-shadow,background-color] duration-normal",
+        "z-50 w-full border-b bg-surface/95 backdrop-blur-xl transition-[border-color,box-shadow,background-color] duration-normal",
         scrolled ? "border-border shadow-sm" : "border-transparent",
         className,
       )}

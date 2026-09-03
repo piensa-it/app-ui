@@ -50,7 +50,7 @@ const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
       >
         <ArkSwitch.Thumb
           className={cn(
-            "block translate-x-0.5 rounded-full bg-background shadow-sm transition-transform duration-normal motion-reduce:transition-none",
+            "block translate-x-0.5 rounded-full bg-raised shadow-sm transition-transform duration-normal motion-reduce:transition-none",
             switchThumbSizeVariants({ size }),
           )}
         />

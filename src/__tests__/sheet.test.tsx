@@ -34,3 +34,43 @@ describe("Sheet — props del panel", () => {
     expect(panel).toHaveClass("left-0");
   });
 });
+
+describe("Sheet — superficie propia", () => {
+  it("por defecto pinta su superficie (fondo, sombra y borde)", async () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetTitle>Panel</SheetTitle>
+      </Sheet>,
+    );
+    const panel = await screen.findByRole("dialog");
+    expect(panel).toHaveClass("bg-raised", "shadow-lg");
+    expect(screen.getByRole("button", { name: "Cerrar" })).toHaveClass("text-muted-foreground");
+  });
+
+  it("surface={false} no pinta fondo, sombra ni anillo, y el botón de cerrar hereda el color", async () => {
+    render(
+      <Sheet open onOpenChange={() => {}} surface={false} className="bg-[#101418] text-white">
+        <SheetTitle>Panel oscuro</SheetTitle>
+      </Sheet>,
+    );
+    const panel = await screen.findByRole("dialog");
+    expect(panel).toHaveClass("bg-[#101418]");
+    expect(panel.className).not.toMatch(/\bbg-raised\b/);
+    expect(panel.className).not.toMatch(/\bshadow-lg\b/);
+    expect(panel.className).not.toMatch(/\bring-1\b/);
+    // Sin superficie propia, el color del panel manda también en el cierre.
+    const close = screen.getByRole("button", { name: "Cerrar" });
+    expect(close).toHaveClass("text-current");
+    expect(close.className).not.toMatch(/text-muted-foreground/);
+  });
+
+  it("mantiene el posicionamiento y la animación aunque no pinte superficie", async () => {
+    render(
+      <Sheet open onOpenChange={() => {}} surface={false} position="left">
+        <SheetTitle>Panel</SheetTitle>
+      </Sheet>,
+    );
+    const panel = await screen.findByRole("dialog");
+    expect(panel).toHaveClass("fixed", "left-0");
+  });
+});

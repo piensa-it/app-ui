@@ -76,7 +76,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
                 <span className="min-w-0">{tab.props.header}</span>
                 <ArkAccordion.ItemIndicator
                   className={cn(
-                    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-background text-muted-foreground shadow-sm",
+                    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-raised text-muted-foreground shadow-sm",
                     "transition-[transform,background-color,color,border-color] duration-normal ease-standard",
                     "group-hover:border-surface-border group-hover:text-foreground",
                     "data-[state=open]:rotate-180 data-[state=open]:border-ring/30 data-[state=open]:bg-primary data-[state=open]:text-primary-foreground",

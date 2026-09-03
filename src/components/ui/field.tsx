@@ -45,23 +45,25 @@ export function Field({
   return (
     <div
       className={cn(
-        "grid gap-2",
-        density === "compact" ? "gap-1.5" : "gap-2",
-        variant === "outline" && "rounded-xl border border-border bg-background p-4",
-        variant === "surface" && "rounded-xl border border-surface-border bg-surface p-4 shadow-sm",
-        variant === "subtle" && "rounded-xl border border-transparent bg-subtle p-4",
+        "grid",
+        // El espacio entre etiqueta, control y mensaje sale de la escala:
+        // así todos los formularios de todas las aplicaciones respiran igual.
+        density === "compact" ? "gap-2xs" : "gap-field",
+        variant === "outline" && "rounded-xl border border-border bg-raised p-inset-compact",
+        variant === "surface" && "rounded-xl border border-surface-border bg-surface p-inset-compact shadow-sm",
+        variant === "subtle" && "rounded-xl border border-transparent bg-subtle p-inset-compact",
         orientation === "horizontal" && "sm:grid-cols-[minmax(10rem,0.4fr)_minmax(0,1fr)] sm:gap-x-6",
         className,
       )}
     >
-      <div className={cn("flex items-baseline justify-between gap-3", orientation === "horizontal" && "sm:pt-3")}>
+      <div className={cn("flex items-baseline justify-between gap-sm", orientation === "horizontal" && "sm:pt-2xs")}>
         <Label htmlFor={controlId}>
           {label}
           {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span> : null}
         </Label>
         {!required && optionalLabel ? <span className="text-xs text-muted-foreground">{optionalLabel}</span> : null}
       </div>
-      <div className="grid min-w-0 gap-2">
+      <div className="grid min-w-0 gap-field">
         {React.cloneElement(children, {
           id: controlId,
           "aria-describedby": describedBy,

@@ -30,7 +30,7 @@ function Toaster() {
           <ArkToast.Root
             key={toast.id}
             className={cn(
-              "flex w-80 items-start gap-3 rounded-md border border-border bg-background p-4 text-sm shadow-lg",
+              "flex w-80 items-start gap-3 rounded-md border border-border bg-raised p-4 text-sm shadow-lg",
               elevationRing,
               cx(
                 "data-[state=open]:animate-in data-[state=closed]:animate-out",

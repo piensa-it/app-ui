@@ -42,7 +42,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         size === "lg" && "h-12 w-12 text-base",
         size === "xl" && "h-16 w-16 text-lg",
         variant === "soft" && "bg-secondary text-secondary-foreground",
-        variant === "outline" && "border border-border bg-background text-foreground",
+        variant === "outline" && "border border-border bg-raised text-foreground",
         variant === "elevated" && "border border-border/80 bg-card text-foreground shadow-md",
         shape === "circle" ? "rounded-full" : "rounded-xl",
         className,
