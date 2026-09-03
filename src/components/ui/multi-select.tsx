@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import type { SelectOption } from "@/components/ui/select";
+import { selectOptionToString } from "@/lib/select-option";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
 export interface MultiSelectFieldProps
@@ -61,7 +62,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
         createListCollection({
           items: options,
           itemToValue: (item) => String(item.value),
-          itemToString: (item) => item.label,
+          itemToString: selectOptionToString,
           isItemDisabled: (item) => !!item.disabled,
         }),
       [options],

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import * as React from "react";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { Chart } from "../components/ui/chart";
 
 // jsdom no calcula layout, así que ResponsiveContainer mediría 0×0 y Recharts
@@ -8,10 +8,19 @@ import { Chart } from "../components/ui/chart";
 // el resto de Recharts (ejes, escalas, ticks) es el real.
 vi.mock("recharts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("recharts")>();
+  // Las formas (rectángulos, sectores) se dibujan al terminar la animación,
+  // que en jsdom nunca completa: se desactiva solo en pruebas. Sin
+  // displayName a propósito: Recharts identifica sus hijos por él y, si el
+  // wrapper se llama "Bar", lo trata como la serie y no pinta las formas.
+  const sinAnimacion =
+    <P extends object>(Component: React.ComponentType<P>) =>
+    (props: P) => <Component {...props} isAnimationActive={false} />;
   return {
     ...actual,
     ResponsiveContainer: ({ children }: { children: React.ReactElement }) =>
       React.cloneElement(children, { width: 600, height: 300 }),
+    Bar: sinAnimacion(actual.Bar),
+    Pie: sinAnimacion(actual.Pie),
   };
 });
 
@@ -80,5 +89,107 @@ describe("Chart — dominio del eje Y", () => {
       />,
     );
     expect(yAxisTicks(container)).toEqual([0, 2000, 4000]);
+  });
+});
+
+describe("Chart — formateadores, ancho del eje y decimales", () => {
+  const cop = [
+    { fecha: "01", valor: 2700000 },
+    { fecha: "02", valor: 3600000 },
+  ];
+  const yAxisLabels = (container: HTMLElement) =>
+    Array.from(
+      container.getElementsByClassName("recharts-yAxis-tick-labels")[0]?.getElementsByClassName("recharts-cartesian-axis-tick-value") ?? [],
+    ).map((n) => n.textContent);
+
+  it("axisFormatter formatea solo el eje y valueFormatter sigue siendo el respaldo", () => {
+    const { container } = render(
+      <Chart
+        type="bar"
+        data={cop}
+        categoryKey="fecha"
+        series={[{ key: "valor" }]}
+        valueFormatter={(v) => `$${v.toLocaleString("es-CO")}`}
+        axisFormatter={(v) => `${Math.round(v / 1e6)} M`}
+      />,
+    );
+    const labels = yAxisLabels(container);
+    expect(labels).toContain("0 M");
+    expect(labels.some((l) => l?.startsWith("$"))).toBe(false);
+  });
+
+  it("sin axisFormatter, valueFormatter formatea el eje", () => {
+    const { container } = render(
+      <Chart type="bar" data={cop} categoryKey="fecha" series={[{ key: "valor" }]} valueFormatter={(v) => `$${v}`} />,
+    );
+    expect(yAxisLabels(container)).toContain("$0");
+  });
+
+  it("yAxisWidth fija el ancho reservado para las etiquetas del eje", () => {
+    const { container } = render(
+      <Chart type="bar" data={cop} categoryKey="fecha" series={[{ key: "valor" }]} yAxisWidth={110} />,
+    );
+    const yAxis = container.getElementsByClassName("recharts-yAxis")[0];
+    expect(yAxis).toBeTruthy();
+    const label = container.getElementsByClassName("recharts-yAxis-tick-labels")[0]?.getElementsByClassName("recharts-cartesian-axis-tick-value")[0];
+    expect(label).toHaveAttribute("width", "110");
+  });
+
+  it("allowDecimals=false evita marcas decimales", () => {
+    const pocos = [
+      { fecha: "01", valor: 1 },
+      { fecha: "02", valor: 2 },
+    ];
+    const { container } = render(
+      <Chart type="bar" data={pocos} categoryKey="fecha" series={[{ key: "valor" }]} allowDecimals={false} />,
+    );
+    const labels = yAxisLabels(container);
+    expect(labels.length).toBeGreaterThan(1);
+    expect(labels.every((l) => Number.isInteger(Number(l)))).toBe(true);
+  });
+
+  it("por defecto, con pocos valores, Recharts sí usa decimales (control)", () => {
+    const pocos = [
+      { fecha: "01", valor: 1 },
+      { fecha: "02", valor: 2 },
+    ];
+    const { container } = render(<Chart type="bar" data={pocos} categoryKey="fecha" series={[{ key: "valor" }]} />);
+    expect(yAxisLabels(container).some((l) => !Number.isInteger(Number(l)))).toBe(true);
+  });
+});
+
+// Las formas se calculan en un efecto de layout tras medir ejes y leyenda:
+// hay que ceder unos ticks (y evitar la leyenda, que en jsdom no mide).
+const nextTick = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+describe("Chart — color por categoría", () => {
+  const porMoneda = [
+    { moneda: "USD", total: 10, color: "hsl(var(--chart-2))" },
+    { moneda: "EUR", total: 20, color: "hsl(var(--chart-4))" },
+  ];
+
+  it("colorKey pinta cada barra con el color de su fila", async () => {
+    const { container } = render(
+      <Chart type="bar" data={porMoneda} categoryKey="moneda" series={[{ key: "total" }]} colorKey="color" showLegend={false} />,
+    );
+    await nextTick();
+    const fills = Array.from(container.getElementsByClassName("recharts-bar-rectangle")).map(
+      (g) => g.querySelector("path")?.getAttribute("fill"),
+    );
+    expect(fills).toEqual(["hsl(var(--chart-2))", "hsl(var(--chart-4))"]);
+  });
+
+  it("colorKey pinta cada porción del pie con el color de su fila", async () => {
+    const { container } = render(
+      <Chart type="pie" data={porMoneda} categoryKey="moneda" series={[{ key: "total" }]} colorKey="color" showLegend={false} />,
+    );
+    await nextTick();
+    const fills = Array.from(container.getElementsByClassName("recharts-pie-sector")).map(
+      (g) => g.querySelector("path")?.getAttribute("fill"),
+    );
+    expect(fills).toEqual(["hsl(var(--chart-2))", "hsl(var(--chart-4))"]);
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "@piensa-it/ui-library",
   "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -28,16 +28,17 @@
     "dist",
     "tailwind-preset.js"
   ],
-  "main": "./dist/ui-library.cjs.js",
-  "module": "./dist/ui-library.es.js",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/ui-library.es.js",
-      "require": "./dist/ui-library.cjs.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
     },
     "./styles.css": "./dist/style.css",
+    "./fonts.css": "./dist/fonts.css",
     "./tailwind-preset": "./tailwind-preset.js"
   },
   "sideEffects": [

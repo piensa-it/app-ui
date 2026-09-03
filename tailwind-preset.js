@@ -7,6 +7,33 @@
 // Es un archivo .js plano (no .ts) a propósito: se importa directamente
 // desde node_modules sin pasar por un paso de compilación.
 import animate from "tailwindcss-animate";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const packageRoot = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Rutas de los módulos publicados de la librería, para que Tailwind vea las
+ * clases que usan sus componentes.
+ *
+ * Hace falta porque las utilidades de una app y las de la librería se generan
+ * en dos pasadas distintas y el orden del CSS resultante decide quién gana:
+ * una utilidad base de la app (`.text-center`) emitida DESPUÉS de una variante
+ * de la librería (`sm:text-left` de DialogHeader) la pisa. Con estas rutas en
+ * `content`, ambas salen de la misma pasada y el orden vuelve a ser el de
+ * especificidad de Tailwind.
+ *
+ * Tailwind 3 NO hereda `content` de un preset (solo `theme` y `plugins`), así
+ * que el consumidor tiene que concatenarlo:
+ *
+ * ```js
+ * import preset, { content as uiLibraryContent } from "@piensa-it/ui-library/tailwind-preset";
+ * export default { presets: [preset], content: [...uiLibraryContent, "./src/**\/*.{ts,tsx}"] };
+ * ```
+ */
+export const content = [
+  path.join(packageRoot, "dist/esm/**/*.js"),
+];
 
 /** @type {import('tailwindcss').Config} */
 const preset = {

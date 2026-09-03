@@ -44,3 +44,21 @@ describe("Tabs — valor inicial explícito undefined", () => {
     expect(screen.getByText("Contenido A")).toBeVisible();
   });
 });
+
+describe("Tabs — clases de la lista y de cada pestaña", () => {
+  it("listClassName va al tablist y className de TabPanel al tab", () => {
+    render(
+      <Tabs listClassName="justify-center">
+        <TabPanel value="a" header="Pestaña A" className="uppercase">
+          Contenido A
+        </TabPanel>
+        <TabPanel value="b" header="Pestaña B" contentClassName="pt-0">
+          Contenido B
+        </TabPanel>
+      </Tabs>,
+    );
+    expect(screen.getByRole("tablist")).toHaveClass("justify-center");
+    expect(screen.getByRole("tab", { name: "Pestaña A" })).toHaveClass("uppercase");
+    expect(screen.getByText("Contenido B")).toHaveClass("pt-0");
+  });
+});

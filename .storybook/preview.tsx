@@ -1,5 +1,6 @@
 import type { Preview } from "@storybook/react-vite";
 import React from "react";
+import "../src/styles/fonts.css";
 import "../src/styles/globals.css";
 import { UiProvider } from "../src/components/providers/UiProvider";
 

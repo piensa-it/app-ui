@@ -236,3 +236,94 @@ export const DominioEjeY: Story = {
     showLegend: false,
   },
 };
+
+const ventasCop = [
+  { mes: "Ene", total: 2_750_000 },
+  { mes: "Feb", total: 3_120_000 },
+  { mes: "Mar", total: 2_980_000 },
+  { mes: "Abr", total: 3_640_000 },
+];
+const cop = (value: number) => value.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+
+/**
+ * Con moneda completa el eje de 60 px recorta las cifras. `axisFormatter`
+ * abrevia solo el eje, `tooltipFormatter` mantiene la cifra completa, y
+ * `yAxisWidth` ensancha el eje cuando de verdad hace falta la cifra entera.
+ */
+export const FormateadoresSeparados: Story = {
+  name: "axisFormatter, tooltipFormatter y yAxisWidth",
+  args: {
+    type: "bar",
+    data: ventasCop,
+    categoryKey: "mes",
+    series: [{ key: "total", label: "Ventas" }],
+    title: "Ventas mensuales",
+    description: "Eje abreviado en millones; el tooltip muestra el valor completo.",
+    axisFormatter: (value) => `${(value / 1e6).toLocaleString("es-CO", { maximumFractionDigits: 1 })} M`,
+    tooltipFormatter: cop,
+    showLegend: false,
+  },
+};
+
+export const EjeAncho: Story = {
+  name: "yAxisWidth con cifra completa",
+  args: {
+    type: "bar",
+    data: ventasCop,
+    categoryKey: "mes",
+    series: [{ key: "total", label: "Ventas" }],
+    valueFormatter: cop,
+    yAxisWidth: 120,
+    showLegend: false,
+  },
+};
+
+/** `colorKey` toma el color de cada fila: barras y porciones por categoría. */
+export const ColorPorCategoria: Story = {
+  name: "Color por categoría (colorKey)",
+  args: {
+    type: "bar",
+    data: [
+      { moneda: "USD", total: 12488, color: "hsl(var(--chart-1))" },
+      { moneda: "EUR", total: 8312, color: "hsl(var(--chart-2))" },
+      { moneda: "COP", total: 4862, color: "hsl(var(--chart-4))" },
+    ],
+    categoryKey: "moneda",
+    series: [{ key: "total", label: "Arqueo" }],
+    colorKey: "color",
+    title: "Arqueo por moneda",
+    showLegend: false,
+  },
+};
+
+export const DonutPorCategoria: Story = {
+  name: "Donut con colorKey",
+  args: {
+    type: "donut",
+    data: [
+      { estado: "Aprobado", total: 62, color: "hsl(var(--success))" },
+      { estado: "Pendiente", total: 27, color: "hsl(var(--warning))" },
+      { estado: "Rechazado", total: 11, color: "hsl(var(--destructive))" },
+    ],
+    categoryKey: "estado",
+    series: [{ key: "total" }],
+    colorKey: "color",
+  },
+};
+
+/** Conteos pequeños: `allowDecimals={false}` evita marcas como 0,5 o 1,5. */
+export const SinDecimales: Story = {
+  name: "allowDecimals=false",
+  args: {
+    type: "bar",
+    data: [
+      { dia: "Lun", incidencias: 1 },
+      { dia: "Mar", incidencias: 2 },
+      { dia: "Mié", incidencias: 1 },
+    ],
+    categoryKey: "dia",
+    series: [{ key: "incidencias", label: "Incidencias" }],
+    allowDecimals: false,
+    showLegend: false,
+  },
+};

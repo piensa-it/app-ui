@@ -4,6 +4,7 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } fr
 import { Button } from "./button";
 import { Select } from "./select";
 import { Field } from "./field";
+import { Sheet, SheetHeader, SheetTitle, SheetDescription } from "./sidebar";
 
 const meta = {
   title: "UI/Dialog",
@@ -87,6 +88,54 @@ export const ConSelectDentro: Story = {
               <Button onClick={() => setOpen(false)}>Guardar</Button>
             </DialogFooter>
           </Dialog>
+        </>
+      );
+    };
+    return <Demo />;
+  },
+};
+
+/**
+ * Capas encadenadas gobernadas por la app: el diálogo abre un panel y se cierra
+ * a sí mismo en el mismo clic (radicar → ver el radicado). Zag cerraría en
+ * cascada el panel al retirar el diálogo, y lo cerraría de nuevo al devolverle
+ * el foco al botón de origen; la librería veta ambos por defecto
+ * (`onRequestDismiss`, `onFocusOutside`). Escape y el backdrop siguen cerrando.
+ */
+export const AbreUnSheet: Story = {
+  name: "Abre un Sheet y se cierra",
+  render: () => {
+    const Demo = () => {
+      const [dialogOpen, setDialogOpen] = useState(false);
+      const [sheetOpen, setSheetOpen] = useState(false);
+      return (
+        <>
+          <Button onClick={() => setDialogOpen(true)}>Radicar documento</Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogHeader>
+              <DialogTitle>Radicar documento</DialogTitle>
+              <DialogDescription>Al confirmar se abre el detalle del radicado.</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  setSheetOpen(true);
+                  setDialogOpen(false);
+                }}
+              >
+                Confirmar y ver radicado
+              </Button>
+            </DialogFooter>
+          </Dialog>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetHeader>
+              <SheetTitle>Radicado 2026-0917</SheetTitle>
+              <SheetDescription>Este panel debe seguir abierto aunque el diálogo de origen ya se cerró.</SheetDescription>
+            </SheetHeader>
+          </Sheet>
         </>
       );
     };

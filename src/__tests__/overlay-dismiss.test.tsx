@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { AutoComplete } from "../components/ui/autocomplete";
@@ -13,6 +13,13 @@ const options = [
   { label: "Colombia", value: "co" },
   { label: "México", value: "mx" },
 ];
+
+// Zag registra los listeners de "clic fuera" tras un raf + setTimeout(0)
+// desde que monta el panel: si el clic llega antes, no hay nada que cerrar.
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  });
 
 function OutsideTarget() {
   return <button type="button">Siguiente control</button>;
@@ -31,6 +38,7 @@ describe("cierre intuitivo de paneles flotantes", () => {
     const trigger = screen.getByRole("combobox", { name: "Seleccionar país" });
     await user.click(trigger);
     expect(await screen.findByRole("option", { name: "Colombia" })).toBeVisible();
+    await settle();
 
     await user.click(screen.getByRole("button", { name: "Siguiente control" }));
     await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "false"));
@@ -48,6 +56,7 @@ describe("cierre intuitivo de paneles flotantes", () => {
     const trigger = screen.getByRole("combobox", { name: "Seleccionar mercados" });
     await user.click(trigger);
     expect(await screen.findByRole("option", { name: "México" })).toBeVisible();
+    await settle();
 
     await user.click(screen.getByRole("button", { name: "Siguiente control" }));
     await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "false"));

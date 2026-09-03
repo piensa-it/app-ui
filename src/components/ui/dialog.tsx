@@ -9,6 +9,21 @@ import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdr
 export interface DialogProps extends Omit<ArkDialog.RootProps, "open" | "onOpenChange"> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Elementos externos que no cuentan como «fuera» del diálogo. Solo sirve
+   * para capas que YA existen al abrir: Zag las espera un segundo y, si la
+   * función sigue devolviendo `null`, rechaza la promesa (error en consola en
+   * cada apertura). Para poppers de terceros que se montan después (un
+   * DropdownMenu de Radix, un datepicker externo) veta en `onInteractOutside`
+   * cuando `event.detail.target` está dentro de esa capa:
+   *
+   * ```tsx
+   * <Dialog onInteractOutside={(e) => {
+   *   if ((e.detail.target as Element).closest("[data-radix-popper-content-wrapper]")) e.preventDefault();
+   * }} />
+   * ```
+   */
+  persistentElements?: ArkDialog.RootProps["persistentElements"];
   /** Oculta el botón de cierre (X) en la esquina superior derecha. @default false */
   hideCloseButton?: boolean;
   className?: string;
@@ -20,13 +35,29 @@ export interface DialogProps extends Omit<ArkDialog.RootProps, "open" | "onOpenC
  * consistente con el resto de la librería.
  */
 const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
-  ({ open, onOpenChange, className, children, hideCloseButton = false, modal = true, ...props }, ref) => (
+  (
+    { open, onOpenChange, className, children, hideCloseButton = false, modal = true, onRequestDismiss, onFocusOutside, ...props },
+    ref,
+  ) => (
     <ArkDialog.Root
       open={open}
       onOpenChange={(details) => onOpenChange(details.open)}
       modal={modal}
       lazyMount
       unmountOnExit
+      // Zag cierra en cascada las capas abiertas ENCIMA de una que se retira
+      // (`layer:request-dismiss`) y trata como «fuera» el foco que otra capa
+      // devuelve al cerrarse. El estado `open` lo gobierna la app: un diálogo
+      // abierto justo cuando su origen termina de cerrarse no debe desaparecer.
+      // Se llama al handler del consumidor y luego se veta.
+      onRequestDismiss={(event) => {
+        onRequestDismiss?.(event);
+        event.preventDefault();
+      }}
+      onFocusOutside={(event) => {
+        onFocusOutside?.(event);
+        event.preventDefault();
+      }}
       {...props}
     >
       <Portal>
