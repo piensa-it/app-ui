@@ -19,7 +19,7 @@ export const fieldControlVariants = cva(
       variant: {
         surface:
           "border border-surface-border bg-surface shadow-sm hover:border-border hover:bg-surface-hover",
-        outline: "border border-input bg-background hover:border-border hover:bg-accent/30",
+        outline: "border border-input bg-raised hover:border-border hover:bg-accent/30",
         subtle: "border border-transparent bg-subtle hover:bg-subtle-hover",
       },
       size: {
@@ -35,7 +35,7 @@ export const fieldControlVariants = cva(
 /** Panel flotante compartido por selectores, búsquedas y calendarios. */
 export const floatingPanelStyles = [
   "z-50 max-w-[calc(100vw-2rem)] overflow-auto rounded-lg",
-  "border border-surface-border bg-popover text-popover-foreground shadow-md outline-none",
+  "border border-surface-border bg-raised text-popover-foreground shadow-md outline-none",
 ].join(" ");
 
 /** Opción compartida. Highlight representa teclado/hover; checked, selección. */

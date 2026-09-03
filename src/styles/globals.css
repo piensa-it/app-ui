@@ -18,30 +18,56 @@
  */
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* --- Escala de superficies -------------------------------------------
+       Tres niveles, de atrás hacia adelante. Cada nivel es más claro que el
+       anterior en AMBOS temas: la elevación se lee siempre como "más luz",
+       igual que en el mundo físico.
+
+         ground  la página. Nada se dibuja por debajo.
+         surface paneles, barras, cabeceras de tabla, controles de formulario.
+         raised  lo que flota sobre la página: tarjetas, diálogos, menús,
+                 popovers, toasts.
+
+       Antes `--background` y `--card` eran los dos blanco puro, así que una
+       tarjeta sobre la página no se distinguía y cada aplicación se inventaba
+       su propio gris. Ver DESIGN.md > "Superficies". */
+    --ground: 0 0% 96%;
+    --ground-foreground: 0 0% 10%;
+
+    --surface: 0 0% 98%;
+    --surface-foreground: 0 0% 10%;
+    --surface-hover: 0 0% 95%;
+    --surface-border: 0 0% 87%;
+
+    --raised: 0 0% 100%;
+    --raised-foreground: 0 0% 10%;
+    --raised-border: 0 0% 91%;
+
+    /* Alias de compatibilidad: `bg-background` y `bg-card` siguen
+       funcionando y ahora significan ground y raised. */
+    --background: var(--ground);
     --foreground: 0 0% 10%;
 
-    --card: 0 0% 100%;
+    --card: var(--raised);
     --card-foreground: 0 0% 10%;
 
-    --popover: 0 0% 100%;
+    --popover: var(--raised);
     --popover-foreground: 0 0% 10%;
 
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
+    /* Estos cuatro se dibujan directamente sobre `ground`. Con el fondo de la
+       página en 96% ya no pueden estar en 96%: se volverían invisibles. */
+    --secondary: 0 0% 92%;
     --secondary-foreground: 0 0% 14%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 42%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 94%;
+    --accent: 0 0% 89%;
     --accent-foreground: 0 0% 14%;
 
-    --surface: 0 0% 99%;
-    --surface-hover: 0 0% 96%;
-    --surface-border: 0 0% 87%;
     --subtle: 243 70% 96%;
     --subtle-hover: 243 65% 92%;
     --subtle-foreground: 243 55% 34%;
@@ -60,8 +86,8 @@
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 8%;
 
-    --border: 0 0% 89%;
-    --input: 0 0% 87%;
+    --border: 0 0% 87%;
+    --input: 0 0% 84%;
     --ring: 243 75% 59%;
 
     /* Negro/sombra universales — no son "color de marca", son efectos
@@ -84,6 +110,27 @@
     --chart-4: 200 60% 45%;
     --chart-5: 160 50% 40%;
 
+    /* --- Escala de espaciado ---------------------------------------------
+       Siete pasos, y encima cuatro nombres por ROL. Los roles son los que
+       usan los componentes: así "el relleno de una tarjeta" se decide una vez
+       y no en cada producto. Ver DESIGN.md > "Espaciado". */
+    --space-2xs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Relleno interior de un contenedor: tarjeta, diálogo, panel. */
+    --space-inset: var(--space-lg);
+    /* El mismo relleno en pantallas de captura, donde caben más filas. */
+    --space-inset-compact: var(--space-md);
+    /* Ritmo vertical entre bloques de primer nivel de una página. */
+    --space-stack: var(--space-lg);
+    /* Separación entre una etiqueta y su control. */
+    --space-field: var(--space-xs);
+
     --radius: 0.625rem;
 
     --control-compact: 2rem;
@@ -98,6 +145,10 @@
     --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.08);
     --shadow-md: 0 8px 24px hsl(var(--shadow-color) / 0.12);
     --shadow-lg: 0 18px 48px hsl(var(--shadow-color) / 0.18);
+
+    /* Sombra asociada a cada nivel. `ground` no lleva: es el fondo. */
+    --shadow-surface: var(--shadow-sm);
+    --shadow-raised: var(--shadow-md);
 
     --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
     /* Una sola familia evita cambios de métricas entre títulos y controles.
@@ -119,6 +170,31 @@
     --line-height-title: 2rem;
     --line-height-display: 2.5rem;
   }
+}
+
+/**
+ * Densidad de la interfaz.
+ *
+ * No es una prop por componente: se elige para toda la aplicación (o para una
+ * sección) con `<UiProvider density>`, y baja sola a cada control porque todos
+ * usan los mismos tokens de altura y relleno. Una pantalla de captura con
+ * veinte filas visibles quiere `compact`; un tablero, no.
+ */
+[data-ui-density="compact"] {
+  --control-compact: 1.75rem;
+  --control-default: 2.25rem;
+  --control-comfortable: 2.5rem;
+  --space-inset: var(--space-md);
+  --space-inset-compact: var(--space-sm);
+  --space-stack: var(--space-md);
+}
+
+[data-ui-density="comfortable"] {
+  --control-compact: 2.25rem;
+  --control-default: 2.75rem;
+  --control-comfortable: 3rem;
+  --space-inset: var(--space-xl);
+  --space-stack: var(--space-xl);
 }
 
 /** Familias tipográficas intercambiables por aplicación. */
@@ -143,6 +219,65 @@
 }
 
 /**
+ * Carácter del menú lateral (`AppShell`).
+ *
+ * El menú es oscuro en ambos temas: es un plano distinto de la interfaz, no
+ * una superficie más de la página, y mantenerlo estable evita que la
+ * navegación cambie de identidad al alternar claro/oscuro. Por eso estos
+ * tokens no se redefinen en `.dark`.
+ *
+ * `--sidebar-alpha` y `--sidebar-blur` permiten variantes translúcidas sin
+ * que el componente tenga lógica condicional: siempre pinta el fondo con
+ * alfa y aplica el desenfoque, que en las variantes opacas vale 0.
+ */
+[data-sidebar] {
+  --sidebar-alpha: 1;
+  --sidebar-blur: 0px;
+  --sidebar-ring: var(--primary);
+}
+
+/** Grafito: gris neutro frío. El predeterminado, no compite con la marca. */
+[data-sidebar="graphite"] {
+  --sidebar: 220 9% 13%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-muted-foreground: 220 6% 64%;
+  --sidebar-border: 220 8% 22%;
+  --sidebar-hover: 220 8% 18%;
+  --sidebar-active: 220 9% 25%;
+  --sidebar-active-foreground: 0 0% 100%;
+  --sidebar-accent: 220 8% 24%;
+  --sidebar-accent-foreground: 0 0% 96%;
+}
+
+/** Tinta verde: verde muy oscuro. Para marcas de identidad verde. */
+[data-sidebar="ink"] {
+  --sidebar: 162 32% 10%;
+  --sidebar-foreground: 150 16% 95%;
+  --sidebar-muted-foreground: 155 12% 62%;
+  --sidebar-border: 160 22% 19%;
+  --sidebar-hover: 160 26% 15%;
+  --sidebar-active: 160 30% 22%;
+  --sidebar-active-foreground: 0 0% 100%;
+  --sidebar-accent: 160 28% 21%;
+  --sidebar-accent-foreground: 150 16% 95%;
+}
+
+/** Cristal ahumado: translúcido con desenfoque; deja ver el fondo detrás. */
+[data-sidebar="smoke"] {
+  --sidebar: 224 14% 14%;
+  --sidebar-alpha: 0.72;
+  --sidebar-blur: 18px;
+  --sidebar-foreground: 0 0% 97%;
+  --sidebar-muted-foreground: 224 8% 68%;
+  --sidebar-border: 224 12% 30%;
+  --sidebar-hover: 224 12% 26%;
+  --sidebar-active: 224 14% 34%;
+  --sidebar-active-foreground: 0 0% 100%;
+  --sidebar-accent: 224 12% 30%;
+  --sidebar-accent-foreground: 0 0% 97%;
+}
+
+/**
  * IMPORTANTE: este bloque `.dark` se deja DELIBERADAMENTE fuera de
  * `@layer base`. Tailwind 3.4.17 (con `darkMode: ["class"]` + al menos un
  * uso real de la variante `dark:` en el contenido escaneado — la tenemos en
@@ -162,30 +297,40 @@
  * que una acción primaria mantenga el mismo significado entre temas.
  */
 .dark {
-  --background: 0 0% 7%;
+  /* Misma escala y misma dirección que en claro: cada nivel, más luz. */
+  --ground: 0 0% 7%;
+  --ground-foreground: 0 0% 95%;
+
+  --surface: 0 0% 10%;
+  --surface-foreground: 0 0% 95%;
+  --surface-hover: 0 0% 14%;
+  --surface-border: 0 0% 22%;
+
+  --raised: 0 0% 13%;
+  --raised-foreground: 0 0% 95%;
+  --raised-border: 0 0% 24%;
+
+  --background: var(--ground);
   --foreground: 0 0% 95%;
 
-  --card: 0 0% 10%;
+  --card: var(--raised);
   --card-foreground: 0 0% 95%;
 
-  --popover: 0 0% 10%;
+  --popover: var(--raised);
   --popover-foreground: 0 0% 95%;
 
   --primary: 243 82% 70%;
   --primary-foreground: 243 45% 12%;
 
-  --secondary: 0 0% 16%;
+  --secondary: 0 0% 17%;
   --secondary-foreground: 0 0% 95%;
 
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 65%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 66%;
 
-  --accent: 0 0% 18%;
+  --accent: 0 0% 20%;
   --accent-foreground: 0 0% 95%;
 
-  --surface: 0 0% 12%;
-  --surface-hover: 0 0% 16%;
-  --surface-border: 0 0% 24%;
   --subtle: 243 38% 18%;
   --subtle-hover: 243 38% 23%;
   --subtle-foreground: 243 78% 82%;
@@ -201,8 +346,8 @@
   --warning: 38 92% 55%;
   --warning-foreground: 48 96% 8%;
 
-  --border: 0 0% 20%;
-  --input: 0 0% 20%;
+  --border: 0 0% 22%;
+  --input: 0 0% 24%;
   --ring: 243 82% 70%;
 
   --overlay: 0 0% 0%;
@@ -219,7 +364,8 @@
   * {
     @apply border-border;
   }
+  /* El `body` es el nivel `ground`: la página. Todo lo demás se apoya en él. */
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-ground text-foreground font-sans;
   }
 }

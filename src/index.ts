@@ -18,7 +18,7 @@ export {
 } from "./version";
 
 // --- Proveedor raíz ---
-export { UiProvider, type UiProviderProps } from "./components/providers/UiProvider";
+export { UiProvider, type UiProviderProps, type UiDensity } from "./components/providers/UiProvider";
 
 // --- Primitivas simples (Tailwind puro) ---
 export { Button, buttonVariants, type ButtonProps } from "./components/ui/button";
@@ -128,7 +128,31 @@ export {
 } from "./components/ui/chart";
 export { FileUpload, type FileUploadProps } from "./components/ui/file-upload";
 
+// Utilidades de color, para que una app que redefine tokens pueda comprobar
+// el contraste de sus propios pares.
+export { contrastRatio, relativeLuminance, parseHsl, type Rgb } from "./lib/color";
+
 // --- Layout ---
+// Armazón de aplicación: lo que antes escribía cada producto por su cuenta.
+export { AppShell, type AppShellProps, type SidebarVariant } from "./components/layout/app-shell";
+export {
+  SidebarBrand,
+  type SidebarBrandProps,
+  type SidebarBrandGroup,
+  type SidebarBrandOption,
+} from "./components/layout/sidebar-brand";
+export {
+  SidebarNav,
+  SidebarNavGroup,
+  SidebarNavItem,
+  type SidebarNavProps,
+  type SidebarNavGroupProps,
+  type SidebarNavItemProps,
+} from "./components/layout/sidebar-nav";
+export { useSidebar, type SidebarState } from "./components/layout/sidebar-context";
+export { PageContainer, type PageContainerProps } from "./components/layout/page-container";
+export { PageHeader, type PageHeaderProps } from "./components/layout/page-header";
+export { AppVersion, type AppVersionProps } from "./components/layout/app-version";
 export { Layout, type LayoutProps } from "./components/layout/Layout";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/GlobalErrorBoundary";
 

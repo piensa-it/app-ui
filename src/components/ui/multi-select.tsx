@@ -9,6 +9,7 @@ import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import type { SelectOption } from "@/components/ui/select";
 import { selectOptionToString } from "@/lib/select-option";
+import { splitAriaProps } from "@/lib/aria-props";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
 
 export interface MultiSelectFieldProps
@@ -72,6 +73,9 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
       () => new Map(options.map((option) => [String(option.value), option.label])),
       [options],
     );
+    // Igual que en Select: los aria-* que inyecta `Field` describen al control
+    // con foco, no a la máquina de estado.
+    const [ariaProps, machineProps] = splitAriaProps(props);
     const select = useSelect({
       // Igual que en Select: el id externo va al trigger vía `ids`, sin pisar el
       // atributo id que Zag usa para localizar sus partes (posicionamiento).
@@ -92,7 +96,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
         const next = details.items.map((item) => item.value);
         onChange?.(next);
       },
-      ...props,
+      ...machineProps,
     });
     const isOpen = select.open;
     const reposition = select.reposition;
@@ -156,7 +160,12 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
               ))
             )}
             <ArkSelect.Trigger
-              aria-label={ariaLabel ?? "Mostrar opciones"}
+              // Sin fallback a propósito: un `aria-label` fijo gana sobre el
+              // `<label for>` que asocia `Field`, y el control se anunciaría
+              // "Mostrar opciones" en vez del nombre del campo. Sin etiqueta
+              // externa, el nombre sale del contenido del propio control.
+              aria-label={ariaLabel}
+              {...ariaProps}
               className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ChevronDown

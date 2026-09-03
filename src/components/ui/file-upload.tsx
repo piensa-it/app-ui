@@ -55,7 +55,7 @@ const FileUpload = React.forwardRef<HTMLDivElement, FileUploadProps>(
           <button
             type="button"
             className={cn(
-              "mt-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm",
+              "mt-1 rounded-md border border-input bg-raised px-3 py-1.5 text-sm font-medium shadow-sm",
               "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             )}

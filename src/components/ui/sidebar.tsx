@@ -27,6 +27,15 @@ export interface SheetProps
   position?: "left" | "right" | "top" | "bottom";
   /** Clases del panel (`role="dialog"`). El resto de atributos HTML (`style`, `data-*`…) también van al panel. */
   className?: string;
+  /**
+   * Pinta la superficie del panel: fondo `raised`, borde, sombra y anillo.
+   * Ponlo en `false` cuando el panel traiga la suya —un menú lateral oscuro,
+   * por ejemplo— y quieras darle el fondo por `className` o por tokens. Sin
+   * superficie propia, el botón de cerrar hereda el color del panel en vez de
+   * fijar `text-muted-foreground`.
+   * @default true
+   */
+  surface?: boolean;
 }
 
 /**
@@ -125,6 +134,7 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
       children,
       position = "right",
       modal = true,
+      surface = true,
       onRequestDismiss,
       onFocusOutside,
       ...props
@@ -167,13 +177,14 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
               draggable={false}
               {...contentProps}
               className={cn(
-                "fixed flex flex-col gap-4 border-border bg-background p-6 shadow-lg outline-none",
-                position === "left" && "border-r",
-                position === "right" && "border-l",
-                position === "top" && "border-b",
-                position === "bottom" && "border-t",
+                "fixed flex flex-col gap-4 p-6 outline-none",
+                surface && "border-border bg-raised shadow-lg",
+                surface && elevationRing,
+                surface && position === "left" && "border-r",
+                surface && position === "right" && "border-l",
+                surface && position === "top" && "border-b",
+                surface && position === "bottom" && "border-t",
                 SIZE_BY_POSITION[position],
-                elevationRing,
                 drawerContentAnimation(position),
                 className,
               )}
@@ -181,7 +192,8 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
               {children}
               <ArkDrawer.CloseTrigger
                 className={cn(
-                  "absolute right-4 top-4 rounded-sm text-muted-foreground opacity-70 transition-opacity",
+                  "absolute right-4 top-4 rounded-sm opacity-70 transition-opacity",
+                  surface ? "text-muted-foreground" : "text-current",
                   "hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 )}
               >

@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  page: "bg-background text-foreground",
+  page: "bg-ground text-ground-foreground",
   card: "border border-border bg-card text-card-foreground",
   muted: "bg-muted text-foreground",
   subtle: "bg-subtle text-subtle-foreground",

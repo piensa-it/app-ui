@@ -272,7 +272,7 @@ function DataTable<TValue extends DataTableValue>({
                   <button
                     type="button"
                     aria-label="Configurar columnas"
-                    className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-raised text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <Settings2 aria-hidden="true" className="size-4" />
                   </button>
@@ -304,7 +304,7 @@ function DataTable<TValue extends DataTableValue>({
                             className={cn(
                               "min-h-9 rounded-md px-2 text-xs font-medium transition-colors",
                               activeDensity === option
-                                ? "bg-background text-foreground shadow-sm"
+                                ? "bg-raised text-foreground shadow-sm"
                                 : "text-muted-foreground hover:text-foreground",
                             )}
                           >
@@ -363,7 +363,7 @@ function DataTable<TValue extends DataTableValue>({
                           >
                             <span
                               className={cn(
-                                "size-5 rounded-full bg-background shadow-sm transition-transform",
+                                "size-5 rounded-full bg-raised shadow-sm transition-transform",
                                 column.getIsVisible() && "translate-x-4",
                               )}
                             />

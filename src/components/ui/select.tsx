@@ -7,6 +7,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
+import { splitAriaProps } from "@/lib/aria-props";
 import { selectOptionToString } from "@/lib/select-option";
 
 export interface SelectOption {
@@ -66,6 +67,9 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       () => (value === null || value === undefined ? undefined : options.find((option) => String(option.value) === String(value))),
       [options, value],
     );
+    // `Field` inyecta aria-describedby/aria-invalid en su hijo. Van al trigger
+    // —el nodo con rol y foco—, no al hook, que los descartaría.
+    const [ariaProps, machineProps] = splitAriaProps(props);
     const select = useSelect({
       // El `id` externo (p. ej. el que inyecta Field para asociar el <label>) se
       // aplica al trigger VÍA `ids`, nunca sobreescribiendo el atributo id del
@@ -80,7 +84,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         onChange?.(raw === undefined ? null : raw);
       },
       name,
-      ...props,
+      ...machineProps,
     });
     const isOpen = select.open;
     const reposition = select.reposition;
@@ -105,6 +109,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         <ArkSelect.Control>
           <ArkSelect.Trigger
             aria-label={ariaLabel}
+            {...ariaProps}
             className={cn(
               fieldControlVariants({ variant, size }),
               "group flex cursor-pointer items-center justify-between gap-3",

@@ -86,7 +86,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({ 
       <ArkPopover.Content
         ref={assignRef}
         className={cn(
-          "z-50 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-surface-border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+          "z-50 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-surface-border bg-raised p-4 text-popover-foreground shadow-md outline-none",
           elevationRing,
           popoverAnimation,
           className,

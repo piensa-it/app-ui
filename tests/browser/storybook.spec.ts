@@ -115,6 +115,22 @@ test.describe("Storybook browser gate", () => {
   });
 });
 
+test.describe("Tokens", () => {
+  // Un cambio de token afecta a tres aplicaciones a la vez. Esta captura es la
+  // red que evita enterarse en producción: cubre los tres niveles de la escala
+  // de superficies, sus bordes y sombras, y controles reales encima.
+  for (const theme of ["light", "dark"] as const) {
+    test(`la escala de superficies se mantiene estable en tema ${theme}`, async ({ page }) => {
+      await page.goto(storyUrl("tokens-superficies--escala", `theme:${theme};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`surfaces-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      });
+    });
+  }
+});
+
 test.describe("Capas encadenadas (Dialog → Sheet)", () => {
   test("el panel abierto desde un diálogo que se cierra sigue abierto y el foco no lo cierra", async ({ page }) => {
     const errors: Error[] = [];

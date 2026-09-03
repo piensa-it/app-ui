@@ -73,10 +73,35 @@ const preset = {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        /* Escala de superficies: ground → surface → raised. Ver DESIGN.md. */
+        ground: {
+          DEFAULT: "hsl(var(--ground))",
+          foreground: "hsl(var(--ground-foreground))",
+        },
         surface: {
           DEFAULT: "hsl(var(--surface))",
+          foreground: "hsl(var(--surface-foreground))",
           hover: "hsl(var(--surface-hover))",
           border: "hsl(var(--surface-border))",
+        },
+        /* Menú lateral del AppShell: su propio plano cromático, elegido con
+           `data-sidebar` y estable entre tema claro y oscuro. */
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar) / var(--sidebar-alpha, 1))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          muted: "hsl(var(--sidebar-muted-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
+          "active-foreground": "hsl(var(--sidebar-active-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
+        raised: {
+          DEFAULT: "hsl(var(--raised))",
+          foreground: "hsl(var(--raised-foreground))",
+          border: "hsl(var(--raised-border))",
         },
         subtle: {
           DEFAULT: "hsl(var(--subtle))",
@@ -108,6 +133,22 @@ const preset = {
       // app que sobreescribe `--radius` para su marca tenía a Card/Button
       // (rounded-lg) siguiendo el cambio, pero Field/AlertDialog/PivotTable
       // (rounded-xl/2xl) no.
+      /* La escala de espaciado alimenta padding, margin, gap y space-y de una
+         vez. Los nombres por rol (`p-inset`, `space-y-stack`) son los que
+         deben usar los componentes; los pasos sueltos, para casos concretos. */
+      spacing: {
+        "2xs": "var(--space-2xs)",
+        xs: "var(--space-xs)",
+        sm: "var(--space-sm)",
+        md: "var(--space-md)",
+        lg: "var(--space-lg)",
+        xl: "var(--space-xl)",
+        "2xl": "var(--space-2xl)",
+        inset: "var(--space-inset)",
+        "inset-compact": "var(--space-inset-compact)",
+        stack: "var(--space-stack)",
+        field: "var(--space-field)",
+      },
       borderRadius: {
         sm: "calc(var(--radius) - 4px)",
         md: "calc(var(--radius) - 2px)",
@@ -154,6 +195,10 @@ const preset = {
         sm: "var(--shadow-sm)",
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
+        /* Sombra que corresponde a cada nivel de la escala de superficies:
+           `shadow-raised` en una tarjeta, `shadow-surface` en una barra. */
+        surface: "var(--shadow-surface)",
+        raised: "var(--shadow-raised)",
       },
       keyframes: {
         "accordion-down": {

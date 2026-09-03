@@ -20,9 +20,9 @@ export interface LayoutProps {
  */
 export const Layout = ({ children, brand, headerActions, footer, className }: LayoutProps) => {
   return (
-    <div className={`flex min-h-screen w-full bg-background ${className ?? ""}`}>
+    <div className={`flex min-h-screen w-full bg-ground ${className ?? ""}`}>
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <header className="sticky top-0 z-50 w-full border-b border-border bg-surface">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-3">{brand}</div>
             <div className="flex items-center gap-2">{headerActions}</div>
@@ -32,7 +32,7 @@ export const Layout = ({ children, brand, headerActions, footer, className }: La
         <main className="flex-1 overflow-auto p-4">{children}</main>
 
         {footer && (
-          <footer className="border-t border-border bg-background py-4">
+          <footer className="border-t border-border bg-surface py-4">
             <div className="text-center text-sm text-muted-foreground">{footer}</div>
           </footer>
         )}

@@ -8,6 +8,51 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [0.3.0] - 2026-09-03
 
+Dos frentes en la misma versión: los ajustes que pidió la adopción de
+`app-corelink`, y el lineamiento visual y las piezas de armazón que faltaban
+para que MiDivisa, Corelink y TuDivisa no puedan verse distintas sin quererlo.
+
+Hay cambios de comportamiento visual. La guía de qué tocar al subir está en
+`UI_LIBRARY_RELEASES` y se muestra en la página «Versiones» de la documentación.
+
+### Added — fundamentos
+
+- **Escala de superficies de tres niveles**: `ground` (la página), `surface` (paneles y barras) y `raised` (tarjetas, diálogos, menús), cada uno con su borde y su sombra (`shadow-surface`, `shadow-raised`), en tema claro y oscuro. Antes `--background` y `--card` eran los dos blanco puro en claro: una tarjeta sobre la página no se distinguía y cada aplicación se inventaba su gris. `Card`, `Dialog`, `AlertDialog`, `Popover`, `Menu`, `Select`, `Sheet` y `Toast` toman `raised`; el `body`, `ground`.
+- **Escala de espaciado publicada**: siete pasos (`--space-2xs` … `--space-2xl`) más cuatro nombres por rol —`p-inset`, `p-inset-compact`, `space-y-stack`, `gap-field`— disponibles como utilidades de Tailwind. Aplicada en `Card`, `Dialog`, `Field` y `PageHeader`. El ritmo vertical entre bloques de una página es de 24 px y lo pone `PageContainer`.
+- **Densidad configurable en `UiProvider`**: `density="compact" | "default" | "comfortable"`. Baja sola a todos los controles porque todos usan los mismos tokens de altura y relleno, así que deja de decidirse componente por componente. Se puede acotar a una sección anidando otro proveedor.
+- **Utilidades de contraste exportadas** (`contrastRatio`, `relativeLuminance`, `parseHsl`), para que una aplicación que redefina tokens compruebe sus propios pares.
+
+### Added — armazón
+
+- **`AppShell`**: menú lateral, barra superior y contenido. Trae el plegado con la preferencia recordada por dispositivo (`storageKey`), la animación de ancho, el panel móvil y el carácter cromático del menú. El menú es oscuro en tema claro y en oscuro: es un plano distinto de la interfaz, con sus propios tokens `--sidebar-*` y tres variantes (`graphite`, `ink`, `smoke`) que se eligen con `variant`.
+- **`SidebarBrand`**: logo o iniciales, nombre de la organización, distintivo de entorno y un único menú con lo que se puede cambiar ahí. La fila entera es **un solo control**: dos controles compartiendo esos dos centímetros se activan sin querer, y un interruptor no dice qué pasa al activarlo. El entorno es una opción más, con marca de selección y una frase que explica su efecto. Acepta grupos arbitrarios, no solo empresas.
+- **`PageContainer`** y **`PageHeader`**: ancho de lectura, relleno y ritmo vertical, con la entrada escalonada activada por defecto. Viene del contenedor a propósito: si cada pantalla decidiera si se anima, solo unas pocas lo harían. `Stagger` respeta `prefers-reduced-motion` sin configuración.
+- **`AppVersion`**: versión de la aplicación, versión de la librería y fecha de compilación, con el detalle completo en el `title` para pegarlo en un reporte. Lo primero al recibir uno es saber contra qué compilado se estaba mirando, y eso son dos versiones.
+
+### Changed
+
+- **`--background` deja de ser blanco** y pasa a ser el nivel `ground`; `--card` y `--popover` pasan a ser `raised`. Ambos siguen existiendo como alias, así que `bg-background` y `bg-card` no rompen, pero `bg-background` ahora significa "el fondo de la página".
+- **`--muted`, `--secondary`, `--border` e `--input` bajaron de luminosidad** para seguir leyéndose sobre el fondo nuevo. Una prueba comprueba que se distinguen de `ground` en ambos temas.
+- **`--accent`, `--surface`, `--surface-hover` y `--surface-border`** se recolocaron dentro de la escala.
+- `Dialog` unifica su relleno (`p-inset`) en vez de `p-5` con `sm:p-6`.
+- `Stagger` acepta `ref`.
+
+### Fixed
+
+- **`Sheet` ya deja cambiar su superficie**: nueva prop `surface={false}` que quita fondo, borde, sombra y anillo, y hace que el botón de cerrar herede el color del panel en vez de fijar `text-muted-foreground`. Antes, un panel lateral oscuro había que taparlo con un `div` interno y colorear el cierre desde fuera.
+
+### Docs
+
+- **`DESIGN.md`**: las reglas de superficies, espaciado, densidad, formularios y armazón, con su porqué. La regla se decide una vez, aquí, y no en cada aplicación.
+- **`docs/ICONS.md`**: el catálogo de 167 iconos de la librería es el set oficial, con la tabla de equivalencias completa para que las aplicaciones retiren su dependencia directa de `lucide-react` y dejen de tener dos copias en `node_modules`.
+- **`Field` documentado como el camino por defecto** para poner un control en un formulario, con stories de descripción, error, orientación horizontal y un formulario completo.
+- **Guía de migración por versión**: cada entrada de `UI_LIBRARY_RELEASES` dice ahora qué hay que cambiar al subir, no solo qué cambió, y se muestra en la página «Versiones».
+- **Aplicación de ejemplo** en Storybook, con `AppShell`, una tabla y un formulario: la referencia contra la que discutir.
+- **Prueba visual de la escala de superficies** en tema claro y oscuro, porque un cambio de token afecta a tres aplicaciones a la vez.
+- README: coste medido del paquete, cascada de dos hojas de Tailwind y capas de terceros dentro de un diálogo.
+
+### Ajustes de la adopción en `app-corelink`
+
 Ajustes surgidos de la adopción completa de la librería en `app-corelink`
 (217 pruebas de extremo a extremo). Cada punto eliminaba un rodeo del
 consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.

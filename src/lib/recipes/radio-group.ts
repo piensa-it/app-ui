@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority";
 
 /** Misma escala que `checkboxControlVariants` — ambos son controles de selección de 1 bit/N opciones. */
 export const radioControlSizeVariants = cva(
-  "relative mt-0.5 flex shrink-0 items-center justify-center rounded-full border border-border bg-background shadow-sm",
+  "relative mt-0.5 flex shrink-0 items-center justify-center rounded-full border border-border bg-raised shadow-sm",
   {
     variants: {
       size: {
