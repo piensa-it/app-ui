@@ -55,9 +55,28 @@ const dataTableFeatures = tableFeatures({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica, igual que el `DataTableValue` anterior sobre PrimeReact.
 export type DataTableValue = Record<string, any>;
 
+/** Lo que `DataTable` guarda en `meta` de cada columna de TanStack. */
+interface ColumnMeta<TValue extends DataTableValue> {
+  className?: string;
+  headerClassName?: string;
+  ariaLabel?: string;
+  footer?: (rows: TValue[]) => React.ReactNode;
+}
+
+const ALIGNMENTS = {
+  left: "",
+  center: "text-center",
+  // Las cifras se comparan en vertical: alineadas a la derecha y de ancho fijo.
+  right: "text-right tabular-nums",
+} as const;
+
 export interface ColumnProps<TValue extends DataTableValue> {
-  /** Campo de la fila a mostrar (soporta rutas con punto, ej. "usuario.nombre"). */
-  field: string;
+  /**
+   * Campo de la fila a mostrar. Anota el tipo de la fila
+   * (`<Column<Movimiento> field="valor" />`) para que un campo mal escrito sea
+   * un error de compilación en vez de una columna vacía en silencio.
+   */
+  field: keyof TValue & string;
   header: React.ReactNode;
   sortable?: boolean;
   /** Permite ocultar la columna desde el configurador. @default true */
@@ -66,6 +85,21 @@ export interface ColumnProps<TValue extends DataTableValue> {
   defaultVisible?: boolean;
   /** Contenido personalizado de la celda. Si se omite, se muestra el valor crudo del campo. */
   body?: (row: TValue) => React.ReactNode;
+  /**
+   * Alineación de la columna. `right` añade además cifras de ancho fijo
+   * (`tabular-nums`), sin las cuales los dígitos bailan de una fila a otra y
+   * las cantidades dejan de poder compararse de un vistazo.
+   * @default "left"
+   */
+  align?: "left" | "center" | "right";
+  /**
+   * Contenido del pie de la columna, para una fila de totales. Recibe **todas**
+   * las filas que quedan tras filtrar, no solo las de la página visible: un
+   * arqueo suma el periodo entero, no la página.
+   *
+   * Basta con que una columna lo declare para que la tabla dibuje el pie.
+   */
+  footer?: (rows: TValue[]) => React.ReactNode;
   /** Clases aplicadas al `<th>` y a cada `<td>` de la columna (ej. `text-right` para cifras). */
   className?: string;
   /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
@@ -199,8 +233,13 @@ function DataTable<TValue extends DataTableValue>({
       enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
-        className: spec.props.className,
-        headerClassName: spec.props.headerClassName ?? spec.props.className,
+        // La alineación va primero para que `className` pueda anularla.
+        className: cn(ALIGNMENTS[spec.props.align ?? "left"], spec.props.className),
+        headerClassName: cn(
+          ALIGNMENTS[spec.props.align ?? "left"],
+          spec.props.headerClassName ?? spec.props.className,
+        ),
+        footer: spec.props.footer,
         ariaLabel: typeof spec.props.header === "string" ? spec.props.header : spec.props.field,
       },
     }));
@@ -232,6 +271,13 @@ function DataTable<TValue extends DataTableValue>({
     },
   });
 
+  // Las filas que quedan tras filtrar, en su orden actual: es lo que recibe el
+  // pie de totales.
+  const filteredRows = React.useMemo(
+    () => table.getFilteredRowModel().rows.map((row) => row.original),
+    [table, globalFilter, value, sorting],
+  );
+  const hasFooter = columnSpecs.some((spec) => spec.props.footer);
   const totalRows = table.getFilteredRowModel().rows.length;
   const pageCount = table.getPageCount();
   const showPaginator = paginator === true || (paginator === "auto" && totalRows > pagination.pageSize);
@@ -488,6 +534,26 @@ function DataTable<TValue extends DataTableValue>({
               ))
             )}
           </tbody>
+          {/* El pie solo existe si alguna columna declara `footer`. Se calcula
+              sobre las filas filtradas —no las de la página— porque un total
+              de página no es un total. */}
+          {hasFooter && !loading ? (
+            <tfoot aria-label="Totales" className="border-t-2 border-border bg-muted/40 font-medium">
+              <tr>
+                {table.getVisibleLeafColumns().map((column) => {
+                  const footer = (column.columnDef.meta as ColumnMeta<TValue> | undefined)?.footer;
+                  return (
+                    <td
+                      key={column.id}
+                      className={cn(cellPadding, (column.columnDef.meta as ColumnMeta<TValue> | undefined)?.className)}
+                    >
+                      {footer ? footer(filteredRows) : null}
+                    </td>
+                  );
+                })}
+              </tr>
+            </tfoot>
+          ) : null}
         </table>
       </div>
       {showPaginator && !loading ? (

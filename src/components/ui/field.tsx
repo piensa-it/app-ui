@@ -17,6 +17,12 @@ export interface FieldProps {
   orientation?: "vertical" | "horizontal";
   variant?: "plain" | "outline" | "surface" | "subtle";
   density?: "compact" | "comfortable";
+  /**
+   * Ancho del campo dentro de un `FormGrid`. `full` ocupa la fila entera, para
+   * notas, direcciones o cualquier campo que no quepa cómodo a media fila.
+   * @default 1
+   */
+  span?: 1 | "full";
   className?: string;
 }
 
@@ -34,6 +40,7 @@ export function Field({
   orientation = "vertical",
   variant = "plain",
   density = "comfortable",
+  span = 1,
   className,
 }: FieldProps) {
   const generatedId = React.useId();
@@ -46,6 +53,7 @@ export function Field({
     <div
       className={cn(
         "grid",
+        span === "full" && "sm:col-span-2",
         // El espacio entre etiqueta, control y mensaje sale de la escala:
         // así todos los formularios de todas las aplicaciones respiran igual.
         density === "compact" ? "gap-2xs" : "gap-field",

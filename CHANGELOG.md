@@ -6,6 +6,33 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-03
+
+Cierra los huecos que detectó la aplicación de ejemplo de 0.3.0. Todo es
+aditivo: subir desde 0.3.0 no requiere cambios.
+
+### Added
+
+- **`DataTable`, columnas numéricas**: `align="left" | "center" | "right"` en `Column`. `right` trae las cifras de ancho fijo incluidas, sin las cuales los dígitos bailan entre filas y las magnitudes dejan de compararse de un vistazo. `className` sigue mandando sobre la alineación.
+- **`DataTable`, fila de totales**: `footer` en `Column`, que recibe **todas** las filas que quedan tras filtrar, no las de la página visible. Basta con que una columna lo declare para que aparezca el pie. Una columna oculta no aparece en él.
+- **`Stat` y `StatGroup`**: la cifra con su rótulo que encabeza casi cualquier pantalla de consulta. Usa `<dl>`/`<dt>`/`<dd>` y no un encabezado, porque un `<h3>` cuyo texto es una cantidad ensucia el esquema de la página. La variación anuncia su sentido además de pintarlo, y `goodWhenUp={false}` cubre las métricas donde subir es malo.
+- **`FormGrid`** y **`Field span="full"`**: rejilla de formulario con el espaciado del sistema, sin reinventar `grid gap-… sm:grid-cols-2` ni escribir clases de rejilla en un campo.
+- **`Toolbar` y `ToolbarSeparator`**: fila de controles con el espaciado del sistema; el separador empuja a la derecha lo que venga después.
+- **`Select` con `width="auto"`**: para una barra de herramientas, donde el control comparte fila. Por defecto sigue ocupando el ancho disponible, que es lo que quiere un formulario.
+
+### Changed
+
+- **`Column.field` se tipa contra la fila** (`keyof TValue & string`). Anotando el tipo (`<Column<Movimiento> field="valor" />`), un campo mal escrito pasa a ser un error de compilación en vez de una columna vacía en silencio. Sin anotar, el comportamiento no cambia.
+
+### Fixed
+
+- **`Pagination`**: un `pageSize` que no estuviera entre `pageSizeOptions` dejaba el selector mostrando el marcador de posición, como si no hubiera ningún tamaño elegido. Ahora el tamaño actual se inserta en su sitio y la lista sigue ordenada.
+
+### Docs
+
+- `DESIGN.md`: secciones «Datos y cifras» y «Composición».
+- La aplicación de ejemplo usa las piezas nuevas, y su fila de totales excluye los anulados igual que las cifras del encabezado: un pie que no cuadra con su encabezado hace que la pantalla deje de ser creíble.
+
 ## [0.3.0] - 2026-09-03
 
 Dos frentes en la misma versión: los ajustes que pidió la adopción de

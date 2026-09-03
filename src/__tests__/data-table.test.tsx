@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
 
@@ -221,5 +221,113 @@ describe("DataTable — paginador automático", () => {
       </DataTable>,
     );
     expect(screen.getByText("Filas por página")).toBeInTheDocument();
+  });
+});
+
+interface Movimiento {
+  concepto: string;
+  valor: number;
+}
+
+const movimientos: Movimiento[] = [
+  { concepto: "Recaudo", valor: 18450000 },
+  { concepto: "Nómina", valor: -42780500 },
+  { concepto: "Proveedores", valor: -3200000 },
+];
+
+describe("DataTable — columnas numéricas", () => {
+  it("`align=right` alinea encabezado y celdas, y usa cifras de ancho fijo", () => {
+    render(
+      <DataTable value={movimientos}>
+        <Column field="concepto" header="Concepto" />
+        <Column field="valor" header="Valor" align="right" />
+      </DataTable>,
+    );
+    const header = screen.getByRole("columnheader", { name: "Valor" });
+    const cell = screen.getByRole("cell", { name: "18450000" });
+    expect(header).toHaveClass("text-right");
+    // `tabular-nums` va implícito: sin él las cifras bailan entre filas.
+    expect(cell).toHaveClass("text-right", "tabular-nums");
+    expect(header).toHaveClass("tabular-nums");
+  });
+
+  it("`align=center` centra la columna", () => {
+    render(
+      <DataTable value={movimientos}>
+        <Column field="concepto" header="Concepto" align="center" />
+      </DataTable>,
+    );
+    expect(screen.getByRole("columnheader", { name: "Concepto" })).toHaveClass("text-center");
+  });
+
+  it("`className` sigue mandando sobre la alineación", () => {
+    render(
+      <DataTable value={movimientos}>
+        <Column field="valor" header="Valor" align="right" className="text-left" />
+      </DataTable>,
+    );
+    expect(screen.getByRole("columnheader", { name: "Valor" })).toHaveClass("text-left");
+  });
+});
+
+describe("DataTable — fila de totales", () => {
+  const total = (rows: Movimiento[]) => rows.reduce((sum, row) => sum + row.valor, 0);
+
+  it("sin `footer` en ninguna columna no se dibuja el pie de la tabla", () => {
+    const { container } = render(
+      <DataTable value={movimientos}>
+        <Column field="concepto" header="Concepto" />
+      </DataTable>,
+    );
+    expect(container.querySelector("tfoot")).toBeNull();
+  });
+
+  it("`footer` recibe las filas y dibuja la fila de totales", () => {
+    render(
+      <DataTable value={movimientos}>
+        <Column field="concepto" header="Concepto" footer={() => "Total"} />
+        {/* El tipo se anota para que `rows` llegue tipado al pie. */}
+        <Column<Movimiento>
+          field="valor"
+          header="Valor"
+          align="right"
+          footer={(rows) => total(rows).toLocaleString("es-CO")}
+        />
+      </DataTable>,
+    );
+    const foot = screen.getByRole("rowgroup", { name: "Totales" });
+    expect(within(foot).getByText("Total")).toBeInTheDocument();
+    expect(within(foot).getByText("-27.530.500")).toBeInTheDocument();
+  });
+
+  it("el total suma todas las filas filtradas, no solo la página visible", async () => {
+    const user = userEvent.setup();
+    const muchas = Array.from({ length: 12 }, (_, i) => ({ concepto: `Fila ${i + 1}`, valor: 100 }));
+    render(
+      <DataTable value={muchas} rows={10} searchable>
+        <Column field="concepto" header="Concepto" />
+        <Column field="valor" header="Valor" footer={(rows) => `${rows.length} filas`} />
+      </DataTable>,
+    );
+    // Doce filas, diez por página: el total cuenta las doce.
+    expect(screen.getByText("12 filas")).toBeInTheDocument();
+
+    // Y al filtrar, cuenta solo lo que queda.
+    await user.type(screen.getByRole("textbox", { name: "Buscar en la tabla" }), "Fila 1");
+    await waitFor(() => expect(screen.getByText("4 filas")).toBeInTheDocument());
+  });
+
+  it("la columna oculta no aparece en el pie", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable value={movimientos} configurableColumns>
+        <Column field="concepto" header="Concepto" footer={() => "Total"} />
+        <Column field="valor" header="Valor" footer={() => "suma"} />
+      </DataTable>,
+    );
+    await user.click(screen.getByRole("button", { name: "Configurar columnas" }));
+    await user.click(screen.getByRole("button", { name: /Valor/i }));
+    const foot = screen.getByRole("rowgroup", { name: "Totales" });
+    expect(within(foot).queryByText("suma")).not.toBeInTheDocument();
   });
 });

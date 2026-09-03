@@ -21,6 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Column, DataTable } from "@/components/ui/data-table";
+import { FormGrid } from "@/components/ui/form-grid";
+import { Stat, StatGroup } from "@/components/ui/stat";
+import { Toolbar } from "@/components/layout/toolbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -100,28 +103,6 @@ const TONO_ESTADO: Record<Movimiento["estado"], { variante: "success" | "warning
   anulado: { variante: "outline", label: "Anulado" },
 };
 
-/**
- * Una cifra del encabezado: rótulo arriba, valor grande abajo.
- *
- * Hecha a mano a propósito: la librería todavía no tiene una primitiva de
- * cifra, y toda aplicación con un tablero acaba escribiendo esta misma
- * composición. El valor NO va en un `CardTitle`: un encabezado cuyo texto es
- * un número ensucia el esquema de la página en un lector de pantalla.
- */
-function Cifra({ rotulo, valor, detalle }: { rotulo: string; valor: string; detalle: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardDescription>{rotulo}</CardDescription>
-        <p className="font-heading text-ui-title font-semibold tabular-nums text-foreground">{valor}</p>
-      </CardHeader>
-      <CardContent>
-        <p className="text-ui-caption text-muted-foreground">{detalle}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
 function VistaMovimientos() {
   const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
   const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
@@ -145,19 +126,24 @@ function VistaMovimientos() {
         }
       />
 
-      <div className="grid gap-md sm:grid-cols-3">
-        <Cifra
-          rotulo="Entradas"
-          valor={formatoPesos(total(entradas))}
-          detalle={`${entradas.length} movimientos recaudados`}
+      <StatGroup label="Resumen del periodo">
+        <Stat
+          label="Entradas"
+          value={formatoPesos(total(entradas))}
+          description={`${entradas.length} movimientos recaudados`}
         />
-        <Cifra
-          rotulo="Salidas"
-          valor={formatoPesos(total(salidas))}
-          detalle={`${salidas.length} pagos ejecutados`}
+        <Stat
+          label="Salidas"
+          value={formatoPesos(total(salidas))}
+          description={`${salidas.length} pagos ejecutados`}
         />
-        <Cifra rotulo="Saldo del periodo" valor={formatoPesos(saldo)} detalle="Antes de conciliación bancaria" />
-      </div>
+        <Stat
+          label="Saldo del periodo"
+          value={formatoPesos(saldo)}
+          description="Antes de conciliación bancaria"
+          trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
+        />
+      </StatGroup>
 
       <DataTable
         value={movimientos}
@@ -171,7 +157,7 @@ function VistaMovimientos() {
         searchPlaceholder="Buscar por concepto o tercero…"
         aria-label="Movimientos de caja"
       >
-        <Column<Movimiento> field="id" header="Consecutivo" sortable className="font-medium tabular-nums" />
+        <Column<Movimiento> field="id" header="Consecutivo" sortable className="font-medium tabular-nums" footer={() => "Total del periodo"} />
         <Column<Movimiento>
           field="fecha"
           header="Fecha"
@@ -200,14 +186,21 @@ function VistaMovimientos() {
           field="valor"
           header="Valor"
           sortable
-          // Las cifras se alinean a la derecha y con cifras de ancho fijo: es
-          // lo único que permite comparar magnitudes de un vistazo.
-          className="text-right tabular-nums"
+          // `align="right"` ya trae las cifras de ancho fijo.
+          align="right"
           body={(fila) => (
             <span className={fila.valor < 0 ? "text-destructive" : "text-foreground"}>
               {formatoPesos(fila.valor)}
             </span>
           )}
+          // El total suma las filas filtradas, no la página visible. Los
+          // anulados no suman, igual que en las cifras de arriba: si el pie y
+          // el encabezado no cuadran, la pantalla deja de ser creíble.
+          footer={(filas) =>
+            formatoPesos(
+              filas.filter((fila) => fila.estado !== "anulado").reduce((suma, fila) => suma + fila.valor, 0),
+            )
+          }
         />
       </DataTable>
     </PageContainer>
@@ -247,13 +240,13 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
             }}
             className="space-y-stack"
           >
-            <div className="grid gap-md sm:grid-cols-2">
+            <FormGrid>
               <Field
                 label="Concepto"
                 required
                 error={errorConcepto}
                 description="Cómo aparecerá en el extracto y en el arqueo."
-                className="sm:col-span-2"
+                span="full"
               >
                 <Input
                   value={concepto}
@@ -291,12 +284,12 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
                 />
               </Field>
 
-              <Field label="Observaciones" optionalLabel="Opcional" className="sm:col-span-2">
+              <Field label="Observaciones" optionalLabel="Opcional" span="full">
                 <Input placeholder="Número de orden, remisión o autorización" />
               </Field>
-            </div>
+            </FormGrid>
 
-            <div className="flex flex-wrap items-center gap-xs">
+            <Toolbar>
               <Button type="submit">Guardar movimiento</Button>
               <Button type="button" variant="ghost" onClick={onCancelar}>
                 Cancelar
@@ -306,7 +299,7 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
                   Listo: {formatoPesos(Number(valor))} quedaría pendiente de conciliar.
                 </span>
               ) : null}
-            </div>
+            </Toolbar>
           </form>
         </CardContent>
       </Card>
@@ -427,7 +420,7 @@ export function ExampleApp({
       }
       topbar={
         <>
-          <div className="w-44">
+          <Toolbar>
             <Select
               aria-label="Periodo contable"
               size="sm"
@@ -438,8 +431,9 @@ export function ExampleApp({
               ]}
               value={periodo}
               onChange={setPeriodo}
+              width="auto"
             />
-          </div>
+          </Toolbar>
           <Button size="sm" variant="outline" onClick={() => setVista("nuevo")}>
             <FilePlus2 aria-hidden="true" />
             Nuevo
