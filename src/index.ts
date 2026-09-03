@@ -123,6 +123,8 @@ export {
   type ChartSeries,
   type ChartDatum,
   type ChartReferenceLine,
+  type ChartYAxis,
+  type ChartAxisDomainValue,
 } from "./components/ui/chart";
 export { FileUpload, type FileUploadProps } from "./components/ui/file-upload";
 

@@ -48,7 +48,7 @@ describe("DataTable", () => {
 
   it("nombra los controles de paginación", () => {
     render(
-      <DataTable value={[{ nombre: "Ana" }]}>
+      <DataTable value={[{ nombre: "Ana" }]} paginator>
         <Column field="nombre" header="Nombre" />
       </DataTable>,
     );
@@ -131,5 +131,95 @@ describe("DataTable", () => {
 
     await waitFor(() => expect(screen.queryByText("Luis")).not.toBeInTheDocument());
     expect(screen.getByText("Ana")).toBeInTheDocument();
+  });
+});
+
+describe("DataTable sin paginador", () => {
+  it("renderiza con paginator={false} sin lanzar error", () => {
+    expect(() =>
+      render(
+        <DataTable value={[{ a: 1 }]} paginator={false}>
+          <Column field="a" header="A" />
+        </DataTable>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByText("1")).toBeInTheDocument();
+  });
+
+  it("no muestra el pie de paginación con paginator={false}", () => {
+    render(
+      <DataTable value={[{ a: 1 }]} paginator={false}>
+        <Column field="a" header="A" />
+      </DataTable>,
+    );
+    expect(screen.queryByRole("button", { name: "Ir a la página siguiente" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Filas por página")).not.toBeInTheDocument();
+  });
+});
+
+describe("DataTable — className de Column", () => {
+  it("aplica className de la columna tanto al <th> como a las <td>", () => {
+    render(
+      <DataTable value={[{ total: 10 }]}>
+        <Column field="total" header="Total" className="text-right" />
+      </DataTable>,
+    );
+    expect(screen.getByRole("columnheader", { name: "Total" })).toHaveClass("text-right");
+    expect(screen.getByRole("cell", { name: "10" })).toHaveClass("text-right");
+  });
+
+  it("headerClassName sustituye a className solo en el <th>", () => {
+    render(
+      <DataTable value={[{ total: 10 }]}>
+        <Column field="total" header="Total" className="text-right" headerClassName="text-center" />
+      </DataTable>,
+    );
+    const header = screen.getByRole("columnheader", { name: "Total" });
+    expect(header).toHaveClass("text-center");
+    expect(header).not.toHaveClass("text-right");
+    expect(screen.getByRole("cell", { name: "10" })).toHaveClass("text-right");
+  });
+});
+
+describe("DataTable — paginador automático", () => {
+  const corta = Array.from({ length: 3 }, (_, i) => ({ nombre: `Moneda ${i + 1}` }));
+  const larga = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
+
+  it('paginator="auto" oculta el pie cuando las filas caben en una página', () => {
+    render(
+      <DataTable value={corta} paginator="auto" rows={10}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.getByText("Moneda 3")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ir a la página siguiente" })).not.toBeInTheDocument();
+  });
+
+  it('paginator="auto" muestra el pie cuando hay más filas que `rows`', () => {
+    render(
+      <DataTable value={larga} paginator="auto" rows={10}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.queryByText("Persona 12")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ir a la página siguiente" })).toBeInTheDocument();
+  });
+
+  it("es el comportamiento por defecto: una tabla corta no muestra el pie", () => {
+    render(
+      <DataTable value={corta}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.queryByText("Filas por página")).not.toBeInTheDocument();
+  });
+
+  it("paginator={true} fuerza el pie aunque la tabla sea corta", () => {
+    render(
+      <DataTable value={corta} paginator>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.getByText("Filas por página")).toBeInTheDocument();
   });
 });

@@ -51,6 +51,23 @@ export interface ChartReferenceLine {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fila genérica de datos de la gráfica.
 export type ChartDatum = Record<string, any>;
 
+/** Límite de dominio del eje Y, en la misma sintaxis que acepta Recharts. */
+export type ChartAxisDomainValue = number | "auto" | "dataMin" | "dataMax";
+
+export interface ChartYAxis {
+  /**
+   * Rango del eje Y como `[min, max]`. Acepta números, `"auto"` (ticks
+   * "bonitos" alrededor de los datos), `"dataMin"`/`"dataMax"`, o una
+   * expresión de Recharts como `"dataMax + 100"`.
+   *
+   * Por defecto, `type="line"` usa `["auto", "auto"]` — lo que se espera al
+   * dibujar una serie de precios — y el resto de tipos `[0, "auto"]`.
+   */
+  domain?: [ChartAxisDomainValue | string, ChartAxisDomainValue | string];
+  /** Cantidad aproximada de marcas del eje. @default 5 */
+  tickCount?: number;
+}
+
 export interface ChartProps {
   type: "bar" | "line" | "area" | "pie" | "donut" | "composed";
   data: ChartDatum[];
@@ -76,6 +93,8 @@ export interface ChartProps {
   referenceLines?: ChartReferenceLine[];
   /** Formatea los valores de ejes y tooltips (moneda, porcentaje, unidades). */
   valueFormatter?: (value: number) => string;
+  /** Dominio y marcas del eje Y. No aplica a pie/donut. */
+  yAxis?: ChartYAxis;
   className?: string;
 }
 
@@ -121,6 +140,7 @@ function Chart({
   framed = true,
   referenceLines = [],
   valueFormatter,
+  yAxis,
   className,
 }: ChartProps) {
   const colored = series.map((item, index) => ({
@@ -178,6 +198,8 @@ function Chart({
               tickLine={false}
               axisLine={false}
               tickFormatter={valueFormatter}
+              domain={yAxis?.domain ?? (type === "line" ? ["auto", "auto"] : [0, "auto"])}
+              tickCount={yAxis?.tickCount}
             />
             <Tooltip
               contentStyle={tooltipStyle}

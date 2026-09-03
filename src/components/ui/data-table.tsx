@@ -66,7 +66,10 @@ export interface ColumnProps<TValue extends DataTableValue> {
   defaultVisible?: boolean;
   /** Contenido personalizado de la celda. Si se omite, se muestra el valor crudo del campo. */
   body?: (row: TValue) => React.ReactNode;
+  /** Clases aplicadas al `<th>` y a cada `<td>` de la columna (ej. `text-right` para cifras). */
   className?: string;
+  /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
+  headerClassName?: string;
 }
 
 /**
@@ -81,7 +84,12 @@ export interface DataTableProps<TValue extends DataTableValue> {
   value: TValue[];
   /** Elementos `Column` que definen las columnas de la tabla. */
   children?: React.ReactNode;
-  paginator?: boolean;
+  /**
+   * `true` muestra siempre el pie de paginación, `false` lo omite y muestra
+   * todas las filas, `"auto"` lo muestra solo cuando hay más filas que `rows`.
+   * @default "auto"
+   */
+  paginator?: boolean | "auto";
   rows?: number;
   rowsPerPageOptions?: number[];
   emptyMessage?: React.ReactNode;
@@ -125,7 +133,7 @@ export interface DataTableProps<TValue extends DataTableValue> {
 function DataTable<TValue extends DataTableValue>({
   value,
   children,
-  paginator = true,
+  paginator = "auto",
   rows = 10,
   rowsPerPageOptions = [10, 25, 50],
   emptyMessage = "No hay datos para mostrar.",
@@ -192,6 +200,7 @@ function DataTable<TValue extends DataTableValue>({
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
         className: spec.props.className,
+        headerClassName: spec.props.headerClassName ?? spec.props.className,
         ariaLabel: typeof spec.props.header === "string" ? spec.props.header : spec.props.field,
       },
     }));
@@ -225,6 +234,7 @@ function DataTable<TValue extends DataTableValue>({
 
   const totalRows = table.getFilteredRowModel().rows.length;
   const pageCount = table.getPageCount();
+  const showPaginator = paginator === true || (paginator === "auto" && totalRows > pagination.pageSize);
   const cellPadding = {
     compact: "px-4 py-2",
     default: "px-4 py-3",
@@ -398,6 +408,7 @@ function DataTable<TValue extends DataTableValue>({
                       }
                       className={cn(
                         "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+                        (header.column.columnDef.meta as { headerClassName?: string } | undefined)?.headerClassName,
                       )}
                     >
                       {header.column.getCanSort() ? (
@@ -406,6 +417,9 @@ function DataTable<TValue extends DataTableValue>({
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn(
                             "inline-flex min-h-8 items-center gap-1.5 rounded-sm text-left",
+                            // Preflight resetea `button { text-transform: none }`; sin esto el
+                            // encabezado ordenable pierde las mayúsculas del <th>.
+                            "uppercase",
                             "transition-colors duration-fast hover:text-foreground",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                           )}
@@ -476,7 +490,7 @@ function DataTable<TValue extends DataTableValue>({
           </tbody>
         </table>
       </div>
-      {paginator && !loading ? (
+      {showPaginator && !loading ? (
         <Pagination
           pageIndex={pagination.pageIndex}
           pageCount={pageCount}
