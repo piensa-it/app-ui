@@ -387,32 +387,6 @@ describe("SidebarNavItem — asChild", () => {
   });
 });
 
-describe("AppShell — el menú se queda a la vista", () => {
-  it("el menú es tan alto como la ventana y se queda fijo al desplazar", () => {
-    const { container } = render(
-      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
-        <p>Contenido</p>
-      </AppShell>,
-    );
-    const aside = container.querySelector("aside")!;
-    // Sin esto el menú crece con el documento: en una pantalla con tabla larga
-    // se sube y el pie con la versión queda fuera de vista.
-    expect(aside.className).toMatch(/\bsticky\b/);
-    expect(aside.className).toMatch(/\btop-0\b/);
-    expect(aside.className).toMatch(/\bh-screen\b/);
-  });
-
-  it("la navegación mantiene su propio desplazamiento interno", () => {
-    render(
-      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
-        <p>Contenido</p>
-      </AppShell>,
-    );
-    const nav = screen.getByRole("navigation", { name: "Navegación principal" });
-    expect(nav.className).toMatch(/overflow-y-auto/);
-  });
-});
-
 describe("SidebarNavGroup — secciones plegables", () => {
   const grupo = (props: Partial<React.ComponentProps<typeof SidebarNavGroup>> = {}) => (
     <AppShell brand={<SidebarBrand name="Acme" />} sidebar={
@@ -512,5 +486,44 @@ describe("SidebarBrand — distintivo de entorno", () => {
   it("`uppercase` lo deja como estaba, para quien lo prefiera", () => {
     render(<SidebarBrand name="Acme" environment={{ label: "uat", uppercase: true }} />);
     expect(screen.getByText("uat").className).toMatch(/\buppercase\b/);
+  });
+});
+
+describe("AppShell — dentro de un contenedor acotado", () => {
+  it("la columna del menú llena todo el alto disponible, no solo el de la ventana", () => {
+    const { container } = render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    const aside = container.querySelector("aside")!;
+    // El `<aside>` es la columna: se estira con el contenido. Si llevara una
+    // altura fija de ventana, dentro de un bloque más alto —la página de
+    // documentación, sin ir más lejos— la franja oscura se cortaría a media
+    // altura y debajo asomaría el fondo de la página.
+    expect(aside.className).not.toMatch(/\bh-screen\b/);
+    expect(aside.className).not.toMatch(/\bsticky\b/);
+  });
+
+  it("el contenido del menú se queda a la vista al desplazar", () => {
+    const { container } = render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    // Lo que se pega es el contenido, dentro de la columna.
+    const pegado = container.querySelector("aside > div")!;
+    expect(pegado.className).toMatch(/\bsticky\b/);
+    expect(pegado.className).toMatch(/\btop-0\b/);
+    expect(pegado.className).toMatch(/\bh-screen\b/);
+  });
+
+  it("la navegación conserva su desplazamiento interno", () => {
+    render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    expect(screen.getByRole("navigation", { name: "Navegación principal" }).className).toMatch(/overflow-y-auto/);
   });
 });

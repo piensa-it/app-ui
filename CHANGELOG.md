@@ -6,6 +6,21 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-03
+
+Tres cosas que se ven en el sitio de documentación y que, siendo la referencia
+de la que parte cualquier aplicación, tienen que estar bien.
+
+### Fixed
+
+- **La columna del menú se cortaba a media altura.** El `<aside>` llevaba la altura de la ventana, así que dentro de un contenedor más alto —la propia página de documentación, sin ir más lejos— la franja oscura terminaba a mitad y debajo asomaba el fondo de la página. Ahora la columna se estira con el contenido y lo que se queda a la vista al desplazar es su contenido. Se ve en cualquier pantalla con una tabla larga, no solo en la documentación.
+- **La entrada de página no era uniforme.** `PageContainer` anima al montar, y dos rutas que comparten componente de página no lo remontan: React lo reutiliza. En la aplicación de ejemplo, tres de las cinco vistas comparten componente, así que unas entraban animadas y otras no. Nueva prop `animateKey`: cuando cambia, la entrada se repite. Pásale la ruta actual.
+
+### Changed
+
+- **La documentación de espaciado explicaba otra cosa.** Mostraba el relleno horizontal de los controles (`px-2.5`, `px-3.5`, `px-4`) con tres cajas que a simple vista se ven iguales, y seguía diciendo que el espaciado no era una variable CSS, algo que dejó de ser cierto en la 0.3.0. Ahora muestra la escala real con barras que miden el valor del token, los cuatro nombres por rol y una comparación entre el relleno normal y el compacto.
+- **Las historias del armazón se muestran en su propio marco** dentro de la página de documentación. Un armazón a pantalla completa pintado en línea dejaba una página interminable donde el menú se perdía de vista.
+
 ## [0.4.1] - 2026-09-03
 
 Correcciones encontradas al integrar el armazón en MiDivisa. Nada obligatorio
