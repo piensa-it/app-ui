@@ -15,8 +15,24 @@ export interface AppVersionProps extends React.HTMLAttributes<HTMLDivElement> {
   prefix?: string;
 }
 
+/** `2026-09-03`: una fecha de calendario, sin hora ni zona. */
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function toDate(value: NonNullable<AppVersionProps["buildDate"]>): Date {
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const iso = ISO_DATE.exec(value);
+    // `new Date("2026-09-03")` es medianoche UTC, así que al formatear en una
+    // zona al oeste retrocede un día. Y ese es justo el formato que produce
+    // `toISOString().slice(0, 10)`, que es lo que se inyecta en el build. Una
+    // fecha de calendario se construye en horario local.
+    if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  }
+  return new Date(value);
+}
+
 function formatBuildDate(value: NonNullable<AppVersionProps["buildDate"]>): string | null {
-  const date = value instanceof Date ? value : new Date(value);
+  const date = toDate(value);
   if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("es-CO", { dateStyle: "medium" }).format(date);
 }

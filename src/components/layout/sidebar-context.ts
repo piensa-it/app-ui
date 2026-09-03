@@ -7,6 +7,10 @@ export interface SidebarState {
   closeMobile: () => void;
   /** El menú se está mostrando dentro del panel móvil. */
   inMobilePanel: boolean;
+  /** Identificadores de las secciones que el usuario dejó cerradas. */
+  closedGroups: readonly string[];
+  /** Abre o cierra una sección, recordándolo con el resto de preferencias. */
+  toggleGroup: (groupId: string, open: boolean) => void;
 }
 
 const SidebarContext = React.createContext<SidebarState | null>(null);
@@ -29,6 +33,8 @@ export function useSidebar(): SidebarState {
       collapsed: false,
       closeMobile: () => {},
       inMobilePanel: false,
+      closedGroups: [],
+      toggleGroup: () => {},
     }
   );
 }

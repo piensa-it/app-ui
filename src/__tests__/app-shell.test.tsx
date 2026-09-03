@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppShell } from "../components/layout/app-shell";
 import { SidebarBrand } from "../components/layout/sidebar-brand";
-import { SidebarNav, SidebarNavItem } from "../components/layout/sidebar-nav";
+import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "../components/layout/sidebar-nav";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -311,5 +311,206 @@ describe("SidebarBrand — el distintivo sale de la opción elegida", () => {
       />,
     );
     expect(screen.getByText("LOCAL")).toBeInTheDocument();
+  });
+});
+
+describe("SidebarNavItem — asChild", () => {
+  it("el elemento del consumidor recibe las clases, no un envoltorio", () => {
+    const { rerender } = render(
+      <SidebarNav>
+        <SidebarNavItem icon={<span data-testid="icono" />}>Inicio</SidebarNavItem>
+      </SidebarNav>,
+    );
+    const sinAsChild = screen.getByRole("link", { name: "Inicio" }).className;
+
+    rerender(
+      <SidebarNav>
+        <SidebarNavItem asChild icon={<span data-testid="icono" />}>
+          <a href="/inicio" className="mi-clase">
+            Inicio
+          </a>
+        </SidebarNavItem>
+      </SidebarNav>,
+    );
+    const conAsChild = screen.getByRole("link", { name: "Inicio" });
+    // El enlace del consumidor es el que se estiliza: mismas clases que sin
+    // `asChild`, más las suyas.
+    expect(conAsChild).toHaveAttribute("href", "/inicio");
+    expect(conAsChild).toHaveClass("mi-clase");
+    for (const clase of sinAsChild.split(" ").filter(Boolean)) {
+      expect(conAsChild.className.split(" "), `falta ${clase}`).toContain(clase);
+    }
+  });
+
+  it("el icono y el texto quedan dentro del elemento del consumidor", () => {
+    render(
+      <SidebarNav>
+        <SidebarNavItem asChild icon={<span data-testid="icono" />}>
+          <a href="/inicio">Inicio</a>
+        </SidebarNavItem>
+      </SidebarNav>,
+    );
+    const link = screen.getByRole("link", { name: "Inicio" });
+    expect(within(link).getByTestId("icono")).toBeInTheDocument();
+    expect(link).toHaveTextContent("Inicio");
+    // Y no queda un segundo elemento envolviéndolo.
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
+  it("el estado activo llega al elemento del consumidor", () => {
+    render(
+      <SidebarNav>
+        <SidebarNavItem asChild active icon={<span />}>
+          <a href="/inicio">Inicio</a>
+        </SidebarNavItem>
+      </SidebarNav>,
+    );
+    expect(screen.getByRole("link", { name: "Inicio" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("plegado, la etiqueta del consumidor se oculta sin perder el nombre", () => {
+    render(
+      <AppShell defaultCollapsed brand={<SidebarBrand name="Acme" />} sidebar={
+        <SidebarNav>
+          <SidebarNavItem asChild icon={<span />}>
+            {/* La etiqueta va en un elemento, que es la convención documentada. */}
+            <a href="/inicio"><span>Inicio</span></a>
+          </SidebarNavItem>
+        </SidebarNav>
+      }>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    const link = screen.getAllByRole("link", { name: "Inicio" })[0];
+    // El nombre accesible se mantiene aunque la etiqueta no se vea.
+    expect(link.className).toContain("sr-only");
+  });
+});
+
+describe("AppShell — el menú se queda a la vista", () => {
+  it("el menú es tan alto como la ventana y se queda fijo al desplazar", () => {
+    const { container } = render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    const aside = container.querySelector("aside")!;
+    // Sin esto el menú crece con el documento: en una pantalla con tabla larga
+    // se sube y el pie con la versión queda fuera de vista.
+    expect(aside.className).toMatch(/\bsticky\b/);
+    expect(aside.className).toMatch(/\btop-0\b/);
+    expect(aside.className).toMatch(/\bh-screen\b/);
+  });
+
+  it("la navegación mantiene su propio desplazamiento interno", () => {
+    render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    const nav = screen.getByRole("navigation", { name: "Navegación principal" });
+    expect(nav.className).toMatch(/overflow-y-auto/);
+  });
+});
+
+describe("SidebarNavGroup — secciones plegables", () => {
+  const grupo = (props: Partial<React.ComponentProps<typeof SidebarNavGroup>> = {}) => (
+    <AppShell brand={<SidebarBrand name="Acme" />} sidebar={
+      <SidebarNav>
+        <SidebarNavGroup label="Administración" {...props}>
+          <SidebarNavItem icon={<span />}>Usuarios</SidebarNavItem>
+          <SidebarNavItem icon={<span />}>Permisos</SidebarNavItem>
+        </SidebarNavGroup>
+      </SidebarNav>
+    }>
+      <p>Contenido</p>
+    </AppShell>
+  );
+
+  it("por defecto no es plegable: el encabezado es un título, no un control", () => {
+    render(grupo());
+    expect(screen.queryByRole("button", { name: /Administración/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Usuarios" })[0]).toBeInTheDocument();
+  });
+
+  it("`collapsible` convierte el encabezado en un control que abre y cierra", async () => {
+    const user = userEvent.setup();
+    render(grupo({ collapsible: true }));
+    const toggle = screen.getAllByRole("button", { name: /Administración/ })[0];
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
+  });
+
+  it("`defaultOpen={false}` arranca cerrada", () => {
+    render(grupo({ collapsible: true, defaultOpen: false }));
+    expect(screen.getAllByRole("button", { name: /Administración/ })[0]).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
+  });
+
+  it("el control dice qué controla", () => {
+    render(grupo({ collapsible: true }));
+    const toggle = screen.getAllByRole("button", { name: /Administración/ })[0];
+    const id = toggle.getAttribute("aria-controls");
+    expect(id).toBeTruthy();
+    expect(document.getElementById(id!)).not.toBeNull();
+  });
+
+  it("recuerda las secciones cerradas junto a la preferencia del menú", async () => {
+    const user = userEvent.setup();
+    const shell = (
+      <AppShell storageKey="acme" brand={<SidebarBrand name="Acme" />} sidebar={
+        <SidebarNav>
+          <SidebarNavGroup label="Administración" collapsible groupId="admin">
+            <SidebarNavItem icon={<span />}>Usuarios</SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      }>
+        <p>Contenido</p>
+      </AppShell>
+    );
+    const { unmount } = render(shell);
+    await user.click(screen.getAllByRole("button", { name: /Administración/ })[0]);
+    await waitFor(() => expect(window.localStorage.getItem("ui-shell:acme:groups")).toContain("admin"));
+    unmount();
+
+    render(shell);
+    expect(screen.getAllByRole("button", { name: /Administración/ })[0]).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("plegado el menú, una sección plegable no estorba", () => {
+    render(
+      <AppShell defaultCollapsed brand={<SidebarBrand name="Acme" />} sidebar={
+        <SidebarNav>
+          <SidebarNavGroup label="Administración" collapsible>
+            <SidebarNavItem icon={<span />}>Usuarios</SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      }>
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    // Con el menú en iconos no hay sitio para el encabezado ni para plegarlo:
+    // los enlaces se muestran siempre.
+    expect(screen.queryByRole("button", { name: /Administración/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Usuarios" })[0]).toBeInTheDocument();
+  });
+});
+
+describe("SidebarBrand — distintivo de entorno", () => {
+  it("se lee como una etiqueta, no como un grito", () => {
+    render(<SidebarBrand name="Acme" environment={{ label: "Pruebas" }} />);
+    const badge = screen.getByText("Pruebas");
+    // En versales y negrita competía con el nombre de la empresa, que es lo
+    // que de verdad identifica la pantalla.
+    expect(badge.className).not.toMatch(/\buppercase\b/);
+    expect(badge.className).not.toMatch(/\bfont-semibold\b/);
+  });
+
+  it("`uppercase` lo deja como estaba, para quien lo prefiera", () => {
+    render(<SidebarBrand name="Acme" environment={{ label: "uat", uppercase: true }} />);
+    expect(screen.getByText("uat").className).toMatch(/\buppercase\b/);
   });
 });
