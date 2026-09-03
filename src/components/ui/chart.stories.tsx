@@ -188,3 +188,51 @@ export const Empty: Story = {
     title: "Proyectos por mes",
   },
 };
+
+const trm = [
+  { fecha: "1 ago", valor: 2712 },
+  { fecha: "8 ago", valor: 2890 },
+  { fecha: "15 ago", valor: 3120 },
+  { fecha: "22 ago", valor: 3355 },
+  { fecha: "29 ago", valor: 3480 },
+  { fecha: "5 sep", valor: 3596 },
+];
+
+/**
+ * Serie de precios: `type="line"` usa `["auto", "auto"]` en el eje Y por
+ * defecto, así la curva ocupa toda la altura y la tendencia se lee. Con el
+ * eje desde 0 la variación entre $2.700 y $3.600 quedaría aplastada arriba.
+ */
+export const SeriePrecios: Story = {
+  name: "Serie de precios (eje Y automático)",
+  args: {
+    type: "line",
+    data: trm,
+    categoryKey: "fecha",
+    series: [{ key: "valor", label: "TRM (COP por USD)" }],
+    title: "Tasa representativa del mercado",
+    description: "El eje Y se ajusta al rango de los datos por defecto en gráficas de línea.",
+    valueFormatter: (value) => `$${value.toLocaleString("es-CO")}`,
+    showLegend: false,
+  },
+};
+
+/**
+ * `yAxis` pasa el dominio y la cantidad de marcas a Recharts para cualquier
+ * tipo cartesiano. Acepta números, `"auto"`, `"dataMin"`/`"dataMax"` o
+ * expresiones como `"dataMax + 100"`.
+ */
+export const DominioEjeY: Story = {
+  name: "Dominio del eje Y controlado",
+  args: {
+    type: "area",
+    data: trm,
+    categoryKey: "fecha",
+    series: [{ key: "valor", label: "TRM (COP por USD)" }],
+    title: "Rango fijo del eje",
+    description: 'yAxis={{ domain: ["dataMin - 100", "dataMax + 100"], tickCount: 6 }}',
+    yAxis: { domain: ["dataMin - 100", "dataMax + 100"], tickCount: 6 },
+    valueFormatter: (value) => `$${value.toLocaleString("es-CO")}`,
+    showLegend: false,
+  },
+};

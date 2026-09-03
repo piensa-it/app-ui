@@ -21,16 +21,21 @@ function TabPanel(_props: TabPanelProps): null {
   return null;
 }
 
-export interface TabsProps extends Omit<ArkTabs.RootProps, "value" | "onValueChange" | "children"> {
+export interface TabsProps extends Omit<ArkTabs.RootProps, "value" | "defaultValue" | "onValueChange" | "children"> {
   /** Valor de la pestaña activa (controlado). Si no se pasa, es no controlado. */
   value?: string;
+  /**
+   * Pestaña inicial en modo no controlado. Si se omite (o llega `undefined`),
+   * se abre la primera. Se ignora cuando `value` está presente.
+   */
+  defaultValue?: string;
   onValueChange?: (value: string) => void;
   children?: React.ReactNode;
 }
 
 /** Navegación por pestañas sobre Ark UI (headless). Los hijos deben ser `TabPanel`. */
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ className, value, onValueChange, children, ...props }, ref) => {
+  ({ className, value, defaultValue, onValueChange, children, ...props }, ref) => {
     const panels = React.Children.toArray(children).filter(
       (child): child is React.ReactElement<TabPanelProps> => React.isValidElement(child) && child.type === TabPanel,
     );
@@ -40,16 +45,18 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
       disabled: panel.props.disabled,
       children: panel.props.children,
     }));
-    const defaultValue = withValues[0]?.value;
+    // Un `defaultValue` explícitamente `undefined` dejaría la vista sin
+    // pestaña activa; se cae en la primera.
+    const initialValue = defaultValue ?? withValues[0]?.value;
 
     return (
       <ArkTabs.Root
         ref={ref}
+        {...props}
         className={cn(className)}
         value={value}
-        defaultValue={value === undefined ? defaultValue : undefined}
+        defaultValue={value === undefined ? initialValue : undefined}
         onValueChange={(details) => onValueChange?.(details.value)}
-        {...props}
       >
         <ArkTabs.List className="relative flex items-center overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {withValues.map((panel) => (

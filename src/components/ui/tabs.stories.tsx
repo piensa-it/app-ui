@@ -28,3 +28,24 @@ export const Default: Story = {
     </Tabs>
   ),
 };
+
+/**
+ * `defaultValue` elige la pestaña inicial en modo no controlado — no hace
+ * falta llevar el estado desde el consumidor solo para abrir en otra pestaña.
+ */
+export const PestanaInicial: Story = {
+  name: "Pestaña inicial (defaultValue)",
+  render: () => (
+    <Tabs defaultValue="seguridad">
+      <TabPanel value="perfil" header="Perfil">
+        <p className="text-sm text-muted-foreground">Información del perfil del usuario.</p>
+      </TabPanel>
+      <TabPanel value="seguridad" header="Seguridad">
+        <p className="text-sm text-muted-foreground">Preferencias de contraseña y sesión.</p>
+      </TabPanel>
+      <TabPanel value="notificaciones" header="Notificaciones">
+        <p className="text-sm text-muted-foreground">Preferencias de notificaciones.</p>
+      </TabPanel>
+    </Tabs>
+  ),
+};
