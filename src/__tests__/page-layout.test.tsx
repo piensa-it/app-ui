@@ -75,8 +75,10 @@ describe("PageHeader", () => {
 describe("AppVersion", () => {
   it("muestra la versión de la aplicación y la de la librería", () => {
     render(<AppVersion version="1.4.2" />);
-    expect(screen.getByText(/1\.4\.2/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(UI_LIBRARY_VERSION.replace(/\./g, "\\.")))).toBeInTheDocument();
+    // Texto exacto en vez de expresión regular: la versión lleva puntos y
+    // construir el patrón escapándolos a mano es una fuente de errores.
+    expect(screen.getByText("v1.4.2")).toBeInTheDocument();
+    expect(screen.getByText(`UI ${UI_LIBRARY_VERSION}`)).toBeInTheDocument();
   });
 
   it("muestra la fecha de compilación cuando se le pasa", () => {
