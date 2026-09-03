@@ -114,3 +114,35 @@ test.describe("Storybook browser gate", () => {
     });
   });
 });
+
+test.describe("Capas encadenadas (Dialog → Sheet)", () => {
+  test("el panel abierto desde un diálogo que se cierra sigue abierto y el foco no lo cierra", async ({ page }) => {
+    const errors: Error[] = [];
+    page.on("pageerror", (error) => errors.push(error));
+    await page.goto(storyUrl("ui-dialog--abre-un-sheet"));
+
+    await page.getByRole("button", { name: "Radicar documento" }).click();
+    const dialog = page.getByRole("dialog", { name: "Radicar documento" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Confirmar y ver radicado" }).click();
+
+    const sheet = page.getByRole("dialog", { name: "Radicado 2026-0917" });
+    await expect(sheet).toBeVisible();
+    await expect(dialog).toBeHidden();
+    // Da tiempo a la animación de salida del diálogo y a su devolución de foco.
+    await page.waitForTimeout(600);
+    await expect(sheet).toBeVisible();
+
+    // El foco fuera del panel tampoco lo cierra. El botón de origen queda
+    // aria-hidden bajo el panel modal (`hideOthers`), así que se busca
+    // incluyendo elementos ocultos para el árbol de accesibilidad.
+    await page.getByRole("button", { name: "Radicar documento", includeHidden: true }).focus();
+    await page.waitForTimeout(400);
+    await expect(sheet).toBeVisible();
+
+    // Escape sí cierra.
+    await page.keyboard.press("Escape");
+    await expect(sheet).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+});

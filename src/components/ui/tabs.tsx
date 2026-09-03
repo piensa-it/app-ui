@@ -9,6 +9,10 @@ export interface TabPanelProps {
   /** Identificador estable de la pestaña. Si se omite, se usa el índice como string. */
   value?: string;
   disabled?: boolean;
+  /** Clases del botón de la pestaña (`role="tab"`). */
+  className?: string;
+  /** Clases del panel de contenido (`role="tabpanel"`). */
+  contentClassName?: string;
   children?: React.ReactNode;
 }
 
@@ -30,12 +34,14 @@ export interface TabsProps extends Omit<ArkTabs.RootProps, "value" | "defaultVal
    */
   defaultValue?: string;
   onValueChange?: (value: string) => void;
+  /** Clases de la lista de pestañas (`role="tablist"`), p. ej. `justify-center`. */
+  listClassName?: string;
   children?: React.ReactNode;
 }
 
 /** Navegación por pestañas sobre Ark UI (headless). Los hijos deben ser `TabPanel`. */
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ className, value, defaultValue, onValueChange, children, ...props }, ref) => {
+  ({ className, listClassName, value, defaultValue, onValueChange, children, ...props }, ref) => {
     const panels = React.Children.toArray(children).filter(
       (child): child is React.ReactElement<TabPanelProps> => React.isValidElement(child) && child.type === TabPanel,
     );
@@ -43,6 +49,8 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
       value: panel.props.value ?? String(index),
       header: panel.props.header,
       disabled: panel.props.disabled,
+      className: panel.props.className,
+      contentClassName: panel.props.contentClassName,
       children: panel.props.children,
     }));
     // Un `defaultValue` explícitamente `undefined` dejaría la vista sin
@@ -58,7 +66,12 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         defaultValue={value === undefined ? initialValue : undefined}
         onValueChange={(details) => onValueChange?.(details.value)}
       >
-        <ArkTabs.List className="relative flex items-center overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ArkTabs.List
+          className={cn(
+            "relative flex items-center overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            listClassName,
+          )}
+        >
           {withValues.map((panel) => (
             <ArkTabs.Trigger
               key={panel.value}
@@ -70,6 +83,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
                 "data-[selected]:text-foreground",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "disabled:pointer-events-none disabled:opacity-50",
+                panel.className,
               )}
             >
               {panel.header}
@@ -78,7 +92,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
           <ArkTabs.Indicator className="bottom-0 h-0.5 rounded-full bg-primary transition-all duration-normal ease-standard motion-reduce:transition-none" />
         </ArkTabs.List>
         {withValues.map((panel) => (
-          <ArkTabs.Content key={panel.value} value={panel.value} className="pt-5 outline-none">
+          <ArkTabs.Content key={panel.value} value={panel.value} className={cn("pt-5 outline-none", panel.contentClassName)}>
             {panel.children}
           </ArkTabs.Content>
         ))}

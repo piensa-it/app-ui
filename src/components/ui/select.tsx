@@ -7,9 +7,17 @@ import type { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { fieldControlVariants, floatingPanelStyles, optionStyles } from "@/lib/recipes/field-control";
+import { selectOptionToString } from "@/lib/select-option";
 
 export interface SelectOption {
-  label: string;
+  /** Contenido de la opción. Si no es texto plano, pasa también `textValue`. */
+  label: React.ReactNode;
+  /**
+   * Texto plano de la opción cuando `label` es un nodo (icono + texto): lo
+   * usan el `<select>` nativo, la búsqueda por teclado y el trigger.
+   * Si `label` es string no hace falta.
+   */
+  textValue?: string;
   value: string | number;
   disabled?: boolean;
 }
@@ -37,6 +45,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       placeholder = "Selecciona una opción",
       "aria-label": ariaLabel,
       id,
+      name,
       variant,
       size,
       ...props
@@ -48,10 +57,14 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         createListCollection({
           items: options,
           itemToValue: (item) => String(item.value),
-          itemToString: (item) => item.label,
+          itemToString: selectOptionToString,
           isItemDisabled: (item) => !!item.disabled,
         }),
       [options],
+    );
+    const selectedOption = React.useMemo(
+      () => (value === null || value === undefined ? undefined : options.find((option) => String(option.value) === String(value))),
+      [options, value],
     );
     const select = useSelect({
       // El `id` externo (p. ej. el que inyecta Field para asociar el <label>) se
@@ -66,6 +79,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         const raw = details.items[0]?.value;
         onChange?.(raw === undefined ? null : raw);
       },
+      name,
       ...props,
     });
     const isOpen = select.open;
@@ -99,7 +113,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             <ArkSelect.ValueText
               placeholder={placeholder}
               className="truncate text-left data-[placeholder-shown]:text-muted-foreground"
-            />
+            >
+              {/* Ark muestra `itemToString` (texto plano); con un label en nodo
+                  (icono + texto) se pinta el nodo tal cual. */}
+              {selectedOption?.label}
+            </ArkSelect.ValueText>
             <ChevronDown
               aria-hidden="true"
               className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180"
@@ -131,7 +149,10 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             </ArkSelect.Content>
           </ArkSelect.Positioner>
         </Portal>
-        <ArkSelect.HiddenSelect />
+        {/* El <select> nativo solo tiene sentido dentro de un <form>: sin
+            `name` duplicaría cada opción en el DOM (invisible, pero la
+            encuentra cualquier consulta por texto antes que la visible). */}
+        {name ? <ArkSelect.HiddenSelect /> : null}
       </ArkSelect.RootProvider>
     );
   },

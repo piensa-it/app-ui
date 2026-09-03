@@ -85,3 +85,38 @@ export const Default: Story = {
 
 // La variante con filtro de texto vive en el componente `AutoComplete`
 // (combobox con búsqueda) — `Select` es un selector cerrado sin input.
+
+/**
+ * `name` es lo único que hace que se renderice el `<select>` nativo oculto
+ * (para enviar el valor en un `<form>`). Sin `name` no existe, así ninguna
+ * opción se duplica en el DOM y una prueba que busque "Colombia" encuentra solo
+ * la opción visible.
+ */
+export const DentroDeFormulario: Story = {
+  name: "Dentro de un formulario (name)",
+  render: () => (
+    <form className="w-72" onSubmit={(event) => event.preventDefault()}>
+      <Select aria-label="País" name="pais" options={paises.slice(0, 5)} />
+    </form>
+  ),
+};
+
+/**
+ * `label` admite un nodo (icono + texto). `textValue` aporta el texto plano
+ * que usan el `<select>` nativo, la búsqueda por teclado y el trigger.
+ */
+export const ConIconos: Story = {
+  name: "Opciones con icono (label ReactNode)",
+  render: () => {
+    const Demo = () => {
+      const [value, setValue] = useState<string | number | null>("co");
+      const conBandera = [
+        { label: <span className="inline-flex items-center gap-2"><span aria-hidden="true">🇨🇴</span> Colombia</span>, textValue: "Colombia", value: "co" },
+        { label: <span className="inline-flex items-center gap-2"><span aria-hidden="true">🇲🇽</span> México</span>, textValue: "México", value: "mx" },
+        { label: <span className="inline-flex items-center gap-2"><span aria-hidden="true">🇪🇸</span> España</span>, textValue: "España", value: "es" },
+      ];
+      return <div className="w-72"><Select aria-label="País" options={conBandera} value={value} onChange={setValue} /></div>;
+    };
+    return <Demo />;
+  },
+};

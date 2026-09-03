@@ -77,15 +77,23 @@ function Toaster() {
   );
 }
 
+/** Duración por defecto de cada notificación, alineada con sonner. */
+export const TOAST_DEFAULT_DURATION = 4000;
+
 export interface ToastOptions {
   summary?: string;
   detail?: string;
+  /**
+   * Milisegundos en pantalla. @default 4000 (igual para success, error, warn e
+   * info; Zag traía 2 s para success y 5 s para el resto, y los toasts largos
+   * se acumulan y colisionan con consultas por nombre no exactas en e2e).
+   */
   duration?: number;
   closable?: boolean;
 }
 
-function toOptions({ summary, detail, ...rest }: ToastOptions) {
-  return { title: summary, description: detail, ...rest };
+function toOptions({ summary, detail, duration = TOAST_DEFAULT_DURATION, ...rest }: ToastOptions) {
+  return { title: summary, description: detail, duration, ...rest };
 }
 
 /**

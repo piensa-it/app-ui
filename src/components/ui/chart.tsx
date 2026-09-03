@@ -91,10 +91,28 @@ export interface ChartProps {
   framed?: boolean;
   /** Líneas horizontales para metas, presupuestos o límites. */
   referenceLines?: ChartReferenceLine[];
-  /** Formatea los valores de ejes y tooltips (moneda, porcentaje, unidades). */
+  /**
+   * Formatea los valores de ejes y tooltips (moneda, porcentaje, unidades).
+   * Es el respaldo de `axisFormatter` y `tooltipFormatter` cuando no se pasan.
+   */
   valueFormatter?: (value: number) => string;
+  /** Formatea solo las marcas del eje Y (p. ej. "2,7 M" mientras el tooltip muestra la cifra completa). */
+  axisFormatter?: (value: number) => string;
+  /** Formatea solo los valores del tooltip. */
+  tooltipFormatter?: (value: number) => string;
+  /** Ancho en px reservado a las etiquetas del eje Y. Recharts recorta a 60 px las cifras largas. @default 60 */
+  yAxisWidth?: number;
+  /** Permite marcas decimales en el eje Y. @default true */
+  allowDecimals?: boolean;
   /** Dominio y marcas del eje Y. No aplica a pie/donut. */
   yAxis?: ChartYAxis;
+  /**
+   * Campo de cada fila con el color de esa categoría (barras y porciones):
+   * `data={[{ moneda: "USD", total: 10, color: "hsl(var(--chart-2))" }]}` con
+   * `colorKey="color"`. Sin él, las barras usan el color de la serie y las
+   * porciones la paleta por índice.
+   */
+  colorKey?: string;
   className?: string;
 }
 
@@ -140,9 +158,19 @@ function Chart({
   framed = true,
   referenceLines = [],
   valueFormatter,
+  axisFormatter,
+  tooltipFormatter,
+  yAxisWidth,
+  allowDecimals = true,
   yAxis,
+  colorKey,
   className,
 }: ChartProps) {
+  const formatAxis = axisFormatter ?? valueFormatter;
+  const formatTooltip = tooltipFormatter ?? valueFormatter;
+  const colorOf = (row: ChartDatum, index: number, fallback: string) =>
+    (colorKey && typeof row[colorKey] === "string" ? (row[colorKey] as string) : undefined) ??
+    (fallback || DEFAULT_COLORS[index % DEFAULT_COLORS.length]);
   const colored = series.map((item, index) => ({
     ...item,
     color: item.color ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length],
@@ -165,11 +193,14 @@ function Chart({
               paddingAngle={3}
               cornerRadius={5}
             >
-              {data.map((_, index) => (
-                <Cell key={index} fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]} />
+              {data.map((row, index) => (
+                <Cell key={index} fill={colorOf(row, index, "")} />
               ))}
             </Pie>
-            <Tooltip contentStyle={tooltipStyle} />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              formatter={formatTooltip ? (value) => formatTooltip(Number(value)) : undefined}
+            />
             {showLegend ? <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "0.8125rem" }} /> : null}
           </PieChart>
         </ResponsiveContainer>
@@ -197,14 +228,16 @@ function Chart({
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={valueFormatter}
+              tickFormatter={formatAxis}
+              width={yAxisWidth}
+              allowDecimals={allowDecimals}
               domain={yAxis?.domain ?? (type === "line" ? ["auto", "auto"] : [0, "auto"])}
               tickCount={yAxis?.tickCount}
             />
             <Tooltip
               contentStyle={tooltipStyle}
               cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }}
-              formatter={valueFormatter ? (value) => valueFormatter(Number(value)) : undefined}
+              formatter={formatTooltip ? (value) => formatTooltip(Number(value)) : undefined}
             />
             {showLegend ? (
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "0.8125rem", paddingTop: "12px" }} />
@@ -229,7 +262,11 @@ function Chart({
                   fillOpacity={item.opacity}
                   stackId={item.stackId}
                   radius={[6, 6, 2, 2]}
-                />
+                >
+                  {colorKey
+                    ? data.map((row, index) => <Cell key={index} fill={colorOf(row, index, item.color)} />)
+                    : null}
+                </Bar>
               ) : seriesType === "line" ? (
                 <Line
                   key={item.key}

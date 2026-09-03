@@ -43,6 +43,28 @@ Import the library styles once in your application entry point:
 import "@piensa-it/ui-library/styles.css";
 ```
 
+The bundled fonts (Geist, Inter, DM Sans) ship as a separate stylesheet, so an
+application with its own typography does not pay for them. Import it only if
+you use one of the bundled font presets:
+
+```tsx
+import "@piensa-it/ui-library/fonts.css";
+```
+
+### Cost
+
+The package ships one module per source file, so a bundler only keeps what an
+application imports. Measured on a Vite build that imports a single component:
+
+| | 0.2.1 | 0.3.0 |
+|---|---|---|
+| Library code pulled in by `Button` | ~140 KB (whole package) | 2.8 KB |
+| Library code pulled in by `DatePicker` | ~140 KB (whole package) | 10.8 KB |
+| `styles.css` | 211 KB | 58 KB |
+
+Third-party dependencies (`tailwind-merge`, `lucide-react`, Ark UI) are not
+counted: they are resolved from the application's own `node_modules`.
+
 ## Quick start
 
 ```tsx
@@ -116,12 +138,48 @@ library stylesheet:
 Applications using Tailwind can also consume the published preset:
 
 ```js
-import uiLibraryPreset from "@piensa-it/ui-library/tailwind-preset";
+import uiLibraryPreset, { content as uiLibraryContent } from "@piensa-it/ui-library/tailwind-preset";
 
 export default {
   presets: [uiLibraryPreset],
-  content: ["./src/**/*.{ts,tsx}"],
+  content: [...uiLibraryContent, "./src/**/*.{ts,tsx}"],
 };
+```
+
+`uiLibraryContent` points at the library's published modules and is required,
+not optional. Tailwind 3 does not inherit `content` from a preset, so it has to
+be spread explicitly.
+
+Without it, the application and the library end up generating utilities in two
+separate passes, and the order of the resulting CSS decides which one wins: a
+plain utility written by the application (`.text-center`) is emitted *after* a
+variant that belongs to the library (`sm:text-left` on `DialogHeader`) and
+overrides it, regardless of specificity. Listing the library's modules puts
+both in the same pass, where Tailwind's own ordering applies again.
+
+## Overlays and third-party layers
+
+`Dialog` and `Sheet` own their `open` state through the application. Two Zag
+defaults are vetoed on purpose: closing a lower layer no longer cascades to the
+layers above it (`onRequestDismiss`), and focus returning from another layer is
+not treated as "focus outside" (`onFocusOutside`). Your handlers still run
+first. Escape and clicking the backdrop keep closing the overlay.
+
+`persistentElements` only works for elements that already exist when the
+dialog opens: Zag waits about one second for the getter to return a node and
+then rejects the promise, which logs an error on every open. For poppers that
+mount later (a Radix `DropdownMenu`, an external datepicker) veto the dismissal
+in `onInteractOutside` when the target lives inside that layer:
+
+```tsx
+<Dialog
+  open={open}
+  onOpenChange={setOpen}
+  onInteractOutside={(event) => {
+    const target = event.detail.target as Element | null;
+    if (target?.closest("[data-radix-popper-content-wrapper]")) event.preventDefault();
+  }}
+/>
 ```
 
 ## Architecture
