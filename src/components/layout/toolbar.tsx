@@ -23,7 +23,7 @@ export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-wrap items-center gap-xs", className)} {...props}>
+    <div ref={ref} className={cn("flex flex-wrap items-center gap-ui-xs", className)} {...props}>
       {children}
     </div>
   ),

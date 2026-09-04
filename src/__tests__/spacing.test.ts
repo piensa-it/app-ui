@@ -52,8 +52,8 @@ describe("los contenedores usan la escala, no números sueltos", () => {
     ["PageHeader", "src/components/layout/page-header.tsx"],
   ])("%s se espacia con la escala, no con números sueltos", (_name, file) => {
     const source = read(file);
-    // Vale un paso de la escala (`gap-sm`) o un nombre de rol (`p-inset`).
-    expect(source).toMatch(/\b(p|px|py|gap|gap-x|gap-y|space-y)-(2xs|xs|sm|md|lg|xl|2xl|inset|inset-compact|stack|field)\b/);
+    // Vale un paso de la escala (`gap-ui-sm`) o un nombre de rol (`p-inset`).
+    expect(source).toMatch(/\b(p|px|py|gap|gap-x|gap-y|space-y)-(ui-(?:2xs|xs|sm|md|lg|xl|2xl)|inset|inset-compact|stack|field)\b/);
     // Y no un número suelto de la escala nativa de Tailwind. `0` sí vale:
     // significa "sin espacio", no un tamaño elegido a ojo.
     expect(source).not.toMatch(/\b(p|px|py|gap|space-y)-(?:[1-9]|1[0-9])(?:\.5)?\b/);

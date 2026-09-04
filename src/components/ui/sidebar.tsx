@@ -100,8 +100,8 @@ function splitSheetProps(props: Record<string, unknown>) {
 }
 
 const SIZE_BY_POSITION: Record<NonNullable<SheetProps["position"]>, string> = {
-  left: "inset-y-0 left-0 h-full w-3/4 sm:panel-sm",
-  right: "inset-y-0 right-0 h-full w-3/4 sm:panel-sm",
+  left: "inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
+  right: "inset-y-0 right-0 h-full w-3/4 sm:max-w-sm",
   top: "inset-x-0 top-0 w-full",
   bottom: "inset-x-0 bottom-0 w-full",
 };

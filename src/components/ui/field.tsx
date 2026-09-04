@@ -56,7 +56,7 @@ export function Field({
         span === "full" && "sm:col-span-2",
         // El espacio entre etiqueta, control y mensaje sale de la escala:
         // así todos los formularios de todas las aplicaciones respiran igual.
-        density === "compact" ? "gap-2xs" : "gap-field",
+        density === "compact" ? "gap-ui-2xs" : "gap-field",
         variant === "outline" && "rounded-xl border border-border bg-raised p-inset-compact",
         variant === "surface" && "rounded-xl border border-surface-border bg-surface p-inset-compact shadow-sm",
         variant === "subtle" && "rounded-xl border border-transparent bg-subtle p-inset-compact",
@@ -64,7 +64,7 @@ export function Field({
         className,
       )}
     >
-      <div className={cn("flex items-baseline justify-between gap-sm", orientation === "horizontal" && "sm:pt-2xs")}>
+      <div className={cn("flex items-baseline justify-between gap-ui-sm", orientation === "horizontal" && "sm:pt-ui-2xs")}>
         <Label htmlFor={controlId}>
           {label}
           {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span> : null}

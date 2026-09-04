@@ -6,6 +6,43 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-05
+
+Las dos correcciones salen de la migración real de CoreLink a la 0.5.0, donde
+la adopción de Tailwind 4 destapó dos choques que en v3 no se veían.
+
+### Fixed
+
+- **El tema oscuro de la aplicación perdía contra el nuestro** (#70). El bloque `.dark` de la librería vivía fuera de toda capa, mientras que `:root` vivía dentro de `@layer base`. En la cascada, lo que no está en ninguna capa gana **siempre** a lo que sí lo está, así que una aplicación que definiera su identidad oscura en `@layer base { .dark { … } }` —que es lo que enseña el README— la veía perder. CoreLink salió entera en el gris de fábrica en vez de su azul marino: el 80% de los píxeles distintos, con el fondo en `rgb(18, 18, 18)` en lugar de `rgb(2, 8, 23)`. El tema claro, que sí estaba en capa, salió bien.
+
+  Estaba fuera a propósito, pero por un motivo que caducó: Tailwind 3 descartaba en silencio las reglas de clase propias dentro de `@layer base` en cuanto se activaba la variante `dark:`, y había un aviso en el archivo para no moverlo sin volver a comprobarlo. Comprobado contra el CSS compilado de v4: la regla sobrevive y cae en `base`. Se mueven también los otros bloques de tokens —densidad, tipografía y variantes del menú lateral—, que tenían exactamente el mismo defecto.
+
+- **La escala de espaciado le quitaba a Tailwind los nombres de `max-w-*`** (#71). Las claves del espaciado se llamaban `xs`, `sm`, `md`, `lg`, `xl` y `2xl`, igual que la escala de contenedores. En Tailwind 3 no molestaba, porque `max-w-*` se resolvía primero contra los anchos y solo caía al espaciado si no encontraba la clave. **Tailwind 4 lo hace al revés y el espaciado gana siempre**, así que `max-w-2xl` pasó a valer 3 rem en vez de 42 rem. En CoreLink todos los diálogos quedaron en una tira de 48 px y se cayeron 35 pruebas de extremo a extremo con «element is outside of the viewport», sin ningún error de compilación que señalara la causa. Se llevaba por delante también `w-*`, `min-w-*` y `basis-*` con esos mismos nombres.
+
+  Medido antes de decidir: no lo arregla ningún override. Ni `theme.maxWidth` en el config que se carga con `@config`, ni `@theme { --container-* }`, ni `@utility max-w-2xl`, ni un plugin con `addUtilities` —Tailwind fusiona las dos declaraciones en la misma regla y deja la del espaciado la última—. Tampoco lo arregla publicar el preset en formato `@theme` de v4, que era la otra vía propuesta: el choque se reproduce igual en `@theme` nativo. La única salida es no llamarlos igual.
+
+### Changed
+
+- **BREAKING: los pasos del espaciado llevan prefijo `ui-`.** `p-md` pasa a `p-ui-md`, `gap-sm` a `gap-ui-sm`, `-mt-lg` a `-mt-ui-lg`. **Los nombres por rol no cambian**: `p-inset`, `p-inset-compact`, `space-y-stack` y `gap-field` no chocaban con ninguna escala. El paquete incluye el codemod:
+
+  ```bash
+  node node_modules/@piensa-it/ui-library/scripts/codemod-espaciado.mjs "src/**/*.{ts,tsx,css}"
+  ```
+
+  Toca solo los prefijos que leen el espaciado y deja `max-w-*`, `w-*` y `min-w-*` en paz a propósito: son justo los que vuelven a funcionar. Con `--dry` enseña qué cambiaría sin escribir.
+
+- **BREAKING: desaparecen las utilidades `panel-xs` … `panel-2xl`.** Se introdujeron en la 0.5.0 solo para sortear este choque de nombres, y con `max-w-*` funcionando otra vez no aportan nada. Los siete usos internos vuelven a `max-w-*`.
+
+### Docs
+
+- La página de tokens muestra los pasos con su nombre real (`ui-md`) y explica de dónde sale el prefijo. Varias stories y la página de introducción se veían estrechas sin que nadie lo notara: usaban `max-w-*` y estaban cobrando valores del espaciado.
+- El README documenta las dos cosas: que las dos mitades del tema viven en `@layer base` y que una aplicación puede ganarles desde la suya, y por qué el espaciado va prefijado.
+
+### Tests
+
+- Prueba que compila `globals.css` conservando las capas y comprueba que los seis bloques de tokens —claro, oscuro, menú, variante de menú, densidad y tipografía— caen todos en `base`. Verificada contra el CSS construido, que es donde el fallo era visible.
+- Prueba que compila el preset y comprueba que `max-w-{xs…2xl}`, `w-lg`, `min-w-lg` y `basis-lg` leen la escala de contenedores y no la de espaciado. Verificada al revés: devolviendo la clave `md` sin prefijo, la prueba falla.
+
 ## [0.5.0] - 2026-09-04
 
 ### Fixed
@@ -218,6 +255,7 @@ consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.
 
 - Migración a TanStack Table v9 y Vite 8; primitivas de motion (stagger, reveal, animated-number, presets de skeleton).
 
+[0.6.0]: https://github.com/piensa-it/app-ui/compare/v0.5.0...v0.6.0
 [0.3.0]: https://github.com/piensa-it/app-ui/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/piensa-it/app-ui/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/piensa-it/app-ui/releases/tag/v0.2.0

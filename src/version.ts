@@ -13,13 +13,24 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.5.0";
+export const UI_LIBRARY_VERSION = "0.6.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Renombra las clases del espaciado con el codemod que trae el paquete: `node node_modules/@piensa-it/ui-library/scripts/codemod-espaciado.mjs \"src/**/*.{ts,tsx,css}\"`. Pasa `--dry` antes para ver qué tocaría. `p-md` pasa a `p-ui-md`, `gap-sm` a `gap-ui-sm`; los nombres por rol (`p-inset`, `space-y-stack`, `gap-field`) no cambian.",
+      "IMPORTANTE, y es lo que arregla esta versión: `max-w-xs` … `max-w-2xl` vuelven a valer lo de Tailwind. Si en la 0.5.0 los sustituiste por medidas literales (`max-w-[42rem]`) o por las utilidades `panel-*`, ya puedes devolverlos a su nombre. `w-*`, `min-w-*` y `basis-*` con esos mismos nombres también vuelven.",
+      "Las utilidades `panel-xs` … `panel-2xl` desaparecen: existían solo para sortear ese choque de nombres. Usa `max-w-*`.",
+      "Si sacaste tu bloque `.dark` de `@layer base` para que ganara al nuestro, devuélvelo a su sitio: el nuestro ya vive en `base` y el tuyo, importado después, gana por orden dentro de la misma capa.",
+    ],
+  },
+  {
+    version: "0.5.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-04",
     migration: [
       "Tailwind 4: si tu aplicación extiende nuestro preset, sustituye `@tailwind base/components/utilities` por `@import \"tailwindcss\";` más `@config \"./tailwind.config.js\";`, y cambia `postcss.config.js` a `@tailwindcss/postcss`. El preset en sí no cambia.",
       "Tailwind 4: quita `autoprefixer` de tus dependencias, que v4 lo trae incorporado.",

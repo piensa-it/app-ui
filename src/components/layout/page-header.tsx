@@ -33,10 +33,10 @@ export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
  */
 export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
   ({ title, description, actions, above, as: Heading = "h1", className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col gap-sm", className)} {...props}>
-      {above ? <div className="flex flex-wrap items-center gap-xs">{above}</div> : null}
-      <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2xs">
+    <div ref={ref} className={cn("flex flex-col gap-ui-sm", className)} {...props}>
+      {above ? <div className="flex flex-wrap items-center gap-ui-xs">{above}</div> : null}
+      <div className="flex flex-col gap-ui-md sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-ui-2xs">
           <Heading
             className={cn(
               "font-heading font-semibold tracking-tight text-foreground",
@@ -49,7 +49,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
             <p className="text-ui-body-sm text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-xs">{actions}</div> : null}
+        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-ui-xs">{actions}</div> : null}
       </div>
     </div>
   ),

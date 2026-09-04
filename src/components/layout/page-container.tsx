@@ -64,7 +64,7 @@ const WIDTHS: Record<NonNullable<PageContainerProps["width"]>, string> = {
 export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps>(
   ({ width = "default", animate = true, staggerGap = 60, animateKey, className, children, ...props }, ref) => {
     const classes = cn(
-      "mx-auto w-full px-md py-lg sm:px-lg",
+      "mx-auto w-full px-ui-md py-ui-lg sm:px-ui-lg",
       WIDTHS[width],
       // El ritmo vertical no se declara pantalla por pantalla: lo pone el
       // contenedor, y por eso todas las páginas respiran igual.

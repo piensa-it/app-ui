@@ -32,7 +32,7 @@ export const FormGrid = React.forwardRef<HTMLDivElement, FormGridProps>(
   ({ columns = 2, className, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("grid grid-cols-1 gap-md", columns === 2 && "sm:grid-cols-2", className)}
+      className={cn("grid grid-cols-1 gap-ui-md", columns === 2 && "sm:grid-cols-2", className)}
       {...props}
     >
       {children}

@@ -82,8 +82,8 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
         )}
         {...props}
       >
-        <dl className="flex flex-col gap-2xs">
-          <dt id={labelId} className="flex items-center gap-xs text-ui-body-sm text-muted-foreground">
+        <dl className="flex flex-col gap-ui-2xs">
+          <dt id={labelId} className="flex items-center gap-ui-xs text-ui-body-sm text-muted-foreground">
             {icon ? (
               <span aria-hidden="true" className="grid size-4 place-items-center [&_svg]:size-4">
                 {icon}
@@ -100,7 +100,7 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
             {value}
           </dd>
           {trend ? (
-            <dd className={cn("flex items-center gap-2xs text-ui-body-sm font-medium", trendTone(trend))}>
+            <dd className={cn("flex items-center gap-ui-2xs text-ui-body-sm font-medium", trendTone(trend))}>
               {TrendIcon ? <TrendIcon aria-hidden="true" className="size-4" /> : null}
               {/* El sentido se anuncia además de pintarse: el color solo no
                   llega a quien no lo distingue. */}
@@ -138,7 +138,7 @@ export const StatGroup = React.forwardRef<HTMLDivElement, StatGroupProps>(
       ref={ref}
       role="group"
       aria-label={label}
-      className={cn("grid grid-cols-1 gap-md", GROUP_COLUMNS[columns], className)}
+      className={cn("grid grid-cols-1 gap-ui-md", GROUP_COLUMNS[columns], className)}
       {...props}
     >
       {children}

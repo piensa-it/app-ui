@@ -146,13 +146,13 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     // copia necesita su propio nombre: dos landmarks de navegación con el mismo
     // nombre accesible son indistinguibles para quien navega por landmarks.
     const navigation = (label: string) => (
-      <div className="flex h-full min-h-0 flex-col gap-xs">
+      <div className="flex h-full min-h-0 flex-col gap-ui-xs">
         {brand ? <div className="shrink-0">{brand}</div> : null}
-        <nav aria-label={label} className="min-h-0 flex-1 overflow-y-auto px-2xs [scrollbar-width:thin]">
+        <nav aria-label={label} className="min-h-0 flex-1 overflow-y-auto px-ui-2xs [scrollbar-width:thin]">
           {sidebar}
         </nav>
         {sidebarFooter ? (
-          <div className="shrink-0 border-t border-sidebar-border px-sm py-xs text-sidebar-muted">
+          <div className="shrink-0 border-t border-sidebar-border px-ui-sm py-ui-xs text-sidebar-muted">
             {sidebarFooter}
           </div>
         ) : null}
@@ -197,13 +197,13 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           {/* Pegado arriba y del alto de la ventana: sin esto el menú se sube
               con el desplazamiento y el pie con la versión queda fuera de
               vista. El desplazamiento interno lo tiene el <nav>. */}
-          <div className="sticky top-0 flex h-screen flex-col py-sm">
+          <div className="sticky top-0 flex h-screen flex-col py-ui-sm">
             <SidebarProvider value={desktopState}>{navigation("Navegación principal")}</SidebarProvider>
           </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-sm border-b border-border bg-surface px-md">
+          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-ui-sm border-b border-border bg-surface px-ui-md">
             <button
               type="button"
               aria-label="Abrir el menú"
@@ -222,7 +222,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
               <PanelLeft aria-hidden="true" className="size-5" />
             </button>
             {topbarStart}
-            <div className="ml-auto flex items-center gap-xs">{topbar}</div>
+            <div className="ml-auto flex items-center gap-ui-xs">{topbar}</div>
           </header>
 
           <main className="min-w-0 flex-1">{children}</main>
@@ -238,7 +238,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           surface={false}
           data-sidebar={variant}
           style={{ backdropFilter: "blur(var(--sidebar-blur))" }}
-          className="w-72 border-r border-sidebar-border bg-sidebar p-sm text-sidebar-foreground"
+          className="w-72 border-r border-sidebar-border bg-sidebar p-ui-sm text-sidebar-foreground"
         >
           <SidebarProvider value={mobileState}>{navigation("Navegación principal (panel)")}</SidebarProvider>
         </Sheet>

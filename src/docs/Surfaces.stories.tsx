@@ -29,7 +29,7 @@ type Story = StoryObj<typeof meta>;
 export const Escala: Story = {
   name: "Escala de superficies",
   render: () => (
-    <div className="min-h-screen bg-ground p-lg">
+    <div className="min-h-screen bg-ground p-ui-lg">
       <div className="mx-auto flex max-w-3xl flex-col gap-stack">
         <div>
           <p className="text-ui-caption font-semibold uppercase tracking-wide text-muted-foreground">ground</p>
@@ -38,7 +38,7 @@ export const Escala: Story = {
 
         <div className="rounded-lg border border-surface-border bg-surface p-inset shadow-surface">
           <p className="text-ui-caption font-semibold uppercase tracking-wide text-muted-foreground">surface</p>
-          <p className="mb-md text-ui-body-sm text-muted-foreground">
+          <p className="mb-ui-md text-ui-body-sm text-muted-foreground">
             Paneles, barras y controles de formulario.
           </p>
 
@@ -54,14 +54,14 @@ export const Escala: Story = {
           <CardHeader>
             <CardTitle>Una tarjeta real</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-md">
+          <CardContent className="flex flex-col gap-ui-md">
             <p className="text-ui-body-sm text-muted-foreground">
               `Card` toma `raised` sola. Sobre la página gris se distingue sin que nadie elija un gris.
             </p>
             <Field label="Monto" description="En pesos colombianos.">
               <Input placeholder="0" />
             </Field>
-            <div className="flex gap-xs">
+            <div className="flex gap-ui-xs">
               <Button size="sm">Guardar</Button>
               <Button size="sm" variant="outline">
                 Cancelar

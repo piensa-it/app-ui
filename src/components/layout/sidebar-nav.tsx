@@ -14,7 +14,7 @@ export interface SidebarNavProps extends React.HTMLAttributes<HTMLUListElement> 
 /** Lista de enlaces del menú lateral. Sus hijos son `SidebarNavItem`. */
 export const SidebarNav = React.forwardRef<HTMLUListElement, SidebarNavProps>(
   ({ className, children, ...props }, ref) => (
-    <ul ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+    <ul ref={ref} className={cn("flex flex-col gap-ui-2xs", className)} {...props}>
       {children}
     </ul>
   ),
@@ -60,10 +60,10 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
         <div
           ref={ref}
           data-ui-sidebar-group="collapsed"
-          className={cn("flex flex-col gap-2xs", className)}
+          className={cn("flex flex-col gap-ui-2xs", className)}
           {...props}
         >
-          <hr className="mx-auto my-2xs w-6 border-sidebar-border" />
+          <hr className="mx-auto my-ui-2xs w-6 border-sidebar-border" />
           {children}
         </div>
       );
@@ -73,7 +73,7 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
       <div
         ref={ref}
         data-ui-sidebar-group="expanded"
-        className={cn("flex flex-col gap-2xs", className)}
+        className={cn("flex flex-col gap-ui-2xs", className)}
         {...props}
       >
         {collapsible ? (
@@ -83,7 +83,7 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
             aria-controls={contentId}
             onClick={() => toggleGroup(id, !open)}
             className={cn(
-              "flex items-center justify-between gap-xs rounded-md px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide",
+              "flex items-center justify-between gap-ui-xs rounded-md px-ui-sm pt-ui-xs text-ui-caption font-semibold uppercase tracking-wide",
               "text-sidebar-muted transition-colors hover:text-sidebar-foreground",
               "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             )}
@@ -95,14 +95,14 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
             />
           </button>
         ) : (
-          <p className="px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide text-sidebar-muted">
+          <p className="px-ui-sm pt-ui-xs text-ui-caption font-semibold uppercase tracking-wide text-sidebar-muted">
             {label}
           </p>
         )}
         {/* Sin renderizar, no solo oculto: una sección cerrada no debe dejar
             enlaces alcanzables con el tabulador. */}
         {!collapsible || open ? (
-          <div id={contentId} className="flex flex-col gap-2xs">
+          <div id={contentId} className="flex flex-col gap-ui-2xs">
             {children}
           </div>
         ) : null}
@@ -180,7 +180,7 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
             closeMobile();
           }}
           className={cn(
-            "flex w-full items-center gap-sm rounded-md px-sm py-xs text-ui-body-sm transition-colors duration-normal",
+            "flex w-full items-center gap-ui-sm rounded-md px-ui-sm py-ui-xs text-ui-body-sm transition-colors duration-normal",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             active
               ? "bg-sidebar-active font-medium text-sidebar-active-foreground"
