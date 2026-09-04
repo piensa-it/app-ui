@@ -13,7 +13,7 @@ backend, authentication provider, or product-specific business logic.
 
 ## Highlights
 
-- React 18 and strict TypeScript
+- React 18 and 19, with strict TypeScript
 - Accessible headless behavior powered by Ark UI and Zag.js
 - Tailwind CSS styling through semantic CSS variables
 - White-label palettes, typography, dark mode, and reusable design tokens
