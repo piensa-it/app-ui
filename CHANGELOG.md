@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-05
+
+Las cinco historias salen de la adopción real de la librería en CoreLink: lo que allá hubo que duplicar o escribir a mano, y que por eso le tocaba a la librería.
+
 ### Added
 
 - **`AppSwitcher`: detalles por opción y confirmación en dos pasos** (#78). Para cuando elegir no es cambiar de pestaña: cambiar de empresa cambia los datos que se ven, los permisos con los que se entra y quién emite lo que se factura. Cada opción puede traer `badge` y `details` —el NIT, el rol— en filas legibles y no apretados en una línea; y con `confirm`, elegir lleva a un segundo paso que dice qué va a cambiar y repite esos detalles, porque si hubiera que recordarlos del paso anterior la confirmación no confirmaría nada. El segundo paso es un panel **dentro de la misma ventana**, no una capa encima: apilar modales es lo que más caro ha salido en estos repositorios. Desde ahí se vuelve a la lista sin elegir. La activa no dispara confirmación, y con una sola opción no se abre nada: eso lo decide el disparador (`SidebarBrand onSelect={… > 1 ? abrir : undefined}`, #75).
@@ -279,6 +283,7 @@ consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.
 
 - Migración a TanStack Table v9 y Vite 8; primitivas de motion (stagger, reveal, animated-number, presets de skeleton).
 
+[0.7.0]: https://github.com/piensa-it/app-ui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/piensa-it/app-ui/compare/v0.5.0...v0.6.0
 [0.3.0]: https://github.com/piensa-it/app-ui/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/piensa-it/app-ui/compare/v0.2.0...v0.2.1

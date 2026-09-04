@@ -146,7 +146,7 @@ interface Section {
  * ```
  */
 export function AppSwitcher({ open, onOpenChange, className, ...panel }: AppSwitcherProps) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
   return (
     <Dialog
       open={open}
@@ -170,7 +170,9 @@ export function AppSwitcher({ open, onOpenChange, className, ...panel }: AppSwit
 }
 
 type PanelProps = Omit<AppSwitcherProps, "open" | "className"> & {
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  // Estructural a propósito: `RefObject` cambia de forma entre React 18 y 19
+  // y la librería compila contra los dos.
+  inputRef: { current: HTMLInputElement | null };
 };
 
 function Panel({

@@ -13,13 +13,25 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.6.0";
+export const UI_LIBRARY_VERSION = "0.7.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo lo de esta versión es aditivo salvo una cosa: `AppVersion` muestra ahora solo la versión de la aplicación. Si en una pantalla de ayuda querés también la de la librería y la fecha de compilación, pasale `details`.",
+      "Selector de empresa: sustituí el bloque de marca duplicado por `SidebarBrand` con `onSelect`, y la ventana propia por `AppSwitcher` con `details` y `confirm`. Pasá `onSelect` en `undefined` cuando haya una sola empresa.",
+      "Selector de módulos: sustituí la ventana propia por `AppSwitcher` con `groups`, `recent` y `hint`. Las pruebas que localizaban `menuitem` pasan a `option`, y una opción reciente sale dos veces: desambiguá con `.first()`.",
+      "Tarjetas de indicadores: retirá el `KpiCard` propio y pasá sus usos a `Stat` con `tone`. La regla entre `warning` y `negative` es el plazo, no la gravedad.",
+      "Selector de color del tema: si tu paleta movía `--accent`, dejá de hacerlo, y si no movía `--ring`, empezá. Mejor: construila con `createPalette({ primary })`, que solo admite los siete tokens tematizables. Con tema oscuro, escribila en una regla con `paletteDeclarations`.",
+    ],
+  },
+  {
+    version: "0.6.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-04",
     migration: [
       "Renombra las clases del espaciado con el codemod que trae el paquete: `node node_modules/@piensa-it/ui-library/scripts/codemod-espaciado.mjs \"src/**/*.{ts,tsx,css}\"`. Pasa `--dry` antes para ver qué tocaría. `p-md` pasa a `p-ui-md`, `gap-sm` a `gap-ui-sm`; los nombres por rol (`p-inset`, `space-y-stack`, `gap-field`) no cambian.",
       "IMPORTANTE, y es lo que arregla esta versión: `max-w-xs` … `max-w-2xl` vuelven a valer lo de Tailwind. Si en la 0.5.0 los sustituiste por medidas literales (`max-w-[42rem]`) o por las utilidades `panel-*`, ya puedes devolverlos a su nombre. `w-*`, `min-w-*` y `basis-*` con esos mismos nombres también vuelven.",
