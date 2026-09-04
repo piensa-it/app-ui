@@ -5,6 +5,17 @@ const storyUrl = (id: string, globals = "theme:light;palette:indigo;fontFamily:g
   return `/iframe.html?${query.toString()}`;
 };
 
+/**
+ * Tolerancia de las capturas comparadas.
+ *
+ * Estaba en 0.01, que sobre 1280×900 son 11.520 píxeles: cabía un cambio a
+ * simple vista sin que la prueba se enterara. Se descubrió porque la marca del
+ * menú plegado pasó de descentrada a centrada y de no tener pie de versión a
+ * tenerlo, y la captura siguió dándose por buena.
+ *
+ * 0.001 son ~1.150 píxeles: sigue absorbiendo el antialiasing entre máquinas,
+ * pero no un elemento que se mueve.
+ */
 const stabilize = async (page: Page) => {
   await page.addStyleTag({
     content: `
@@ -27,7 +38,7 @@ test.describe("Storybook browser gate", () => {
     await expect(story.getByRole("button", { name: "Solid" })).toBeVisible();
     await expect(story).toHaveScreenshot("button-variants.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.01,
+      maxDiffPixelRatio: 0.001,
     });
   });
 
@@ -110,7 +121,7 @@ test.describe("Storybook browser gate", () => {
     await expect(page.getByText("La configuración quedó lista")).toBeVisible();
     await expect(story).toHaveScreenshot("animated-banner-success.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.01,
+      maxDiffPixelRatio: 0.001,
     });
   });
 });
@@ -125,7 +136,7 @@ test.describe("Tokens", () => {
       await stabilize(page);
       await expect(page.locator("#storybook-root")).toHaveScreenshot(`surfaces-${theme}.png`, {
         animations: "disabled",
-        maxDiffPixelRatio: 0.01,
+        maxDiffPixelRatio: 0.001,
       });
     });
   }
@@ -150,7 +161,7 @@ test.describe("Armazón", () => {
       await stabilize(page);
       await expect(page.locator("#storybook-root")).toHaveScreenshot(`${name}.png`, {
         animations: "disabled",
-        maxDiffPixelRatio: 0.01,
+        maxDiffPixelRatio: 0.001,
       });
     });
   }

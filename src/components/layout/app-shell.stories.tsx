@@ -161,7 +161,8 @@ export const Plegado: Story = {
   render: () => (
     <AppShell
       defaultCollapsed
-      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      brand={<SidebarBrand name="Distribuidora El Poblado S.A.S." groups={grupos} />}
+      sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
       sidebar={<Navegacion />}
     >
       <PageContainer>

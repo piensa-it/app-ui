@@ -8,10 +8,13 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Fixed
 
+- **Con el menú plegado, la marca de la organización no quedaba centrada.** Su fila no llevaba `justify-center` ni soltaba el relleno lateral, así que quedaba 14 px a la izquierda del eje de los iconos de abajo. Se notaba en cuanto había dos filas.
+- **Con el menú plegado, la línea de versión se salía del componente.** Intentaba pintar tres datos —versión de la aplicación, de la librería y fecha— en los 48 px útiles que deja un menú de 72, y se partía en cuatro renglones. Ahora muestra solo la versión de la aplicación, centrada; el detalle completo sigue en el `title` para copiarlo en un reporte. Fuera del menú no cambia nada.
 - **El menú lateral no separaba sus secciones** (#49). Los enlaces de una sección y el salto de una sección a la siguiente estaban a la misma distancia, así que con seis secciones y cuarenta enlaces el menú se leía como una lista larga en vez de como secciones. Ahora entre secciones hay cuatro veces la separación que hay entre dos enlaces de la misma, y con el menú plegado la separación es mínima porque la raya ya agrupa. La regla vive en la hoja del componente y se aplica igual estén los grupos dentro de `SidebarNav` o sueltos en el `sidebar` del `AppShell`.
 
 ### Docs
 
+- La tolerancia de las capturas comparadas baja de 0.01 a 0.001. La anterior eran 11.520 píxeles sobre 1280×900: cabía un cambio visible sin que la prueba se enterara, y de hecho los dos fallos del menú plegado pasaron por delante de ella sin marcarla.
 - Story del armazón con seis secciones y cuarenta enlaces, que es donde el problema se ve. Las que había caben en la ventana y por eso no lo enseñaban. Añadida además a las capturas comparadas.
 
 ## [0.4.2] - 2026-09-03
