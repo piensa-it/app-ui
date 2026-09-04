@@ -15,6 +15,17 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Changed
 
+- **Tailwind 4** (#58). La librería se construye ahora con Tailwind 4.3.3, y `peerDependencies` pasa a `^3.4.17 || ^4.0.0`.
+
+  **`tailwind-preset.js` no cambia y las aplicaciones lo siguen extendiendo igual.** El spike previo confirmó que v4 carga un preset JS con `@config`, así que se tomó esa vía en lugar de reescribirlo como CSS: es la que no obliga a coordinar tres repositorios a la vez.
+
+  Lo que sí hubo que tocar dentro de la librería:
+  - `@tailwind base/components/utilities` pasa a `@import "tailwindcss"` más `@config`, y PostCSS pasa a `@tailwindcss/postcss`. `autoprefixer` se retira: v4 lo trae incorporado.
+  - Los 43 `outline-none` pasan a `outline-hidden`, que es el equivalente exacto del comportamiento de v3. El nuevo `outline-none` de v4 quita el contorno de verdad, y con él la pista que queda en el modo de alto contraste de Windows.
+  - `theme.container` desaparece de la configuración en v4 y se declara como `@utility`, con los mismos valores.
+  - `button { cursor: pointer }` salió del reset de v4 y se devuelve en la capa base, o todos los botones pasarían a mostrar el cursor de texto.
+  - Las cuatro `shadow` sueltas de `Badge` pasan a `shadow-sm`, que es el token del sistema.
+- **Choque de nombres entre la escala de espaciado y los anchos máximos.** En v4, `max-w-lg` se resuelve contra la escala de espaciado cuando esta declara ese nombre, y la nuestra usa `sm`, `md`, `lg`… El resultado era que `max-w-lg` valía 1,5 rem en vez de 32 rem: **los diálogos se encogían a 50 px de ancho**. Los siete usos internos pasan a utilidades propias (`panel-sm`, `panel-md`, `panel-lg`…), que no admiten ambigüedad. **Una aplicación que use `max-w-lg` con nuestro preset tiene el mismo problema**: ver la guía de migración.
 - **React 19** (#56). La librería se desarrolla ahora contra React 19.2.8, y `peerDependencies` pasa a `^18.3.1 || ^19.0.0`: **las aplicaciones pueden quedarse en 18 o subir cuando quieran**. Salió más barato de lo previsto: ninguna API eliminada estaba en uso y el compilador solo señaló un punto, el genérico de `ReactElement`, que en 19 pasa de `any` a `unknown`. Los 66 `forwardRef` siguen funcionando; convertirlos es opcional y va aparte, porque cambiaría el tipo público de casi toda la librería.
 - **El soporte de las dos versiones se comprueba, no se declara.** `npm run verify:react18` instala React 18 sin tocar `package.json`, corre tipos y pruebas, y restaura el árbol. Verificado: 345 pruebas y cero errores de tipos con 18 y con 19.
 - `@types/react` y `@types/react-dom` pasan a ser peers opcionales, como hace `@testing-library/react`: el `.d.ts` publicado resuelve contra los del consumidor.

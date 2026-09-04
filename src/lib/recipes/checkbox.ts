@@ -12,7 +12,7 @@ export const checkboxControlVariants = cva(
     "border-border bg-raised",
     "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
     "data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground",
-    "data-[focus-visible]:outline-none",
+    "data-[focus-visible]:outline-hidden",
   ].join(" "),
   {
     variants: {

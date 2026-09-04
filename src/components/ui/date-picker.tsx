@@ -24,7 +24,7 @@ const monthYearCellTriggerClassName = cn(
   "transition-colors duration-normal ease-standard hover:bg-surface-hover hover:text-foreground",
   "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary/90",
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 );
 
 /**
@@ -45,7 +45,7 @@ function DatePickerViewNav() {
         className={cn(
           "min-h-control-default rounded-md px-3 text-sm font-semibold capitalize",
           "hover:bg-accent hover:text-accent-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         )}
       >
         <ArkDatePicker.RangeText />
@@ -139,7 +139,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
           aria-label={ariaLabel}
           {...ariaProps}
           placeholder={placeholder}
-          className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
         />
         <ArkDatePicker.Trigger
           aria-label="Abrir calendario"
@@ -190,7 +190,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
                                     "data-[today]:font-semibold data-[today]:text-primary data-[today]:ring-1 data-[today]:ring-primary/30",
                                     "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary/90",
                                     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                   )}
                                 >
                                   {day.day}

@@ -92,6 +92,16 @@ interfaz:
 | `space-y-stack` | Ritmo vertical entre bloques de primer nivel de una página. | 24 px |
 | `gap-field` | Separación entre una etiqueta y su control. | 8 px |
 
+### Anchos máximos: no uses `max-w-lg`
+
+La escala de espaciado usa `sm`, `md`, `lg`… y Tailwind 4 resuelve `max-w-<nombre>`
+contra ella cuando existe. Así que `max-w-lg` no vale 32 rem: vale 1,5 rem, que
+es lo que mide nuestro paso `lg`. Un diálogo con `max-w-lg` se encoge a 50 px, y
+no hay ningún aviso.
+
+Para el ancho de un panel están las utilidades `panel-xs` … `panel-2xl`, que
+leen los tokens de contenedor y no admiten ambigüedad.
+
 ### Ritmo vertical
 
 **24 px entre bloques de primer nivel de una página.** No hace falta escribirlo:

@@ -6,7 +6,7 @@
 
 - **Frontend**: React 19 (soporta 18 y 19 vía `peerDependencies`) + TypeScript 5.9 + Vite 8 (SWC), en **modo librería** (no SPA)
 - **Componentes**: [Ark UI](https://ark-ui.com) (`@ark-ui/react`, headless — mismo linaje que Chakra UI, construido sobre Zag.js), temado 100% con Tailwind directamente sobre sus atributos `data-scope`/`data-part`/`data-state` (sin capa de indirección tipo `pt`). Componentes de datos que Ark UI no cubre: `DataTable` sobre **TanStack Table** (headless) y `Chart` sobre **Recharts** (SVG, tematizable con CSS variables — a diferencia de Chart.js/canvas). Los componentes simples (Button, Card, Badge, Input) siguen siendo Tailwind puro.
-- **Estilos**: Tailwind CSS 3, tokens vía CSS variables (theming por marca)
+- **Estilos**: Tailwind CSS 4 (el preset publicado se carga con `@config`, así que sigue siendo un `.js`), tokens vía CSS variables (theming por marca)
 - **Documentación**: Storybook 10 — sitio público en https://piensait-ui.netlify.app, autodesplegado por Netlify en cada push a `main`
 - **Tests**: Vitest 4 + Testing Library
 - **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS

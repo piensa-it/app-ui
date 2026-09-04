@@ -10,7 +10,7 @@ import { interactiveTransition } from "./interactive";
  */
 export const menuItemVariants = cva(
   [
-    "relative flex min-h-10 cursor-pointer select-none items-center gap-2 outline-none",
+    "relative flex min-h-10 cursor-pointer select-none items-center gap-2 outline-hidden",
     "rounded-md px-2.5 py-2 text-sm",
     interactiveTransition,
     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",

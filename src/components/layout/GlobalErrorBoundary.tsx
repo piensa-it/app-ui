@@ -47,7 +47,7 @@ export class GlobalErrorBoundary extends Component<GlobalErrorBoundaryProps, Sta
 
       return (
         <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-          <div className="w-full max-w-md rounded-lg border border-destructive/20 bg-card p-6 text-center shadow-sm">
+          <div className="w-full panel-md rounded-lg border border-destructive/20 bg-card p-6 text-center shadow-sm">
             <h2 className="mb-2 text-xl font-semibold text-foreground">{title}</h2>
             <p className="mb-6 text-sm text-muted-foreground">{description}</p>
             {showErrorDetails && this.state.error && (

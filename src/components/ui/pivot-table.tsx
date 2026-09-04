@@ -145,7 +145,7 @@ function PivotTable({
           <IconTile icon={Calculator} variant="outline" shape="rounded" containerSize="md" />
           <div>
             <h3 className="font-heading text-ui-title font-semibold text-foreground">{title}</h3>
-            <p className="mt-1 max-w-2xl text-ui-body-sm text-muted-foreground">{description}</p>
+            <p className="mt-1 panel-2xl text-ui-body-sm text-muted-foreground">{description}</p>
           </div>
         </div>
         <span className="w-fit rounded-full bg-subtle px-3 py-1 text-xs font-semibold text-subtle-foreground">

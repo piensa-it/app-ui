@@ -208,7 +208,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
               type="button"
               aria-label="Abrir el menú"
               onClick={() => setMobileOpen(true)}
-              className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+              className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:hidden"
             >
               <MenuIcon aria-hidden="true" className="size-5" />
             </button>
@@ -217,7 +217,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
               aria-label={collapsed ? "Desplegar el menú" : "Plegar el menú"}
               aria-expanded={!collapsed}
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:grid"
+              className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:grid"
             >
               <PanelLeft aria-hidden="true" className="size-5" />
             </button>

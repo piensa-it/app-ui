@@ -12,13 +12,8 @@ const config: Config = {
   darkMode: ["class"],
   content: ["./src/**/*.{ts,tsx,mdx}"],
   presets: [preset],
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: { "2xl": "1400px" },
-    },
-  },
+  // `theme.container` vive ahora como `@utility container` en globals.css:
+  // Tailwind 4 lo ignora en la configuración, en silencio.
 };
 
 export default config;

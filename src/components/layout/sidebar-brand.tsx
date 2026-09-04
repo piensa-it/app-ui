@@ -208,7 +208,7 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
                 collapsed ? "justify-center p-0" : "p-2xs",
                 "transition-colors duration-normal",
                 "hover:bg-sidebar-hover",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
               )}
             >
               {identity}

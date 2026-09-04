@@ -1,8 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import postcss from "postcss";
-import tailwindcss from "tailwindcss";
-import path from "node:path";
+
+import { compilarTailwind } from "../test/compilar-tailwind";
 import { DataTable, Column } from "../components/ui/data-table";
 
 /**
@@ -13,16 +12,10 @@ import { DataTable, Column } from "../components/ui/data-table";
  * de comprobar nombres de clases.
  */
 beforeAll(async () => {
-  const preset = (await import(path.resolve(process.cwd(), "tailwind-preset.js"))).default;
-  const result = await postcss([
-    tailwindcss({
-      presets: [preset],
-      content: [path.resolve(process.cwd(), "src/components/ui/data-table.tsx")],
-    }),
-  ]).process("@tailwind base; @tailwind utilities;", { from: undefined });
+  const css = await compilarTailwind({ fuentes: ["src/components/ui/data-table.tsx"] });
   const style = document.createElement("style");
   style.setAttribute("data-test", "tailwind");
-  style.textContent = result.css;
+  style.textContent = css;
   document.head.appendChild(style);
 });
 

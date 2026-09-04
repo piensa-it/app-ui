@@ -122,7 +122,7 @@ const AutoComplete = React.forwardRef<HTMLDivElement, AutoCompleteProps>(
             onKeyDown={(event) => {
               if (event.key === "Escape" || event.key === "Tab") setOpen(false);
             }}
-            className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
           />
           <ArkCombobox.Trigger
             aria-label="Mostrar sugerencias"

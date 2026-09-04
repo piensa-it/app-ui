@@ -85,7 +85,7 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
             className={cn(
               "flex items-center justify-between gap-xs rounded-md px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide",
               "text-sidebar-muted transition-colors hover:text-sidebar-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             )}
           >
             {label}
@@ -181,7 +181,7 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
           }}
           className={cn(
             "flex w-full items-center gap-sm rounded-md px-sm py-xs text-ui-body-sm transition-colors duration-normal",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             active
               ? "bg-sidebar-active font-medium text-sidebar-active-foreground"
               : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",

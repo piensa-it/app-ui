@@ -32,7 +32,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             className={cn(
               "block transition-transform duration-normal hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none",
               sliderThumbSizeVariants({ size }),
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
             )}
           >

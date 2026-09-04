@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import postcss from "postcss";
-import tailwindcss from "tailwindcss";
 import path from "node:path";
+
+import { compilarTailwind } from "../test/compilar-tailwind";
 import { readFileSync } from "node:fs";
 
 import { AppShell } from "../components/layout/app-shell";
@@ -16,15 +16,9 @@ import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "../components/layou
  * no diría si el resultado agrupa o no.
  */
 beforeAll(async () => {
-  const preset = (await import(path.resolve(process.cwd(), "tailwind-preset.js"))).default;
-  const result = await postcss([
-    tailwindcss({
-      presets: [preset],
-      content: [path.resolve(process.cwd(), "src/components/**/*.tsx")],
-    }),
-  ]).process("@tailwind base; @tailwind utilities;", { from: undefined });
+  const css = await compilarTailwind({ fuentes: ["src/components/**/*.tsx"] });
   const style = document.createElement("style");
-  style.textContent = result.css;
+  style.textContent = css;
   document.head.appendChild(style);
   // La separación entre secciones vive en la hoja del componente.
   const propia = document.createElement("style");

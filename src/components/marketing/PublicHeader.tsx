@@ -76,7 +76,7 @@ export const PublicHeader = ({
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center justify-between gap-4">
-          <Link to={homeHref} className="flex min-w-0 items-center gap-2.5 rounded-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <Link to={homeHref} className="flex min-w-0 items-center gap-2.5 rounded-md no-underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <img src={logoSrc} alt="" className="size-9 shrink-0 rounded-lg object-contain" />
             <span className="truncate font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
             {badge && (
@@ -95,7 +95,7 @@ export const PublicHeader = ({
 
           <button
             type="button"
-            className="grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
+            className="grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >

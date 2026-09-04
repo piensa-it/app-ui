@@ -152,7 +152,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
                       }
                     }}
                     aria-label={`Quitar ${labelByValue.get(raw) ?? raw}`}
-                    className="rounded-sm opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded-sm opacity-70 outline-hidden hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <X aria-hidden="true" className="size-3" />
                   </span>
@@ -166,7 +166,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectFieldProps>(
               // externa, el nombre sale del contenido del propio control.
               aria-label={ariaLabel}
               {...ariaProps}
-              className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-hidden hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ChevronDown
                 aria-hidden="true"
