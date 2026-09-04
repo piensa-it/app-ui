@@ -17,7 +17,10 @@ vi.mock("recharts", async (importOriginal) => {
     (props: P) => <Component {...props} isAnimationActive={false} />;
   return {
     ...actual,
-    ResponsiveContainer: ({ children }: { children: React.ReactElement }) =>
+    // El genérico de `ReactElement` va explícito: en React 19 su valor por
+    // defecto pasó de `any` a `unknown`, y `cloneElement` ya no acepta
+    // cualquier prop.
+    ResponsiveContainer: ({ children }: { children: React.ReactElement<{ width?: number; height?: number }> }) =>
       React.cloneElement(children, { width: 600, height: 300 }),
     Bar: sinAnimacion(actual.Bar),
     Pie: sinAnimacion(actual.Pie),

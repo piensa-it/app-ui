@@ -15,6 +15,9 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Changed
 
+- **React 19** (#56). La librería se desarrolla ahora contra React 19.2.8, y `peerDependencies` pasa a `^18.3.1 || ^19.0.0`: **las aplicaciones pueden quedarse en 18 o subir cuando quieran**. Salió más barato de lo previsto: ninguna API eliminada estaba en uso y el compilador solo señaló un punto, el genérico de `ReactElement`, que en 19 pasa de `any` a `unknown`. Los 66 `forwardRef` siguen funcionando; convertirlos es opcional y va aparte, porque cambiaría el tipo público de casi toda la librería.
+- **El soporte de las dos versiones se comprueba, no se declara.** `npm run verify:react18` instala React 18 sin tocar `package.json`, corre tipos y pruebas, y restaura el árbol. Verificado: 345 pruebas y cero errores de tipos con 18 y con 19.
+- `@types/react` y `@types/react-dom` pasan a ser peers opcionales, como hace `@testing-library/react`: el `.d.ts` publicado resuelve contra los del consumidor.
 - Ola de mantenimiento (#55): Ark UI 5.39.1, framer-motion 13.2.0, lucide-react 1.41.0, `@internationalized/date` 3.12.4, Storybook 10.6.0 con sus addons, y los plugins de lint. Todo dentro de los rangos ya declarados, así que no cambia el contrato con ningún consumidor. Batería completa en verde, incluidas las 14 capturas comparadas sin diferencias.
 
 ### Docs
