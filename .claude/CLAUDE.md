@@ -21,7 +21,14 @@ npm run build-storybook    # Genera storybook-static/ — esto es lo que se publ
 npm run test              # Tests en modo watch
 npm run test:run          # Tests una sola vez
 npm run lint              # ESLint
+npm run test:browser      # Pruebas de navegador con el render de ESTA máquina
+npm run test:browser:docker         # Las mismas, en el Linux exacto de CI
+npm run test:browser:docker:update  # Regenera las capturas de referencia de Linux
 ```
+
+Las capturas comparadas se guardan por plataforma (`*-darwin.png`,
+`*-linux.png`) porque macOS y Linux no rasterizan las letras igual. Las que
+mira CI son las de Linux: regeneralas con Docker, no a mano.
 
 ## Estructura del proyecto
 

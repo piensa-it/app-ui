@@ -244,6 +244,30 @@ npm run build-storybook
 Storybook runs at `http://localhost:6006`. The Vite playground is available
 through `npm run dev`, but is not part of the published package.
 
+### Browser and visual tests
+
+`npm run test:browser` runs them against your own machine's rendering. CI runs
+them on Linux, and the two do not rasterise text the same way, so each platform
+compares against its own baselines (`*-darwin.png`, `*-linux.png`).
+
+To reproduce exactly what CI will see, run them inside the official Playwright
+image — same Linux, same Chromium, same version as the runner:
+
+```bash
+npm run test:browser:docker           # check
+npm run test:browser:docker:update    # regenerate the Linux baselines
+npm run test:browser:docker -- -g armazon
+```
+
+The baselines it writes are byte-identical to the ones the CI runner produces,
+which is what makes it worth the container: a visual change no longer needs a
+push, a failed gate and an artifact download to get its Linux baseline. It also
+means a red gate can be reproduced locally instead of guessed at.
+
+Dependencies are installed into a Docker volume rather than the repository's
+`node_modules`, because the esbuild and rolldown binaries macOS installs do not
+run on Linux. They are reinstalled only when `package-lock.json` changes.
+
 Design rules are documented in [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), and
 component maturity is tracked in [COMPONENT_STATUS.md](./COMPONENT_STATUS.md).
 
@@ -266,8 +290,9 @@ Storybook on Netlify.
 A version bump also changes three visual baselines: `AppShell` renders the
 library version in its sidebar footer, so `armazon-completo`, `armazon-router`
 and `armazon-menu-largo` shift by a couple of hundred pixels. Refresh them in
-the same PR — `npx playwright test --update-snapshots=all` for the macOS set,
-and the `snapshots` workflow for the Linux set that CI compares against. The
+the same PR — `npm run test:browser --  --update-snapshots=all` for the macOS
+set, and `npm run test:browser:docker:update` for the Linux set that CI
+compares against. The
 footer is deliberately not masked: a bug in that exact line, the version
 overflowing the collapsed sidebar, shipped in 0.4.2.
 

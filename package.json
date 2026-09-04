@@ -61,6 +61,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:browser": "playwright test",
+    "test:browser:docker": "bash scripts/pruebas-navegador-docker.sh",
+    "test:browser:docker:update": "bash scripts/pruebas-navegador-docker.sh --update-snapshots=all",
     "test:browser:update": "playwright test --update-snapshots",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
