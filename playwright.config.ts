@@ -12,7 +12,8 @@ export default defineConfig({
   // La referencia se guarda por plataforma a propósito: macOS y Linux no
   // rasterizan las letras igual, y comparar una contra la otra mete más ruido
   // que señal (ver la nota de tolerancia en storybook.spec.ts). Las de Linux
-  // —las que mira CI— se regeneran con el flujo `snapshots.yml`.
+  // —las que mira CI— se regeneran en local con `npm run test:browser:docker:update`,
+  // que corre la misma imagen de Playwright que el runner.
   snapshotPathTemplate:
     "{testDir}/__screenshots__/{testFilePath}/{arg}-{platform}{ext}",
   use: {
