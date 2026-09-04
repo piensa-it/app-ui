@@ -1,7 +1,7 @@
 {
   "name": "@piensa-it/ui-library",
   "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -26,7 +26,8 @@
   ],
   "files": [
     "dist",
-    "tailwind-preset.js"
+    "tailwind-preset.js",
+    "scripts/codemod-espaciado.mjs"
   ],
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",

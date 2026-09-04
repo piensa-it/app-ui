@@ -44,7 +44,7 @@ describe("FormGrid", () => {
         <Field label="Nombre"><Input /></Field>
       </FormGrid>,
     );
-    expect((container.firstElementChild as HTMLElement).className).toMatch(/gap-(md|lg|sm)\b/);
+    expect((container.firstElementChild as HTMLElement).className).toMatch(/gap-ui-(md|lg|sm)\b/);
   });
 });
 
@@ -57,7 +57,7 @@ describe("Toolbar", () => {
     );
     const root = container.firstElementChild as HTMLElement;
     expect(root.className).toMatch(/flex/);
-    expect(root.className).toMatch(/gap-(xs|sm)\b/);
+    expect(root.className).toMatch(/gap-ui-(xs|sm)\b/);
   });
 
   it("empuja a la derecha lo que va después del separador", () => {

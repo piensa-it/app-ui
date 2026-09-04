@@ -46,8 +46,8 @@ export const EstadoDeVersiones: Story = {
       </header>
       <div className="grid gap-3">
         {UI_LIBRARY_RELEASES.map((release) => (
-          <Surface key={release.version} variant="card" className="grid gap-md">
-            <div className="flex items-center justify-between gap-md">
+          <Surface key={release.version} variant="card" className="grid gap-ui-md">
+            <div className="flex items-center justify-between gap-ui-md">
               <div>
                 <p className="text-ui-title-sm font-semibold">@piensa-it/ui-library</p>
                 <code className="text-ui-body-sm text-muted-foreground">v{release.version}</code>
@@ -59,11 +59,11 @@ export const EstadoDeVersiones: Story = {
             {/* Qué hay que hacer al subir, no qué cambió: lo segundo está en el
                 CHANGELOG y lo primero es lo que se busca al actualizar. */}
             {release.migration.length > 0 ? (
-              <div className="grid gap-xs border-t border-border pt-md">
+              <div className="grid gap-ui-xs border-t border-border pt-ui-md">
                 <p className="text-ui-caption font-semibold uppercase tracking-wide text-muted-foreground">
                   Al subir a esta versión
                 </p>
-                <ul className="grid list-disc gap-2xs pl-md text-ui-body-sm text-muted-foreground">
+                <ul className="grid list-disc gap-ui-2xs pl-ui-md text-ui-body-sm text-muted-foreground">
                   {release.migration.map((step) => (
                     <li key={step}>{step}</li>
                   ))}

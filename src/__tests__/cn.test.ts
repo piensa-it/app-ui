@@ -11,7 +11,7 @@ import { cn } from "../lib/utils";
  *      `text-ui-body-sm` seguido de `text-sidebar-muted` perdía el tamaño, y el
  *      menú lateral se veía un tercio más grande de lo diseñado.
  *   2. Dos clases del mismo grupo no se reconocen como rivales y sobreviven las
- *      dos: `gap-sm` + `gap-md` dejaba ganar a la hoja de estilos, así que
+ *      dos: `gap-ui-sm` + `gap-ui-md` dejaba ganar a la hoja de estilos, así que
  *      `className` no podía anular el espaciado de un componente.
  */
 describe("cn · escala tipográfica propia", () => {
@@ -40,21 +40,21 @@ describe("cn · escala tipográfica propia", () => {
 
 describe("cn · escala de espaciado propia", () => {
   it.each([
-    ["gap-sm", "gap-md"],
-    ["gap-x-xs", "gap-x-lg"],
+    ["gap-ui-sm", "gap-ui-md"],
+    ["gap-x-ui-xs", "gap-x-ui-lg"],
     ["p-inset", "p-inset-compact"],
-    ["px-md", "px-lg"],
-    ["py-2xs", "py-xl"],
-    ["space-y-stack", "space-y-md"],
-    ["m-sm", "m-2xl"],
-    ["mt-field", "mt-xs"],
+    ["px-ui-md", "px-ui-lg"],
+    ["py-ui-2xs", "py-ui-xl"],
+    ["space-y-stack", "space-y-ui-md"],
+    ["m-ui-sm", "m-ui-2xl"],
+    ["mt-field", "mt-ui-xs"],
   ])("`%s` la anula `%s`", (before, after) => {
     expect(cn(before, after)).toBe(after);
   });
 
   it("la escala propia y la nativa de Tailwind se reconocen entre sí", () => {
     expect(cn("p-inset", "p-4")).toBe("p-4");
-    expect(cn("gap-4", "gap-sm")).toBe("gap-sm");
+    expect(cn("gap-4", "gap-ui-sm")).toBe("gap-ui-sm");
   });
 });
 

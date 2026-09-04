@@ -181,10 +181,10 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
         <div
           ref={ref}
           className={cn(
-            "flex items-center gap-sm py-xs",
+            "flex items-center gap-ui-sm py-ui-xs",
             // Plegado, la marca se centra en el mismo eje que los iconos del
             // menú. Con relleno lateral quedaría a la izquierda de ellos.
-            collapsed ? "justify-center px-0" : "px-2xs",
+            collapsed ? "justify-center px-0" : "px-ui-2xs",
             className,
           )}
           {...props}
@@ -195,7 +195,7 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
     }
 
     return (
-      <div ref={ref} className={cn("py-xs", collapsed ? "px-0" : "px-2xs", className)} {...props}>
+      <div ref={ref} className={cn("py-ui-xs", collapsed ? "px-0" : "px-ui-2xs", className)} {...props}>
         <Menu>
           <MenuTrigger>
             <button
@@ -204,8 +204,8 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
               // del nombre accesible del control.
               aria-label={collapsed ? name : undefined}
               className={cn(
-                "flex w-full items-center gap-sm rounded-md text-left",
-                collapsed ? "justify-center p-0" : "p-2xs",
+                "flex w-full items-center gap-ui-sm rounded-md text-left",
+                collapsed ? "justify-center p-0" : "p-ui-2xs",
                 "transition-colors duration-normal",
                 "hover:bg-sidebar-hover",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",

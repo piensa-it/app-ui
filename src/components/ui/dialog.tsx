@@ -62,11 +62,11 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
     >
       <Portal>
         <ArkDialog.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
-        <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-md">
+        <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-ui-md">
           <ArkDialog.Content
             ref={ref}
             className={cn(
-              "relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-surface-border bg-raised p-inset shadow-lg outline-hidden sm:panel-lg sm:rounded-xl",
+              "relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-surface-border bg-raised p-inset shadow-lg outline-hidden sm:max-w-lg sm:rounded-xl",
               elevationRing,
               dialogContentAnimation,
               className,
@@ -94,12 +94,12 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
 Dialog.displayName = "Dialog";
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-2xs text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex flex-col space-y-ui-2xs text-center sm:text-left", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("mt-md flex flex-col-reverse gap-xs sm:flex-row sm:justify-end", className)} {...props} />
+  <div className={cn("mt-ui-md flex flex-col-reverse gap-ui-xs sm:flex-row sm:justify-end", className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 

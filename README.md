@@ -135,6 +135,34 @@ library stylesheet:
 }
 ```
 
+Both halves of the theme — `:root` and `.dark` — ship inside `@layer base`, so
+an application can override either one from its own `@layer base` and win. Until
+0.6.0 the `.dark` block sat outside every layer, and since unlayered CSS always
+beats layered CSS, an application's dark theme lost against the library's.
+
+### Spacing scale
+
+The spacing steps carry a `ui-` prefix: `p-ui-md`, `gap-ui-sm`, `-mt-ui-lg`.
+The role names do not: `p-inset`, `space-y-stack`, `gap-field`.
+
+The prefix is not cosmetic. In Tailwind 4 the spacing namespace always wins over
+the container namespace, so a spacing key named `md` takes `max-w-md`, `w-md`,
+`min-w-md` and `basis-md` with it — `max-w-2xl` resolved to 3rem instead of
+42rem, with no warning and no compile error. Nothing overrides it: not
+`theme.maxWidth`, not `@theme { --container-* }`, not `@utility`, not a plugin.
+Not colliding in the first place is the only fix.
+
+So `max-w-*` and friends are plain Tailwind again, and always were meant to be.
+Upgrading from 0.5.0 or earlier, rename your spacing classes with the codemod:
+
+```bash
+node node_modules/@piensa-it/ui-library/scripts/codemod-espaciado.mjs "src/**/*.{ts,tsx,css}"
+```
+
+Pass `--dry` first to see what it would touch. It rewrites only the prefixes
+that read the spacing scale, and deliberately leaves `max-w-*`, `w-*` and
+`min-w-*` alone — those are the ones that start working again.
+
 Applications using Tailwind can also consume the published preset:
 
 ```js
@@ -234,6 +262,14 @@ Quality, security, dependency, and release controls are described in
 After a version bump is merged into `main`, creating a GitHub Release triggers
 the package publishing workflow. Each push to `main` also refreshes the public
 Storybook on Netlify.
+
+A version bump also changes three visual baselines: `AppShell` renders the
+library version in its sidebar footer, so `armazon-completo`, `armazon-router`
+and `armazon-menu-largo` shift by a couple of hundred pixels. Refresh them in
+the same PR — `npx playwright test --update-snapshots=all` for the macOS set,
+and the `snapshots` workflow for the Linux set that CI compares against. The
+footer is deliberately not masked: a bug in that exact line, the version
+overflowing the collapsed sidebar, shipped in 0.4.2.
 
 ## License and third-party software
 

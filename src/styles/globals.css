@@ -15,37 +15,6 @@
   }
 }
 
-/* Tailwind 4 resuelve `max-w-lg` contra el espacio de nombres de contenedores
-   y, si no lo encuentra, cae a la escala de espaciado. Como la nuestra usa los
-   mismos nombres (`sm`, `md`, `lg`…), `max-w-lg` pasaba a valer 1.5 rem en vez
-   de 32 rem: los diálogos se encogían a 50 px de ancho. Se declaran los
-   contenedores con los valores de siempre. */
-@theme {
-  --container-xs: 20rem;
-  --container-sm: 24rem;
-  --container-md: 28rem;
-  --container-lg: 32rem;
-  --container-xl: 36rem;
-  --container-2xl: 42rem;
-  --container-3xl: 48rem;
-  --container-4xl: 56rem;
-  --container-5xl: 64rem;
-  --container-6xl: 72rem;
-  --container-7xl: 80rem;
-}
-
-/* Anchos de panel.
-   No se usa `max-w-lg` y compañía porque en Tailwind 4 esos nombres los gana
-   nuestra escala de espaciado, que usa los mismos: `max-w-lg` valía 1.5 rem en
-   vez de 32 rem y los diálogos se encogían a 50 px de ancho. Con un nombre
-   propio no hay ambigüedad posible. */
-@utility panel-xs { max-width: var(--container-xs); }
-@utility panel-sm { max-width: var(--container-sm); }
-@utility panel-md { max-width: var(--container-md); }
-@utility panel-lg { max-width: var(--container-lg); }
-@utility panel-xl { max-width: var(--container-xl); }
-@utility panel-2xl { max-width: var(--container-2xl); }
-
 /* `theme.container` desapareció de la configuración en v4: se declara como
    utilidad, con los mismos valores que tenía. */
 @utility container {
@@ -226,191 +195,199 @@
 }
 
 /**
- * Densidad de la interfaz.
+ * Los bloques de tokens viven todos en la misma capa que `:root`.
  *
- * No es una prop por componente: se elige para toda la aplicación (o para una
- * sección) con `<UiProvider density>`, y baja sola a cada control porque todos
- * usan los mismos tokens de altura y relleno. Una pantalla de captura con
- * veinte filas visibles quiere `compact`; un tablero, no.
+ * En la cascada, lo que no está en ninguna capa gana siempre a lo que sí,
+ * por tardío que sea lo segundo. Con Tailwind 3 daba igual —su PostCSS
+ * aplanaba las capas y mandaba el orden de aparición—, pero con las capas
+ * nativas de v4 un bloque suelto aquí le ganaría a la aplicación que
+ * redefine esos mismos tokens dentro de `@layer base`, que es como lo
+ * documenta el README. Ver #70.
  */
-[data-ui-density="compact"] {
-  --control-compact: 1.75rem;
-  --control-default: 2.25rem;
-  --control-comfortable: 2.5rem;
-  --space-inset: var(--space-md);
-  --space-inset-compact: var(--space-sm);
-  --space-stack: var(--space-md);
-}
+@layer base {
+  /**
+   * Densidad de la interfaz.
+   *
+   * No es una prop por componente: se elige para toda la aplicación (o para una
+   * sección) con `<UiProvider density>`, y baja sola a cada control porque todos
+   * usan los mismos tokens de altura y relleno. Una pantalla de captura con
+   * veinte filas visibles quiere `compact`; un tablero, no.
+   */
+  [data-ui-density="compact"] {
+    --control-compact: 1.75rem;
+    --control-default: 2.25rem;
+    --control-comfortable: 2.5rem;
+    --space-inset: var(--space-md);
+    --space-inset-compact: var(--space-sm);
+    --space-stack: var(--space-md);
+  }
 
-[data-ui-density="comfortable"] {
-  --control-compact: 2.25rem;
-  --control-default: 2.75rem;
-  --control-comfortable: 3rem;
-  --space-inset: var(--space-xl);
-  --space-stack: var(--space-xl);
-}
+  [data-ui-density="comfortable"] {
+    --control-compact: 2.25rem;
+    --control-default: 2.75rem;
+    --control-comfortable: 3rem;
+    --space-inset: var(--space-xl);
+    --space-stack: var(--space-xl);
+  }
 
-/** Familias tipográficas intercambiables por aplicación. */
-[data-ui-font="geist"] {
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-}
+  /** Familias tipográficas intercambiables por aplicación. */
+  [data-ui-font="geist"] {
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  }
 
-[data-ui-font="inter"] {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-}
+  [data-ui-font="inter"] {
+    --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  }
 
-[data-ui-font="dm-sans"] {
-  --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
-}
+  [data-ui-font="dm-sans"] {
+    --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  }
 
-[data-ui-font="system"] {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+  [data-ui-font="system"] {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
 
-/**
- * Carácter del menú lateral (`AppShell`).
- *
- * El menú es oscuro en ambos temas: es un plano distinto de la interfaz, no
- * una superficie más de la página, y mantenerlo estable evita que la
- * navegación cambie de identidad al alternar claro/oscuro. Por eso estos
- * tokens no se redefinen en `.dark`.
- *
- * `--sidebar-alpha` y `--sidebar-blur` permiten variantes translúcidas sin
- * que el componente tenga lógica condicional: siempre pinta el fondo con
- * alfa y aplica el desenfoque, que en las variantes opacas vale 0.
- */
-[data-sidebar] {
-  --sidebar-alpha: 1;
-  --sidebar-blur: 0px;
-  --sidebar-ring: var(--primary);
-}
+  /**
+   * Carácter del menú lateral (`AppShell`).
+   *
+   * El menú es oscuro en ambos temas: es un plano distinto de la interfaz, no
+   * una superficie más de la página, y mantenerlo estable evita que la
+   * navegación cambie de identidad al alternar claro/oscuro. Por eso estos
+   * tokens no se redefinen en `.dark`.
+   *
+   * `--sidebar-alpha` y `--sidebar-blur` permiten variantes translúcidas sin
+   * que el componente tenga lógica condicional: siempre pinta el fondo con
+   * alfa y aplica el desenfoque, que en las variantes opacas vale 0.
+   */
+  [data-sidebar] {
+    --sidebar-alpha: 1;
+    --sidebar-blur: 0px;
+    --sidebar-ring: var(--primary);
+  }
 
-/** Grafito: gris neutro frío. El predeterminado, no compite con la marca. */
-[data-sidebar="graphite"] {
-  --sidebar: 220 9% 13%;
-  --sidebar-foreground: 0 0% 96%;
-  --sidebar-muted-foreground: 220 6% 64%;
-  --sidebar-border: 220 8% 22%;
-  --sidebar-hover: 220 8% 18%;
-  --sidebar-active: 220 9% 25%;
-  --sidebar-active-foreground: 0 0% 100%;
-  --sidebar-accent: 220 8% 24%;
-  --sidebar-accent-foreground: 0 0% 96%;
-}
+  /** Grafito: gris neutro frío. El predeterminado, no compite con la marca. */
+  [data-sidebar="graphite"] {
+    --sidebar: 220 9% 13%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-muted-foreground: 220 6% 64%;
+    --sidebar-border: 220 8% 22%;
+    --sidebar-hover: 220 8% 18%;
+    --sidebar-active: 220 9% 25%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 220 8% 24%;
+    --sidebar-accent-foreground: 0 0% 96%;
+  }
 
-/** Tinta verde: verde muy oscuro. Para marcas de identidad verde. */
-[data-sidebar="ink"] {
-  --sidebar: 162 32% 10%;
-  --sidebar-foreground: 150 16% 95%;
-  --sidebar-muted-foreground: 155 12% 62%;
-  --sidebar-border: 160 22% 19%;
-  --sidebar-hover: 160 26% 15%;
-  --sidebar-active: 160 30% 22%;
-  --sidebar-active-foreground: 0 0% 100%;
-  --sidebar-accent: 160 28% 21%;
-  --sidebar-accent-foreground: 150 16% 95%;
-}
+  /** Tinta verde: verde muy oscuro. Para marcas de identidad verde. */
+  [data-sidebar="ink"] {
+    --sidebar: 162 32% 10%;
+    --sidebar-foreground: 150 16% 95%;
+    --sidebar-muted-foreground: 155 12% 62%;
+    --sidebar-border: 160 22% 19%;
+    --sidebar-hover: 160 26% 15%;
+    --sidebar-active: 160 30% 22%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 160 28% 21%;
+    --sidebar-accent-foreground: 150 16% 95%;
+  }
 
-/** Cristal ahumado: translúcido con desenfoque; deja ver el fondo detrás. */
-[data-sidebar="smoke"] {
-  --sidebar: 224 14% 14%;
-  --sidebar-alpha: 0.72;
-  --sidebar-blur: 18px;
-  --sidebar-foreground: 0 0% 97%;
-  --sidebar-muted-foreground: 224 8% 68%;
-  --sidebar-border: 224 12% 30%;
-  --sidebar-hover: 224 12% 26%;
-  --sidebar-active: 224 14% 34%;
-  --sidebar-active-foreground: 0 0% 100%;
-  --sidebar-accent: 224 12% 30%;
-  --sidebar-accent-foreground: 0 0% 97%;
-}
+  /** Cristal ahumado: translúcido con desenfoque; deja ver el fondo detrás. */
+  [data-sidebar="smoke"] {
+    --sidebar: 224 14% 14%;
+    --sidebar-alpha: 0.72;
+    --sidebar-blur: 18px;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-muted-foreground: 224 8% 68%;
+    --sidebar-border: 224 12% 30%;
+    --sidebar-hover: 224 12% 26%;
+    --sidebar-active: 224 14% 34%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 224 12% 30%;
+    --sidebar-accent-foreground: 0 0% 97%;
+  }
 
-/**
- * IMPORTANTE: este bloque `.dark` se deja DELIBERADAMENTE fuera de
- * `@layer base`. Tailwind 3.4.17 (con `darkMode: ["class"]` + al menos un
- * uso real de la variante `dark:` en el contenido escaneado — la tenemos en
- * `style-helpers.ts`) descarta en silencio cualquier regla CSS propia con
- * selector de clase (no solo `.dark`, cualquier nombre) que viva dentro de
- * `@layer base` una vez que el pipeline de la variante `dark` se activa.
- * Verificado de forma aislada con `tailwindcss` CLI contra este mismo
- * `tailwind.config.ts`: una regla `@layer base { .dark { ... } }` desaparece
- * por completo del CSS compilado; la misma regla fuera de `@layer`
- * sobrevive intacta. No es un problema de cascada/especificidad — `.dark`
- * y `:root` targetean elementos distintos del DOM (el div con la clase vs.
- * `<html>`), así que estar fuera del layer no le da prioridad indebida,
- * solo evita que Tailwind se la coma. No mover este bloque de vuelta a
- * `@layer base` sin volver a verificar contra el CSS compilado.
- *
- * El modo oscuro conserva el linaje cromático de la paleta seleccionada para
- * que una acción primaria mantenga el mismo significado entre temas.
- */
-.dark {
-  /* Misma escala y misma dirección que en claro: cada nivel, más luz. */
-  --ground: 0 0% 7%;
-  --ground-foreground: 0 0% 95%;
+  /**
+   * Tema oscuro.
+   *
+   * Vive en `@layer base`, igual que `:root`. Estuvo fuera de toda capa por un
+   * comportamiento de Tailwind 3, que descartaba las reglas de clase propias
+   * dentro de `@layer base` en cuanto se activaba la variante `dark:`. En
+   * Tailwind 4 las capas son nativas y la regla sobrevive, y dejarla fuera pasó
+   * a ser un problema: lo que no está en ninguna capa gana siempre a lo que sí,
+   * así que una aplicación que definiera su identidad oscura en
+   * `@layer base { .dark { … } }` —que es lo que enseña el README— perdía contra
+   * la de fábrica. Ver #70.
+   *
+   * El modo oscuro conserva el linaje cromático de la paleta seleccionada para
+   * que una acción primaria mantenga el mismo significado entre temas.
+   */
+  .dark {
+    /* Misma escala y misma dirección que en claro: cada nivel, más luz. */
+    --ground: 0 0% 7%;
+    --ground-foreground: 0 0% 95%;
 
-  --surface: 0 0% 10%;
-  --surface-foreground: 0 0% 95%;
-  --surface-hover: 0 0% 14%;
-  --surface-border: 0 0% 22%;
+    --surface: 0 0% 10%;
+    --surface-foreground: 0 0% 95%;
+    --surface-hover: 0 0% 14%;
+    --surface-border: 0 0% 22%;
 
-  --raised: 0 0% 13%;
-  --raised-foreground: 0 0% 95%;
-  --raised-border: 0 0% 24%;
+    --raised: 0 0% 13%;
+    --raised-foreground: 0 0% 95%;
+    --raised-border: 0 0% 24%;
 
-  --background: var(--ground);
-  --foreground: 0 0% 95%;
+    --background: var(--ground);
+    --foreground: 0 0% 95%;
 
-  --card: var(--raised);
-  --card-foreground: 0 0% 95%;
+    --card: var(--raised);
+    --card-foreground: 0 0% 95%;
 
-  --popover: var(--raised);
-  --popover-foreground: 0 0% 95%;
+    --popover: var(--raised);
+    --popover-foreground: 0 0% 95%;
 
-  --primary: 243 82% 70%;
-  --primary-foreground: 243 45% 12%;
+    --primary: 243 82% 70%;
+    --primary-foreground: 243 45% 12%;
 
-  --secondary: 0 0% 17%;
-  --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 95%;
 
-  --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 66%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 66%;
 
-  --accent: 0 0% 20%;
-  --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 95%;
 
-  --subtle: 243 38% 18%;
-  --subtle-hover: 243 38% 23%;
-  --subtle-foreground: 243 78% 82%;
+    --subtle: 243 38% 18%;
+    --subtle-hover: 243 38% 23%;
+    --subtle-foreground: 243 78% 82%;
 
-  /* Mismo motivo que en :root: 62% de luminosidad con texto blanco daba
-     3.40:1 (falla AA). 45% da ~5.2:1. */
-  --destructive: 4 85% 45%;
-  --destructive-foreground: 0 0% 100%;
+    /* Mismo motivo que en :root: 62% de luminosidad con texto blanco daba
+       3.40:1 (falla AA). 45% da ~5.2:1. */
+    --destructive: 4 85% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-  --success: 142.1 70.6% 45.3%;
-  --success-foreground: 144.9 80.4% 10%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
 
-  --warning: 38 92% 55%;
-  --warning-foreground: 48 96% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 48 96% 8%;
 
-  --border: 0 0% 22%;
-  --input: 0 0% 24%;
-  --ring: 243 82% 70%;
+    --border: 0 0% 22%;
+    --input: 0 0% 24%;
+    --ring: 243 82% 70%;
 
-  --overlay: 0 0% 0%;
-  --shadow-color: 0 0% 0%;
+    --overlay: 0 0% 0%;
+    --shadow-color: 0 0% 0%;
 
-  --chart-1: 243 82% 70%;
-  --chart-2: 0 0% 85%;
-  --chart-3: 38 92% 60%;
-  --chart-4: 200 70% 55%;
-  --chart-5: 160 55% 50%;
+    --chart-1: 243 82% 70%;
+    --chart-2: 0 0% 85%;
+    --chart-3: 38 92% 60%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 160 55% 50%;
+  }
 }
 
 @layer base {

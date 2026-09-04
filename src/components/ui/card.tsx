@@ -11,7 +11,7 @@ Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-2xs p-inset", className)} {...props} />
+    <div ref={ref} className={cn("flex flex-col space-y-ui-2xs p-inset", className)} {...props} />
   ),
 );
 CardHeader.displayName = "CardHeader";

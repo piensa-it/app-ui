@@ -131,7 +131,7 @@ export const Default: Story = {
 export const Variantes: Story = {
   name: "Carácter del menú",
   render: () => (
-    <div className="grid gap-lg">
+    <div className="grid gap-ui-lg">
       {(["graphite", "ink", "smoke"] as const).map((variant) => (
         <div key={variant} className="overflow-hidden rounded-lg border border-border">
           <AppShell

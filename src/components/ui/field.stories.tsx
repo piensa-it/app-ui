@@ -134,7 +134,7 @@ export const Densidad: Story = {
     children: <Input />,
   },
   render: () => (
-    <div className="grid max-w-lg gap-lg">
+    <div className="grid max-w-lg gap-ui-lg">
       {(["comfortable", "compact"] as const).map((density) => (
         <Field
           key={density}
@@ -155,7 +155,7 @@ export const Superficies: Story = {
     children: <Input />,
   },
   render: () => (
-    <div className="grid max-w-lg gap-md">
+    <div className="grid max-w-lg gap-ui-md">
       {(["plain", "outline", "surface", "subtle"] as const).map((variant) => (
         <Field
           key={variant}
@@ -208,7 +208,7 @@ export const FormularioCompleto: Story = {
             setEnviado(true);
           }}
         >
-          <div className="space-y-2xs">
+          <div className="space-y-ui-2xs">
             <h3 className="text-ui-title font-semibold">Alta de cliente</h3>
             <p className="text-ui-body-sm text-muted-foreground">
               Todos los campos usan Field: la etiqueta, la ayuda y el error se conectan solos.
@@ -254,7 +254,7 @@ export const FormularioCompleto: Story = {
             />
           </Field>
 
-          <div className="flex justify-end gap-sm">
+          <div className="flex justify-end gap-ui-sm">
             <Button type="button" variant="surface" onClick={() => setEnviado(false)}>
               Limpiar validación
             </Button>

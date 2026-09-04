@@ -84,7 +84,7 @@ export const Ancho: Story = {
 export const Version: Story = {
   name: "AppVersion",
   render: () => (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col gap-ui-sm">
       <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />
       <AppVersion version="1.4.2" />
     </div>

@@ -6,7 +6,22 @@ import { extendTailwindMerge } from "tailwind-merge";
  * Se declaran aquí porque `tailwind-merge` solo conoce de fábrica la escala
  * nativa: lo que no le digamos, o lo clasifica mal o no lo clasifica.
  */
-const SPACING = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "inset", "inset-compact", "stack", "field"];
+// Los pasos van prefijados (`ui-md`) porque sin prefijo secuestraban
+// `max-w-{xs…2xl}` en Tailwind 4; los nombres por rol no chocan con nada y van
+// sin él. Ver #71 y el comentario de `spacing` en `tailwind-preset.js`.
+const SPACING = [
+  "ui-2xs",
+  "ui-xs",
+  "ui-sm",
+  "ui-md",
+  "ui-lg",
+  "ui-xl",
+  "ui-2xl",
+  "inset",
+  "inset-compact",
+  "stack",
+  "field",
+];
 const FONT_SIZES = ["ui-caption", "ui-body-sm", "ui-body", "ui-title-sm", "ui-title", "ui-display"];
 const CONTROL_HEIGHTS = ["control-compact", "control-default", "control-comfortable"];
 const DURATIONS = ["fast", "normal", "slow"];
@@ -36,7 +51,7 @@ const twMerge = extendTailwindMerge({
  * que permite que el `className` de quien usa un componente pueda anular lo que
  * el componente trae.
  *
- * @example cn("px-md py-xs", condicion && "px-lg", className)
+ * @example cn("px-ui-md py-ui-xs", condicion && "px-ui-lg", className)
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

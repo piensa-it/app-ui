@@ -135,15 +135,27 @@ const preset = {
       // (rounded-xl/2xl) no.
       /* La escala de espaciado alimenta padding, margin, gap y space-y de una
          vez. Los nombres por rol (`p-inset`, `space-y-stack`) son los que
-         deben usar los componentes; los pasos sueltos, para casos concretos. */
+         deben usar los componentes; los pasos sueltos, para casos concretos.
+
+         Los pasos van prefijados (`p-ui-md`, no `p-md`) porque en Tailwind 4
+         el espaciado le gana SIEMPRE a la escala de contenedores, y sin
+         prefijo secuestraba `max-w-xs` … `max-w-2xl`: `max-w-2xl` pasaba a
+         valer 3 rem en vez de 42 rem y los diálogos salían en una tira de
+         48 px. No es cosa del puente `@config`: pasa igual declarándolo en
+         `@theme` nativo, y no hay override que gane —ni `theme.maxWidth`, ni
+         `@utility`, ni un plugin: Tailwind fusiona las declaraciones y deja
+         la suya la última—. La única salida es no llamarlos igual. Ver #71.
+
+         Los nombres por rol no chocan con ninguna escala, así que van sin
+         prefijo. */
       spacing: {
-        "2xs": "var(--space-2xs)",
-        xs: "var(--space-xs)",
-        sm: "var(--space-sm)",
-        md: "var(--space-md)",
-        lg: "var(--space-lg)",
-        xl: "var(--space-xl)",
-        "2xl": "var(--space-2xl)",
+        "ui-2xs": "var(--space-2xs)",
+        "ui-xs": "var(--space-xs)",
+        "ui-sm": "var(--space-sm)",
+        "ui-md": "var(--space-md)",
+        "ui-lg": "var(--space-lg)",
+        "ui-xl": "var(--space-xl)",
+        "ui-2xl": "var(--space-2xl)",
         inset: "var(--space-inset)",
         "inset-compact": "var(--space-inset-compact)",
         stack: "var(--space-stack)",
