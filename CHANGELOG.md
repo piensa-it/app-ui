@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-04
+
+Solo iconos: nada que migrar al subir desde 0.7.0.
+
+### Added
+
+- **41 iconos más en el catálogo** (adopción en Lynx). Activos y portafolio (`BuildingIcon`, `BoxesIcon`, `LayersIcon`, `SavingsIcon`, `CoinsIcon`, `DollarSignIcon`, `ScaleIcon`, `RulerIcon`), obra y acuerdos (`HammerIcon`, `HandshakeIcon`, `SignatureIcon`), estado (`ShieldIcon`, `ShieldAlertIcon`, `CircleIcon`, `CircleDashedIcon`, `CircleSlashIcon`, `SquareIcon`, `RejectedFileIcon`, `SpinnerIcon`), sostenibilidad y flujos (`LeafIcon`, `DropletsIcon`, `FlameIcon`, `WorkflowIcon`), más `ArrowUpRightIcon`/`ArrowDownRightIcon`, `ChevronsUpDownIcon`, `CalendarDaysIcon`, `ClipboardListIcon`, `PaletteIcon`, `UnlinkIcon`, la familia de gráficas (`AreaChartIcon`, `ColumnChartIcon`, `LineChartIcon`, `CandlestickChartIcon`) y `PercentBadgeIcon`, `CalendarClockIcon`, `ConstructionIcon`, `FileSearchIcon`, `KanbanIcon`, `HeadsetIcon`, `TagIcon`. Es lo que `docs/ICONS.md` pide hacer cuando una aplicación necesita un icono que no está: agregarlo aquí, no reinstalar lucide.
+
 ## [0.7.0] - 2026-09-05
 
 Las cinco historias salen de la adopción real de la librería en CoreLink: lo que allá hubo que duplicar o escribir a mano, y que por eso le tocaba a la librería.
