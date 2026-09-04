@@ -263,6 +263,14 @@ After a version bump is merged into `main`, creating a GitHub Release triggers
 the package publishing workflow. Each push to `main` also refreshes the public
 Storybook on Netlify.
 
+A version bump also changes three visual baselines: `AppShell` renders the
+library version in its sidebar footer, so `armazon-completo`, `armazon-router`
+and `armazon-menu-largo` shift by a couple of hundred pixels. Refresh them in
+the same PR — `npx playwright test --update-snapshots=all` for the macOS set,
+and the `snapshots` workflow for the Linux set that CI compares against. The
+footer is deliberately not masked: a bug in that exact line, the version
+overflowing the collapsed sidebar, shipped in 0.4.2.
+
 ## License and third-party software
 
 Original Piensa IT code is available under the [MIT License](./LICENSE).
