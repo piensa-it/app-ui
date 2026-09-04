@@ -1,8 +1,10 @@
 import * as React from "react";
-import { Check, Search } from "lucide-react";
+import { ArrowLeft, Check, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Dialog, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
+import { Badge } from "./badge";
+import { Button } from "./button";
+import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 
 export interface AppSwitcherItem {
   id: string;
@@ -14,7 +16,26 @@ export interface AppSwitcherItem {
   description?: string;
   /** Icono de la opción. Es lo que distingue una de otra: no llevan color por grupo. */
   icon?: React.ComponentType<{ className?: string }>;
+  /** Distintivo junto al nombre: entorno, estado… */
+  badge?: { label: string; tone?: "neutral" | "warning" | "danger" };
+  /**
+   * Lo que hace falta para no equivocarse, en filas legibles y no apretado en
+   * una línea: el NIT, el rol con el que se entra, la sucursal. Se repiten en
+   * el paso de confirmación: quien confirma tiene que verlos otra vez.
+   */
+  details?: { label: string; value: React.ReactNode }[];
   disabled?: boolean;
+}
+
+export interface AppSwitcherConfirm {
+  /** «Cambiar a Acme S.A.». Recibe la opción elegida. */
+  title: string | ((item: AppSwitcherItem) => string);
+  /** Qué va a cambiar. Recibe la opción elegida. */
+  description?: React.ReactNode | ((item: AppSwitcherItem) => React.ReactNode);
+  /** @default "Confirmar" */
+  confirmLabel?: string;
+  /** @default "Volver" */
+  backLabel?: string;
 }
 
 export interface AppSwitcherGroup {
@@ -53,6 +74,18 @@ export interface AppSwitcherProps {
    * @example hint={<>Para buscar pantallas, <kbd>Ctrl</kbd> <kbd>K</kbd>.</>}
    */
   hint?: React.ReactNode;
+  /**
+   * Un segundo paso antes de confirmar, para cuando elegir no es cambiar de
+   * pestaña: cambiar de empresa cambia los datos, los permisos y quién emite lo
+   * que se factura. Sin `confirm`, se elige al primer clic.
+   *
+   * Es un segundo panel DENTRO de la misma ventana, no una ventana encima:
+   * apilar capas modales es lo que más caro ha salido —Radix y Zag peleándose
+   * por `pointer-events`, cierres en cascada, foco que se va— y aquí no aporta
+   * nada, es el mismo asunto en dos pasos. Desde ahí se puede volver a la lista
+   * sin elegir.
+   */
+  confirm?: AppSwitcherConfirm;
   className?: string;
 }
 
@@ -120,10 +153,11 @@ export function AppSwitcher({ open, onOpenChange, className, ...panel }: AppSwit
       onOpenChange={onOpenChange}
       initialFocusEl={() => inputRef.current}
       className={cn(
-        // La ventana no crece con el contenido: mide lo mismo con tres
-        // opciones que con treinta, y es la lista la que se desplaza dentro.
-        // Es el fallo original, y el que se prueba explícitamente.
-        "flex h-[min(44rem,calc(100dvh-2rem))] flex-col overflow-hidden p-0 sm:max-w-3xl",
+        // La ventana no crece MÁS ALLÁ de la pantalla: con treinta opciones
+        // es la lista la que se desplaza dentro. Es el fallo original, y el que
+        // se prueba explícitamente. Con tres opciones, en cambio, se ajusta a
+        // ellas: un alto fijo dejaba media ventana vacía.
+        "flex max-h-[min(44rem,calc(100dvh-2rem))] flex-col overflow-hidden p-0 sm:max-w-3xl",
         className,
       )}
     >
@@ -153,9 +187,13 @@ function Panel({
   groups,
   emptyMessage = "No hay nada que coincida.",
   hint,
+  confirm,
 }: PanelProps) {
   const [query, setQuery] = React.useState("");
   const [highlighted, setHighlighted] = React.useState(0);
+  // La opción elegida a la espera de confirmación. Es el segundo paso, y vive
+  // en este mismo panel: no hay segunda capa modal.
+  const [pending, setPending] = React.useState<AppSwitcherItem | null>(null);
   const listboxId = React.useId();
 
   const sections = React.useMemo<Section[]>(() => {
@@ -200,16 +238,28 @@ function Panel({
     () => sections.flatMap((section) => section.entries).filter((entry) => !entry.item.disabled),
     [sections],
   );
+  // Con detalles por opción —NIT, rol— tres columnas aprietan las filas hasta
+  // partir el NIT en dos renglones. Dos columnas les dan el sitio que piden.
+  const detailed = groups.some((group) => group.items.some((item) => item.details && item.details.length > 0));
   const current = entries[Math.min(highlighted, Math.max(entries.length - 1, 0))];
 
+  const commit = (item: AppSwitcherItem) => {
+    onSelect(item.id, item);
+    onOpenChange(false);
+  };
+
   const choose = (entry: Entry) => {
-    // Cambiar a donde ya estás no es cambiar: la activa solo cierra.
+    // Cambiar a donde ya estás no es cambiar: la activa solo cierra, y no
+    // dispara confirmación.
     if (entry.item.id === activeId) {
       onOpenChange(false);
       return;
     }
-    onSelect(entry.item.id, entry.item);
-    onOpenChange(false);
+    if (confirm) {
+      setPending(entry.item);
+      return;
+    }
+    commit(entry.item);
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -245,6 +295,49 @@ function Panel({
     // siempre existe.
     document.getElementById(optionId(listboxId, current.key))?.scrollIntoView?.({ block: "nearest" });
   }, [current, listboxId]);
+
+  if (pending && confirm) {
+    const titulo = typeof confirm.title === "function" ? confirm.title(pending) : confirm.title;
+    const descripcion =
+      typeof confirm.description === "function" ? confirm.description(pending) : confirm.description;
+    return (
+      <div className="flex min-h-0 flex-1 flex-col p-inset" data-step="confirm">
+        <DialogHeader>
+          <DialogTitle>{titulo}</DialogTitle>
+          {descripcion ? <DialogDescription>{descripcion}</DialogDescription> : null}
+        </DialogHeader>
+        {/* Se repiten los detalles: si hubiera que recordarlos del paso
+            anterior, la confirmación no confirmaría nada. */}
+        <div className="mt-ui-md flex items-start gap-ui-sm rounded-lg border border-primary bg-surface p-ui-sm">
+          {pending.icon ? (
+            <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-md bg-subtle text-primary">
+              <pending.icon className="size-4" />
+            </span>
+          ) : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-ui-2xs">
+            <span className="flex items-center gap-ui-2xs">
+              <span className="text-ui-body font-medium text-foreground">{pending.label}</span>
+              {pending.badge ? <ItemBadge badge={pending.badge} /> : null}
+            </span>
+            {pending.details ? <Details details={pending.details} /> : null}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPending(null)}
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            {confirm.backLabel ?? "Volver"}
+          </Button>
+          <Button type="button" autoFocus onClick={() => commit(pending)}>
+            {confirm.confirmLabel ?? "Confirmar"}
+          </Button>
+        </DialogFooter>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -299,7 +392,7 @@ function Panel({
                     {section.label}
                   </h3>
                 ) : null}
-                <div className="grid gap-ui-sm sm:grid-cols-2 lg:grid-cols-3">
+                <div className={cn("grid gap-ui-sm sm:grid-cols-2", !detailed && "lg:grid-cols-3")}>
                   {section.entries.map((entry) => (
                     <Option
                       key={entry.key}
@@ -373,6 +466,7 @@ function Option({ id, entry, active, highlighted, onHighlight, onChoose }: Optio
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center gap-ui-2xs">
           <span className="truncate text-ui-body-sm font-medium text-foreground">{item.label}</span>
+          {item.badge ? <ItemBadge badge={item.badge} /> : null}
           {active ? (
             <>
               <Check aria-hidden="true" className="size-4 shrink-0 text-primary" />
@@ -383,7 +477,33 @@ function Option({ id, entry, active, highlighted, onHighlight, onChoose }: Optio
         {item.description ? (
           <span className="line-clamp-2 text-ui-caption text-muted-foreground">{item.description}</span>
         ) : null}
+        {item.details ? <Details details={item.details} /> : null}
       </span>
     </div>
+  );
+}
+
+const BADGE_VARIANT = { neutral: "secondary", warning: "warning", danger: "destructive" } as const;
+
+function ItemBadge({ badge }: { badge: NonNullable<AppSwitcherItem["badge"]> }) {
+  return (
+    <Badge variant={BADGE_VARIANT[badge.tone ?? "neutral"]} className="shrink-0">
+      {badge.label}
+    </Badge>
+  );
+}
+
+/** Filas legibles, no una línea apretada: es lo que hace falta para no equivocarse. */
+function Details({ details }: { details: NonNullable<AppSwitcherItem["details"]> }) {
+  return (
+    <dl className="mt-ui-2xs grid grid-cols-[auto_1fr] gap-x-ui-sm gap-y-px text-ui-caption">
+      {details.map((row) => (
+        <React.Fragment key={row.label}>
+          <dt className="text-muted-foreground">{row.label}</dt>
+          {/* Sin `truncate`: el NIT es justo lo que hay que poder leer entero. */}
+          <dd className="min-w-0 break-words text-foreground">{row.value}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
   );
 }

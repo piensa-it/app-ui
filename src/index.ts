@@ -81,6 +81,7 @@ export {
   type AppSwitcherProps,
   type AppSwitcherGroup,
   type AppSwitcherItem,
+  type AppSwitcherConfirm,
 } from "./components/ui/app-switcher";
 export { AlertDialogHost, confirmAlert, type ConfirmAlertOptions } from "./components/ui/alert-dialog";
 export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sidebar";
