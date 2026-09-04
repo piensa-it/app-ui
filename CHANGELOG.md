@@ -13,6 +13,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 - **Con el menú plegado, la línea de versión se salía del componente.** Intentaba pintar tres datos —versión de la aplicación, de la librería y fecha— en los 48 px útiles que deja un menú de 72, y se partía en cuatro renglones. Ahora muestra solo la versión de la aplicación, centrada; el detalle completo sigue en el `title` para copiarlo en un reporte. Fuera del menú no cambia nada.
 - **El menú lateral no separaba sus secciones** (#49). Los enlaces de una sección y el salto de una sección a la siguiente estaban a la misma distancia, así que con seis secciones y cuarenta enlaces el menú se leía como una lista larga en vez de como secciones. Ahora entre secciones hay cuatro veces la separación que hay entre dos enlaces de la misma, y con el menú plegado la separación es mínima porque la raya ya agrupa. La regla vive en la hoja del componente y se aplica igual estén los grupos dentro de `SidebarNav` o sueltos en el `sidebar` del `AppShell`.
 
+### Changed
+
+- Ola de mantenimiento (#55): Ark UI 5.39.1, framer-motion 13.2.0, lucide-react 1.41.0, `@internationalized/date` 3.12.4, Storybook 10.6.0 con sus addons, y los plugins de lint. Todo dentro de los rangos ya declarados, así que no cambia el contrato con ningún consumidor. Batería completa en verde, incluidas las 14 capturas comparadas sin diferencias.
+
 ### Docs
 
 - La tolerancia de las capturas comparadas baja de 0.01 a 0.001. La anterior eran 11.520 píxeles sobre 1280×900: cabía un cambio visible sin que la prueba se enterara, y de hecho los dos fallos del menú plegado pasaron por delante de ella sin marcarla.
