@@ -6,6 +6,12 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+
+- **La línea de versión del menú muestra solo la versión de la aplicación.** Pintaba tres datos —la de la aplicación, la de la librería y la fecha de compilación— y dejaba además el detalle completo en el `title`, con la idea de copiarlo al reportar algo. No servía: un `title` no se puede seleccionar ni copiar sin transcribirlo a mano. El detalle pasa a la prop `details`, pensada para una pantalla de ayuda, donde el texto se lee y se selecciona de verdad. Con el menú plegado `details` se ignora, o la línea volvería a partirse en cuatro renglones como antes de la 0.5.0.
+
+  Efecto lateral bienvenido: subir de versión deja de mover tres capturas comparadas, porque el pie ya no imprime la versión de la librería.
+
 ## [0.6.0] - 2026-09-05
 
 Las dos correcciones salen de la migración real de CoreLink a la 0.5.0, donde

@@ -287,14 +287,10 @@ After a version bump is merged into `main`, creating a GitHub Release triggers
 the package publishing workflow. Each push to `main` also refreshes the public
 Storybook on Netlify.
 
-A version bump also changes three visual baselines: `AppShell` renders the
-library version in its sidebar footer, so `armazon-completo`, `armazon-router`
-and `armazon-menu-largo` shift by a couple of hundred pixels. Refresh them in
-the same PR — `npm run test:browser --  --update-snapshots=all` for the macOS
-set, and `npm run test:browser:docker:update` for the Linux set that CI
-compares against. The
-footer is deliberately not masked: a bug in that exact line, the version
-overflowing the collapsed sidebar, shipped in 0.4.2.
+Version bumps no longer touch the visual baselines. Until 0.6.0 the sidebar
+footer printed the library version, so every release shifted three shell
+screenshots; `AppVersion` now shows only the application's own version, and
+the library version moved behind `details`, for a help screen.
 
 ## License and third-party software
 
