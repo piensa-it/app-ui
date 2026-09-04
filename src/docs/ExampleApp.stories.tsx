@@ -64,8 +64,15 @@ type Story = StoryObj<typeof meta>;
  *
  * Usa el control `variant` de esta página para probar las tres variantes de
  * menú sin salir de la story.
+ *
+ * Esta página muestra **cómo se componen** las piezas. Los estados sueltos del
+ * armazón —menú plegado, las tres variantes una al lado de otra, secciones
+ * plegables, integración con React Router— viven en `Layout/AppShell`, que es
+ * donde se documenta ese componente.
  */
-export const AplicacionCompleta: Story = {};
+export const AplicacionCompleta: Story = {
+  name: "Aplicación completa",
+};
 
 /**
  * La vista de datos: `PageContainer` en ancho `wide`, `PageHeader` con
@@ -75,6 +82,7 @@ export const AplicacionCompleta: Story = {};
  * vistazo— y el signo se refuerza con color, no solo con el menos.
  */
 export const VistaDeTabla: Story = {
+  name: "Vista de tabla",
   args: { vistaInicial: "movimientos" },
 };
 
@@ -85,35 +93,6 @@ export const VistaDeTabla: Story = {
  * (`aria-invalid` y `role="alert"` los pone `Field`, no la aplicación).
  */
 export const VistaDeFormulario: Story = {
+  name: "Vista de formulario",
   args: { vistaInicial: "nuevo" },
-};
-
-/**
- * El menú plegado: los enlaces se reducen a su icono conservando el nombre
- * accesible, y `SidebarBrand` muestra solo el distintivo. Sirve para revisar
- * que ninguna etiqueta se desborde en el ancho corto.
- */
-export const MenuPlegado: Story = {
-  args: { defaultCollapsed: true },
-};
-
-/**
- * Las tres variantes de menú, una debajo de otra, para compararlas con el
- * mismo contenido: `graphite` (neutra, la de por defecto), `ink` (verde
- * profunda, de marca) y `smoke` (translúcida con desenfoque).
- */
-export const VariantesDeMenu: Story = {
-  parameters: { controls: { disable: true } },
-  render: () => (
-    <div className="flex flex-col">
-      {(["graphite", "ink", "smoke"] as const).map((variante) => (
-        <section key={variante} className="border-b border-border">
-          <h2 className="bg-surface px-md py-xs font-heading text-ui-body-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {variante}
-          </h2>
-          <ExampleApp variant={variante} vistaInicial="movimientos" />
-        </section>
-      ))}
-    </div>
-  ),
 };

@@ -33,6 +33,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Docs
 
+- **La aplicación de ejemplo y la página del armazón dejan de repetirse.** Las dos montaban un `AppShell` con menú, marca y versión, y había que actualizar ambas ante cualquier cambio del menú. Ahora cada una hace lo suyo: la aplicación de ejemplo muestra **cómo se componen** las piezas (aplicación completa, vista de tabla, vista de formulario) y la página de `AppShell` documenta **el componente y sus estados** (plegado, las tres variantes, secciones plegables, integración con React Router, menú largo). Las dos se enlazan entre sí, para que quien busque un estado no crea que falta.
 - La tolerancia de las capturas comparadas baja de 0.01 a 0.001. La anterior eran 11.520 píxeles sobre 1280×900: cabía un cambio visible sin que la prueba se enterara, y de hecho los dos fallos del menú plegado pasaron por delante de ella sin marcarla.
 - Story del armazón con seis secciones y cuarenta enlaces, que es donde el problema se ve. Las que había caben en la ventana y por eso no lo enseñaban. Añadida además a las capturas comparadas.
 

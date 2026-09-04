@@ -17,10 +17,6 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
-    // En la página de documentación las historias se pintan una tras otra: sin
-    // acotar la altura, un armazón a pantalla completa deja una página
-    // interminable y el menú se pierde de vista. Con marco propio se ve como
-    // lo que es, una aplicación, y cada historia trae su propio desplazamiento.
     docs: {
       // En la página de documentación las historias se pintan una tras otra:
       // sin acotar la altura, un armazón a pantalla completa deja una página
@@ -29,7 +25,7 @@ const meta = {
       story: { height: "520px", inline: false },
       description: {
         component:
-          "Armazón de aplicación: menú lateral, barra superior y contenido. Trae resuelto el plegado con la preferencia recordada por dispositivo, la animación de ancho, el panel móvil y el carácter cromático del menú.",
+          "Armazón de aplicación: menú lateral, barra superior y contenido. Trae resuelto el plegado con la preferencia recordada por dispositivo, la animación de ancho, el panel móvil y el carácter cromático del menú.\n\nAquí se documenta el componente y sus estados por separado. Para ver cómo se compone con el resto —tabla, formulario, navegación real— está *Guías → Aplicación de ejemplo*.",
       },
     },
   },
