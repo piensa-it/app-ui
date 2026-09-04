@@ -208,3 +208,49 @@ test.describe("Capas encadenadas (Dialog → Sheet)", () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe("AppSwitcher", () => {
+  // El fallo original: un desplegable de 921 px en una ventana de 800, con
+  // las últimas opciones inalcanzables. La ventana no debe crecer con el
+  // contenido; es la lista la que se desplaza. Se prueba a 700 px de alto.
+  test("con quince opciones y 700 px de alto se llega a todas", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await page.goto(storyUrl("ui-appswitcher--quince-opciones"));
+    await stabilize(page);
+
+    const dialogo = page.getByRole("dialog");
+    await expect(dialogo).toBeVisible();
+    const caja = await dialogo.boundingBox();
+    expect(caja).not.toBeNull();
+    expect(caja!.y + caja!.height).toBeLessThanOrEqual(700);
+
+    // 15 opciones más 2 recientes: de los tres recientes, la activa se excluye.
+    await expect(page.getByRole("option")).toHaveCount(17);
+  });
+
+  test("se escribe, se navega con las flechas y se confirma con Enter sin soltar el buscador", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await page.goto(storyUrl("ui-appswitcher--quince-opciones"));
+    await stabilize(page);
+
+    const buscador = page.getByRole("combobox");
+    await expect(buscador).toBeFocused();
+    await buscador.fill("cuentas");
+    await page.keyboard.press("ArrowDown");
+    await expect(buscador).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByText("Módulo activo: cxp")).toBeVisible();
+    await expect(page.getByRole("dialog")).toBeHidden();
+  });
+
+  test("la última opción se alcanza con el teclado y queda a la vista", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await page.goto(storyUrl("ui-appswitcher--quince-opciones"));
+    await stabilize(page);
+
+    await page.keyboard.press("End");
+    const ultima = page.getByRole("option", { name: /Ajustes/ }).last();
+    await expect(ultima).toBeInViewport();
+    await expect(ultima).toHaveAttribute("aria-selected", "true");
+  });
+});
