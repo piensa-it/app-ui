@@ -125,6 +125,50 @@ export const Default: Story = {
 };
 
 /**
+ * El disparador de la marca puede abrir otra cosa que no sea su propio menú.
+ *
+ * Elegir no siempre es cambiar de pestaña: cambiar de empresa cambia los datos,
+ * los permisos y quién emite lo que se factura, y eso pide una ventana con
+ * sitio para el NIT, el rol y una confirmación. Con `onSelect`, la marca
+ * conserva su aspecto y abre lo que la aplicación quiera.
+ *
+ * Pásalo `undefined` cuando no haya nada que elegir y vuelve a ser una etiqueta
+ * sin control, igual que sin `groups`.
+ */
+export const MarcaQueAbreOtraCosa: Story = {
+  name: "Marca que abre otra cosa",
+  render: () => {
+    const Demo = () => {
+      const [abierto, setAbierto] = useState(false);
+      return (
+        <AppShell
+          brand={<SidebarBrand name="Acme S.A." environment={{ label: "UAT", tone: "warning" }} onSelect={() => setAbierto(true)} />}
+          sidebar={<Navegacion />}
+          topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+        >
+          <PageContainer>
+            <PageHeader
+              title="Cambiar de empresa"
+              description="La cabecera del menú abre esta ventana en vez de su desplegable."
+            />
+            <Card>
+              <CardContent>
+                <p className="text-ui-body-sm text-muted-foreground">
+                  {abierto
+                    ? "La aplicación abriría aquí su ventana de selección."
+                    : "Pulsa la marca, arriba a la izquierda."}
+                </p>
+              </CardContent>
+            </Card>
+          </PageContainer>
+        </AppShell>
+      );
+    };
+    return <Demo />;
+  },
+};
+
+/**
  * Las tres variantes de carácter del menú. El menú es oscuro en tema claro y en
  * oscuro: es un plano distinto de la interfaz, no una superficie más.
  */
