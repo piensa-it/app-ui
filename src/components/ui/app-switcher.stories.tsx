@@ -128,3 +128,84 @@ export const Minimo: Story = {
     return <Demo />;
   },
 };
+
+/** Pocas opciones importantes: la marca, el entorno y el rol de cada una. */
+const empresas: AppSwitcherGroup[] = [
+  {
+    id: "empresas",
+    label: "Empresas",
+    items: [
+      {
+        id: "acme",
+        label: "Acme S.A.",
+        icon: UsersIcon,
+        details: [
+          { label: "NIT", value: "900.000.000-1" },
+          { label: "Entras como", value: "Administrador" },
+        ],
+      },
+      {
+        id: "beta",
+        label: "Beta S.A.S.",
+        icon: UsersIcon,
+        badge: { label: "Pruebas", tone: "warning" },
+        details: [
+          { label: "NIT", value: "800.000.000-2" },
+          { label: "Entras como", value: "Contador" },
+        ],
+      },
+      {
+        id: "gamma",
+        label: "Gamma Ltda.",
+        icon: UsersIcon,
+        details: [
+          { label: "NIT", value: "700.000.000-3" },
+          { label: "Entras como", value: "Solo lectura" },
+        ],
+      },
+    ],
+  },
+];
+
+/**
+ * Cuando elegir no es cambiar de pestaña. Cambiar de empresa cambia los datos
+ * que se ven, los permisos con los que se entra y la empresa que emite lo que
+ * se factura: cada opción trae lo que hace falta para no equivocarse, y elegir
+ * lleva a un segundo paso —dentro de la misma ventana— que lo repite antes de
+ * confirmar. Desde ahí se puede volver sin elegir.
+ *
+ * Con una sola empresa no se abre nada: eso lo decide el disparador
+ * (`SidebarBrand onSelect={empresas.length > 1 ? abrir : undefined}`).
+ */
+export const Empresas: Story = {
+  name: "Con detalles y confirmación",
+  args: { open: true, onOpenChange: () => {}, onSelect: () => {}, title: "Cambiar de empresa", groups: empresas },
+  render: (args) => {
+    const Demo = () => {
+      const [abierto, setAbierto] = useState(true);
+      const [activa, setActiva] = useState("acme");
+      return (
+        <div className="p-inset">
+          <Button onClick={() => setAbierto(true)}>Cambiar de empresa</Button>
+          <p className="mt-ui-sm text-ui-body-sm text-muted-foreground">Empresa activa: {activa}</p>
+          <AppSwitcher
+            {...args}
+            open={abierto}
+            onOpenChange={setAbierto}
+            description="Elegí con qué empresa trabajar."
+            searchPlaceholder="Buscar por nombre o NIT…"
+            activeId={activa}
+            onSelect={setActiva}
+            confirm={{
+              title: (item) => `Cambiar a ${item.label}`,
+              description:
+                "Cambia todo: los datos que ves, los permisos con los que entras y la empresa que emite lo que factures.",
+              confirmLabel: "Cambiar de empresa",
+            }}
+          />
+        </div>
+      );
+    };
+    return <Demo />;
+  },
+};

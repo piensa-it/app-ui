@@ -254,3 +254,25 @@ test.describe("AppSwitcher", () => {
     await expect(ultima).toHaveAttribute("aria-selected", "true");
   });
 });
+
+test.describe("AppSwitcher · confirmación", () => {
+  test("el segundo paso vive en la misma ventana y se puede volver", async ({ page }) => {
+    await page.goto(storyUrl("ui-appswitcher--empresas"));
+    await stabilize(page);
+
+    await page.getByRole("option", { name: /Beta/ }).click();
+    await expect(page.getByRole("heading", { name: "Cambiar a Beta S.A.S." })).toBeVisible();
+    await expect(page.getByText("800.000.000-2")).toBeVisible();
+    // No hay segunda capa modal: es el mismo diálogo en su segundo paso.
+    await expect(page.getByRole("dialog")).toHaveCount(1);
+
+    await page.getByRole("button", { name: /Volver/ }).click();
+    await expect(page.getByRole("listbox")).toBeVisible();
+    await expect(page.getByText("Empresa activa: acme")).toBeVisible();
+
+    await page.getByRole("option", { name: /Beta/ }).click();
+    await page.getByRole("button", { name: "Cambiar de empresa" }).click();
+    await expect(page.getByText("Empresa activa: beta")).toBeVisible();
+    await expect(page.getByRole("dialog")).toBeHidden();
+  });
+});

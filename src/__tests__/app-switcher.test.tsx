@@ -95,7 +95,7 @@ describe("AppSwitcher · lo que se ve", () => {
   it("la ventana no crece con el contenido: la lista se desplaza dentro", () => {
     montar();
     expect(screen.getByRole("listbox").className).toMatch(/overflow-y-auto/);
-    expect(screen.getByRole("dialog").className).toMatch(/h-\[min\(/);
+    expect(screen.getByRole("dialog").className).toMatch(/max-h-\[min\(/);
   });
 });
 
@@ -193,5 +193,110 @@ describe("AppSwitcher · pie", () => {
   it("lleva el recordatorio de la paleta de comandos cuando la aplicación lo pasa", () => {
     montar({ hint: <>Para buscar pantallas, <kbd>Ctrl</kbd> <kbd>K</kbd>.</> });
     expect(screen.getByText(/Para buscar pantallas/)).toBeInTheDocument();
+  });
+});
+
+/** Pocas opciones importantes: cambiar de empresa cambia el mundo (#78). */
+const empresas: AppSwitcherGroup[] = [
+  {
+    id: "empresas",
+    label: "Empresas",
+    items: [
+      {
+        id: "acme",
+        label: "Acme S.A.",
+        icon: Icono,
+        details: [
+          { label: "NIT", value: "900000000-1" },
+          { label: "Entras como", value: "Administrador" },
+        ],
+      },
+      {
+        id: "beta",
+        label: "Beta S.A.S.",
+        icon: Icono,
+        badge: { label: "Pruebas", tone: "warning" },
+        details: [
+          { label: "NIT", value: "800000000-2" },
+          { label: "Entras como", value: "Contador" },
+        ],
+      },
+    ],
+  },
+];
+
+const confirmar = {
+  title: (item: { label: string }) => `Cambiar a ${item.label}`,
+  description: "Cambia todo: los datos que ves, los permisos con los que entras y la empresa que emite lo que factures.",
+  confirmLabel: "Cambiar de empresa",
+};
+
+describe("AppSwitcher · detalles por opción", () => {
+  it("cada opción enseña sus detalles en filas, no en una línea", () => {
+    montar({ groups: empresas, title: "Cambiar de empresa" });
+    const beta = screen.getByRole("option", { name: /Beta/ });
+    const filas = within(beta).getAllByRole("term");
+    expect(filas.map((f) => f.textContent)).toEqual(["NIT", "Entras como"]);
+    expect(within(beta).getByText("800000000-2")).toBeInTheDocument();
+    expect(within(beta).getByText("Pruebas")).toBeInTheDocument();
+  });
+});
+
+describe("AppSwitcher · confirmación en dos pasos", () => {
+  it("elegir lleva a un segundo paso que dice qué cambia y repite los detalles", async () => {
+    const { onSelect } = montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar });
+    await userEvent.click(screen.getByRole("option", { name: /Beta/ }));
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Cambiar a Beta S.A.S." })).toBeInTheDocument();
+    expect(screen.getByText(/Cambia todo/)).toBeInTheDocument();
+    // Quien confirma tiene que ver el NIT y el rol otra vez.
+    expect(screen.getByText("800000000-2")).toBeInTheDocument();
+    expect(screen.getByText("Contador")).toBeInTheDocument();
+  });
+
+  it("no monta una segunda capa modal", async () => {
+    montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar });
+    await userEvent.click(screen.getByRole("option", { name: /Beta/ }));
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    // Y la lista ya no está: es el mismo panel en su segundo paso.
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("desde el segundo paso se vuelve a la lista sin elegir", async () => {
+    const { onSelect, onOpenChange } = montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar });
+    await userEvent.click(screen.getByRole("option", { name: /Beta/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Volver/ }));
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+  });
+
+  it("confirmar elige y cierra", async () => {
+    const { onSelect, onOpenChange } = montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar });
+    await userEvent.click(screen.getByRole("option", { name: /Beta/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Cambiar de empresa" }));
+    expect(onSelect).toHaveBeenCalledWith("beta", expect.objectContaining({ id: "beta" }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("la activa no dispara confirmación", async () => {
+    const { onSelect, onOpenChange } = montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar, activeId: "acme" });
+    await userEvent.click(screen.getByRole("option", { name: /Acme/ }));
+    expect(screen.queryByRole("heading", { name: /Cambiar a/ })).not.toBeInTheDocument();
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("con Enter desde el buscador también se llega al segundo paso", async () => {
+    montar({ groups: empresas, title: "Cambiar de empresa", confirm: confirmar });
+    await userEvent.type(screen.getByRole("combobox"), "beta");
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("heading", { name: "Cambiar a Beta S.A.S." })).toBeInTheDocument();
+  });
+
+  it("sin `confirm` se elige al primer clic, como antes", async () => {
+    const { onSelect } = montar({ groups: empresas, title: "Cambiar de empresa" });
+    await userEvent.click(screen.getByRole("option", { name: /Beta/ }));
+    expect(onSelect).toHaveBeenCalledWith("beta", expect.anything());
   });
 });
