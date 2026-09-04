@@ -62,3 +62,26 @@ export const Cargando: Story = {
     </StatGroup>
   ),
 };
+
+/**
+ * Los cuatro tonos, juntos, que es donde se entiende la escala.
+ *
+ * `tone` dice qué clase de noticia es la cifra; `trend`, cómo varió. Son cosas
+ * distintas: una cartera puede estar plana y aun así vencida.
+ *
+ * La regla para elegir entre ámbar y rojo es el **plazo**, no la gravedad: lo
+ * que vence esta semana todavía se paga a tiempo; lo vencido ya llegó tarde.
+ * Cuando todo lo que pide atención sale en rojo, el rojo deja de significar
+ * nada. Solo `negative` tiñe la cifra.
+ */
+export const Tonos: Story = {
+  name: "Los cuatro tonos",
+  render: () => (
+    <StatGroup columns={4}>
+      <Stat label="Facturado este mes" value={pesos(184200000)} description="Es un dato, no una noticia" icon={<BanknoteIcon />} />
+      <Stat label="Recaudado" value={pesos(151900000)} tone="positive" description="Salió bien" icon={<WalletIcon />} />
+      <Stat label="Vence esta semana" value={pesos(12400000)} tone="warning" description="Todavía se paga a tiempo" icon={<ReceiptIcon />} />
+      <Stat label="Cartera vencida" value={pesos(3100000)} tone="negative" description="Ya llegó tarde" icon={<ReceiptIcon />} />
+    </StatGroup>
+  ),
+};
