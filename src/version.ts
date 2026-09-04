@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.4.2";
+export const UI_LIBRARY_VERSION = "0.5.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
@@ -27,7 +27,16 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
       "Tailwind 4, IMPORTANTE: si usas `max-w-sm|md|lg|xl|2xl`, revísalos. Nuestra escala de espaciado usa esos mismos nombres y en v4 gana sobre los anchos máximos, así que `max-w-lg` pasa a valer 1,5 rem en vez de 32 rem. Usa un valor explícito o las utilidades `panel-*`.",
       "Tailwind 4: si dependías de `button { cursor: pointer }` del reset, ya no viene; la librería lo devuelve para sus propios componentes, pero tu código puede necesitarlo.",
       "React 19: no hay nada que hacer. `peerDependencies` admite 18 y 19, así que puedes quedarte donde estás y subir cuando quieras.",
-      "Nada obligatorio del resto: 0.4.2 son correcciones de presentación.",
+      "Los botones de icono recuperan su ancho: si parcheaste `w-control-*` en tu aplicación, quita el parche.",
+      "Si parcheaste la tipografía o la posición del menú lateral, o el ancho de la marca al plegar, quita esos parches también.",
+    ],
+  },
+  {
+    version: "0.4.2",
+    channel: "maintenance",
+    publishedAt: "2026-09-03",
+    migration: [
+      "Nada obligatorio: 0.4.2 son correcciones de presentación.",
       "Si tienes pantallas que comparten componente entre rutas, pásale `animateKey={pathname}` a `PageContainer` para que la entrada se repita en todas y no solo en algunas.",
     ],
   },

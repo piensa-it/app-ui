@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-04
+
 ### Fixed
 
 - **`w-control-*` no se generaba: los botones de icono salían a media anchura** (#48). `tailwind-preset.js` declaraba `height`, `minWidth` y `minHeight` con la escala de controles, pero no `width`, así que la clase no existía y el botón tomaba la anchura de su contenido. Afectaba a `Button size="icon"`, a los dos botones de `Pagination` y al de configurar columnas de `DataTable`. Verificado en el navegador: los botones de paginación pasan a medir 40×40 exactos. La prueba nueva compila el preset y comprueba que las tres claves de la escala se generan, porque este fallo es invisible en revisión: la clase se escribe y simplemente no existe.
