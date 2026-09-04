@@ -63,3 +63,62 @@ describe("StatGroup", () => {
     expect(screen.getByRole("group", { name: "Caja del turno" })).toBeInTheDocument();
   });
 });
+
+/**
+ * `Stat` sabía medir, pero no decir qué clase de noticia es la cifra. `trend`
+ * habla de la variación respecto al periodo anterior, y eso es otra cosa: una
+ * cartera puede estar plana y aun así estar vencida. Por eso CoreLink tenía su
+ * propio `KpiCard`, 54 usos en 15 pantallas (#74).
+ */
+describe("Stat · tono", () => {
+  it("sin tono, el icono va en el color de marca y no en gris", () => {
+    // Un tablero de seis cifras en gris no dice «normal», dice «apagado».
+    const { container } = render(<Stat label="Ventas" value="1.248" icon={<svg />} />);
+    const icono = container.querySelector("dt > span[aria-hidden]") as HTMLElement;
+    expect(icono.className).toMatch(/text-primary/);
+    expect(icono.className).not.toMatch(/text-muted/);
+  });
+
+  it("cada tono colorea el icono y el borde", () => {
+    const casos = [
+      ["positive", /success/],
+      ["warning", /warning/],
+      ["negative", /destructive/],
+    ] as const;
+    for (const [tone, patron] of casos) {
+      const { container, unmount } = render(<Stat label="x" value="1" tone={tone} icon={<svg />} />);
+      const raiz = container.firstElementChild as HTMLElement;
+      const icono = container.querySelector("dt > span[aria-hidden]") as HTMLElement;
+      expect(raiz.className).toMatch(patron);
+      expect(icono.className).toMatch(patron);
+      unmount();
+    }
+  });
+
+  it("la cifra solo se tiñe en negative", () => {
+    // El borde y el icono ya lo señalan; cuatro cifras de colores distintos
+    // se leen peor, no mejor.
+    const cifra = (tone: "warning" | "negative") => {
+      const { container, unmount } = render(<Stat label="x" value="1" tone={tone} />);
+      const dd = container.querySelector("dd") as HTMLElement;
+      const clases = dd.className;
+      unmount();
+      return clases;
+    };
+    expect(cifra("negative")).toMatch(/text-destructive/);
+    expect(cifra("warning")).not.toMatch(/text-warning/);
+  });
+
+  it("anuncia el tono en texto, no solo en color", () => {
+    // Con la marca en verde, `default` y `positive` salen del mismo color:
+    // quien lee con lector de pantalla —o no distingue el color— lo necesita
+    // dicho.
+    render(<Stat label="Cartera vencida" value="$ 3.100.000" tone="negative" />);
+    expect(screen.getByText(/requiere acción/)).toBeInTheDocument();
+  });
+
+  it("el tono por defecto no añade ningún anuncio", () => {
+    render(<Stat label="Ventas" value="1.248" />);
+    expect(screen.queryByText(/requiere|salió/)).not.toBeInTheDocument();
+  });
+});
