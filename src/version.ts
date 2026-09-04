@@ -13,13 +13,21 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.7.0";
+export const UI_LIBRARY_VERSION = "0.7.1";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Solo entran 41 iconos al catálogo (docs/ICONS.md). Nada que migrar: si tu app los pedía desde lucide, ya podés importarlos de la librería y retirar lucide-react.",
+    ],
+  },
+  {
+    version: "0.7.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-04",
     migration: [
       "Todo lo de esta versión es aditivo salvo una cosa: `AppVersion` muestra ahora solo la versión de la aplicación. Si en una pantalla de ayuda querés también la de la librería y la fecha de compilación, pasale `details`.",
       "Selector de empresa: sustituí el bloque de marca duplicado por `SidebarBrand` con `onSelect`, y la ventana propia por `AppSwitcher` con `details` y `confirm`. Pasá `onSelect` en `undefined` cuando haya una sola empresa.",

@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-04
+
+Solo iconos: nada que migrar al subir desde 0.7.0.
+
+### Added
+
+- **41 iconos más en el catálogo** (adopción en Lynx). Activos y portafolio (`BuildingIcon`, `BoxesIcon`, `LayersIcon`, `SavingsIcon`, `CoinsIcon`, `DollarSignIcon`, `ScaleIcon`, `RulerIcon`), obra y acuerdos (`HammerIcon`, `HandshakeIcon`, `SignatureIcon`), estado (`ShieldIcon`, `ShieldAlertIcon`, `CircleIcon`, `CircleDashedIcon`, `CircleSlashIcon`, `SquareIcon`, `RejectedFileIcon`, `SpinnerIcon`), sostenibilidad y flujos (`LeafIcon`, `DropletsIcon`, `FlameIcon`, `WorkflowIcon`), más `ArrowUpRightIcon`/`ArrowDownRightIcon`, `ChevronsUpDownIcon`, `CalendarDaysIcon`, `ClipboardListIcon`, `PaletteIcon`, `UnlinkIcon`, la familia de gráficas (`AreaChartIcon`, `ColumnChartIcon`, `LineChartIcon`, `CandlestickChartIcon`) y `PercentBadgeIcon`, `CalendarClockIcon`, `ConstructionIcon`, `FileSearchIcon`, `KanbanIcon`, `HeadsetIcon`, `TagIcon`. Es lo que `docs/ICONS.md` pide hacer cuando una aplicación necesita un icono que no está: agregarlo aquí, no reinstalar lucide.
+
 ## [0.7.0] - 2026-09-05
 
 Las cinco historias salen de la adopción real de la librería en CoreLink: lo que allá hubo que duplicar o escribir a mano, y que por eso le tocaba a la librería.
@@ -27,8 +35,6 @@ Las cinco historias salen de la adopción real de la librería en CoreLink: lo q
   Y el mecanismo: `createPalette({ primary })` construye los siete a partir del color de marca, derivando el resto para que una paleta propia quede en la misma familia visual que las seis incluidas. **Los tokens que no se tocan no están en su firma**, así que no se pueden mover por error. `paletteDeclarations` los escribe como CSS, para cuando la marca se elige en tiempo de ejecución y hay tema oscuro: un `style` en línea no puede reaccionar a `.dark`.
 
   Conviene decirlo: el fallo no estaba en la librería. `data-ui-palette` ya movía los siete tokens correctos y no tocaba `--accent`; lo que faltaba era decirlo en alguna parte y dar salida a una marca que no fuese ninguna de las seis.
-
-- **41 iconos más en el catálogo** (adopción en Lynx). Activos y portafolio (`BuildingIcon`, `BoxesIcon`, `LayersIcon`, `SavingsIcon`, `CoinsIcon`, `DollarSignIcon`, `ScaleIcon`, `RulerIcon`), obra y acuerdos (`HammerIcon`, `HandshakeIcon`, `SignatureIcon`), estado (`ShieldIcon`, `ShieldAlertIcon`, `CircleIcon`, `CircleDashedIcon`, `CircleSlashIcon`, `SquareIcon`, `RejectedFileIcon`, `SpinnerIcon`), sostenibilidad y flujos (`LeafIcon`, `DropletsIcon`, `FlameIcon`, `WorkflowIcon`), más `ArrowUpRightIcon`/`ArrowDownRightIcon`, `ChevronsUpDownIcon`, `CalendarDaysIcon`, `ClipboardListIcon`, `PaletteIcon`, `UnlinkIcon`, la familia de gráficas (`AreaChartIcon`, `ColumnChartIcon`, `LineChartIcon`, `CandlestickChartIcon`) y `PercentBadgeIcon`, `CalendarClockIcon`, `ConstructionIcon`, `FileSearchIcon`, `KanbanIcon`, `HeadsetIcon`, `TagIcon`. Es lo que `docs/ICONS.md` pide hacer cuando una aplicación necesita un icono que no está: agregarlo aquí, no reinstalar lucide.
 
 ### Changed
 
