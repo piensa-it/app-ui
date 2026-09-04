@@ -81,7 +81,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
                 "flex min-h-control-comfortable shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 text-sm font-medium text-muted-foreground",
                 "transition-colors duration-normal hover:bg-surface-hover hover:text-foreground",
                 "data-[selected]:text-foreground",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "disabled:pointer-events-none disabled:opacity-50",
                 panel.className,
               )}
@@ -92,7 +92,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
           <ArkTabs.Indicator className="bottom-0 h-0.5 rounded-full bg-primary transition-all duration-normal ease-standard motion-reduce:transition-none" />
         </ArkTabs.List>
         {withValues.map((panel) => (
-          <ArkTabs.Content key={panel.value} value={panel.value} className={cn("pt-5 outline-none", panel.contentClassName)}>
+          <ArkTabs.Content key={panel.value} value={panel.value} className={cn("pt-5 outline-hidden", panel.contentClassName)}>
             {panel.children}
           </ArkTabs.Content>
         ))}

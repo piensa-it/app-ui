@@ -17,10 +17,6 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
-    // En la página de documentación las historias se pintan una tras otra: sin
-    // acotar la altura, un armazón a pantalla completa deja una página
-    // interminable y el menú se pierde de vista. Con marco propio se ve como
-    // lo que es, una aplicación, y cada historia trae su propio desplazamiento.
     docs: {
       // En la página de documentación las historias se pintan una tras otra:
       // sin acotar la altura, un armazón a pantalla completa deja una página
@@ -29,7 +25,7 @@ const meta = {
       story: { height: "520px", inline: false },
       description: {
         component:
-          "Armazón de aplicación: menú lateral, barra superior y contenido. Trae resuelto el plegado con la preferencia recordada por dispositivo, la animación de ancho, el panel móvil y el carácter cromático del menú.",
+          "Armazón de aplicación: menú lateral, barra superior y contenido. Trae resuelto el plegado con la preferencia recordada por dispositivo, la animación de ancho, el panel móvil y el carácter cromático del menú.\n\nAquí se documenta el componente y sus estados por separado. Para ver cómo se compone con el resto —tabla, formulario, navegación real— está *Guías → Aplicación de ejemplo*.",
       },
     },
   },
@@ -161,7 +157,8 @@ export const Plegado: Story = {
   render: () => (
     <AppShell
       defaultCollapsed
-      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      brand={<SidebarBrand name="Distribuidora El Poblado S.A.S." groups={grupos} />}
+      sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
       sidebar={<Navegacion />}
     >
       <PageContainer>
@@ -252,4 +249,57 @@ export const SeccionesPlegables: Story = {
       </PageContainer>
     </AppShell>
   ),
+};
+
+/**
+ * Seis secciones y cuarenta enlaces, que es donde se ve si el menú agrupa o no.
+ *
+ * Las otras historias caben en la ventana y por eso no lo enseñan: con dos
+ * secciones cortas, cualquier separación parece suficiente. La distancia entre
+ * secciones es cuatro veces la que hay entre dos enlaces de la misma sección;
+ * si fueran iguales, esto se leería como una lista de cuarenta.
+ */
+export const MenuLargo: Story = {
+  name: "Menú largo (seis secciones)",
+  render: () => {
+    const secciones = [
+      { label: "Operación", enlaces: ["Movimientos", "Arqueo de caja", "Conciliación", "Cierres", "Traslados"] },
+      { label: "Cartera", enlaces: ["Clientes", "Facturas", "Recaudos", "Notas crédito", "Cobranza"] },
+      { label: "Compras", enlaces: ["Proveedores", "Órdenes", "Recepciones", "Cuentas por pagar"] },
+      { label: "Tesorería", enlaces: ["Cuentas bancarias", "Pagos programados", "Extractos", "Flujo de caja"] },
+      { label: "Informes", enlaces: ["Estado de resultados", "Balance", "Auxiliares", "Impuestos", "Exportaciones"] },
+      { label: "Administración", enlaces: ["Usuarios", "Permisos", "Sucursales", "Parámetros", "Auditoría"] },
+    ];
+    return (
+      <AppShell
+        storageKey="demo-largo"
+        brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+        sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+        sidebar={
+          <SidebarNav>
+            {secciones.map((seccion, indice) => (
+              <SidebarNavGroup key={seccion.label} label={seccion.label}>
+                {seccion.enlaces.map((enlace, posicion) => (
+                  <SidebarNavItem
+                    key={enlace}
+                    icon={<ReceiptIcon />}
+                    active={indice === 0 && posicion === 0}
+                  >
+                    {enlace}
+                  </SidebarNavItem>
+                ))}
+              </SidebarNavGroup>
+            ))}
+          </SidebarNav>
+        }
+      >
+        <PageContainer>
+          <PageHeader
+            title="Movimientos"
+            description="Con seis secciones, la separación entre ellas es lo que permite leer el menú."
+          />
+        </PageContainer>
+      </AppShell>
+    );
+  },
 };

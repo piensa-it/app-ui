@@ -1,6 +1,7 @@
 export default {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
+    // Tailwind 4 se conecta a PostCSS por su propio paquete, y trae el
+    // prefijado de proveedor incorporado: `autoprefixer` sobra.
+    "@tailwindcss/postcss": {},
   },
 };

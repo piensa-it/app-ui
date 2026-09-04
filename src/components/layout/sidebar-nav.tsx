@@ -5,6 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 
+import "./sidebar.css";
+
 export interface SidebarNavProps extends React.HTMLAttributes<HTMLUListElement> {
   children: React.ReactNode;
 }
@@ -52,8 +54,15 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
     if (collapsed) {
       // Con el menú en iconos no hay sitio para el encabezado ni para el
       // control: los enlaces se muestran siempre y una línea separa secciones.
+      // La raya ya agrupa, así que la separación es la mínima: sumarle el hueco
+      // entero desperdiciaría la altura que el menú plegado quiere ahorrar.
       return (
-        <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+        <div
+          ref={ref}
+          data-ui-sidebar-group="collapsed"
+          className={cn("flex flex-col gap-2xs", className)}
+          {...props}
+        >
           <hr className="mx-auto my-2xs w-6 border-sidebar-border" />
           {children}
         </div>
@@ -61,7 +70,12 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
     }
 
     return (
-      <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+      <div
+        ref={ref}
+        data-ui-sidebar-group="expanded"
+        className={cn("flex flex-col gap-2xs", className)}
+        {...props}
+      >
         {collapsible ? (
           <button
             type="button"
@@ -71,7 +85,7 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
             className={cn(
               "flex items-center justify-between gap-xs rounded-md px-sm pt-xs text-ui-caption font-semibold uppercase tracking-wide",
               "text-sidebar-muted transition-colors hover:text-sidebar-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             )}
           >
             {label}
@@ -167,7 +181,7 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
           }}
           className={cn(
             "flex w-full items-center gap-sm rounded-md px-sm py-xs text-ui-body-sm transition-colors duration-normal",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             active
               ? "bg-sidebar-active font-medium text-sidebar-active-foreground"
               : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",

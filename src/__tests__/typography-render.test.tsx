@@ -1,8 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import postcss from "postcss";
-import tailwindcss from "tailwindcss";
-import path from "node:path";
+
+import { compilarTailwind } from "../test/compilar-tailwind";
 
 import { AppVersion } from "../components/layout/app-version";
 import { SidebarBrand } from "../components/layout/sidebar-brand";
@@ -17,15 +16,9 @@ import { SidebarNav, SidebarNavItem } from "../components/layout/sidebar-nav";
  * detecta es mirar el tamaño que acaba teniendo el texto.
  */
 beforeAll(async () => {
-  const preset = (await import(path.resolve(process.cwd(), "tailwind-preset.js"))).default;
-  const result = await postcss([
-    tailwindcss({
-      presets: [preset],
-      content: [path.resolve(process.cwd(), "src/components/**/*.tsx")],
-    }),
-  ]).process("@tailwind base; @tailwind utilities;", { from: undefined });
+  const css = await compilarTailwind({ fuentes: ["src/components/**/*.tsx"] });
   const style = document.createElement("style");
-  style.textContent = result.css;
+  style.textContent = css;
   document.head.appendChild(style);
 });
 

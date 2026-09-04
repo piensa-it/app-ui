@@ -62,7 +62,7 @@ const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
           "after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-normal",
           "peer-checked:border-primary",
           "peer-checked:after:scale-100",
-          "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+          "peer-focus-visible:outline-hidden peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
           transition,
         )}
       />

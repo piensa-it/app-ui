@@ -348,7 +348,7 @@ function DataTable<TValue extends DataTableValue>({
                   <button
                     type="button"
                     aria-label="Configurar columnas"
-                    className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-raised text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-raised text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <Settings2 aria-hidden="true" className="size-4" />
                   </button>
@@ -497,7 +497,7 @@ function DataTable<TValue extends DataTableValue>({
                             // encabezado ordenable pierde las mayúsculas del <th>.
                             "uppercase",
                             "transition-colors duration-fast hover:text-foreground",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                           )}
                           aria-label={`Ordenar por ${
                             (header.column.columnDef.meta as { ariaLabel?: string } | undefined)?.ariaLabel ?? header.id

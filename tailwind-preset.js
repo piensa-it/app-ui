@@ -173,6 +173,14 @@ const preset = {
         "control-default": "var(--control-default)",
         "control-comfortable": "var(--control-comfortable)",
       },
+      // `width` va junto a `height`, no solo `minWidth`: un botón de icono es
+      // una caja cuadrada, y sin esta clave `w-control-*` no se generaba, así
+      // que salía a la anchura de su contenido en vez de a la del token.
+      width: {
+        "control-compact": "var(--control-compact)",
+        "control-default": "var(--control-default)",
+        "control-comfortable": "var(--control-comfortable)",
+      },
       minWidth: {
         "control-compact": "var(--control-compact)",
         "control-default": "var(--control-default)",

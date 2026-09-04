@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { UI_LIBRARY_VERSION } from "@/version";
+import { useSidebar } from "./sidebar-context";
 
 export interface AppVersionProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Versión de la aplicación que consume la librería. */
@@ -11,7 +12,13 @@ export interface AppVersionProps extends React.HTMLAttributes<HTMLDivElement> {
    * `Date`. Normalmente se inyecta en el build (`define` de Vite).
    */
   buildDate?: string | number | Date;
-  /** Prefijo delante de la versión de la aplicación. @default "v" */
+  /**
+   * Prefijo delante de la versión de la aplicación. @default "v"
+   *
+   * Dentro de un `AppShell` plegado se muestra solo la versión de la
+   * aplicación, porque las tres partes no caben en el ancho del menú. El
+   * detalle completo sigue en el `title`.
+   */
   prefix?: string;
 }
 
@@ -53,8 +60,15 @@ function formatBuildDate(value: NonNullable<AppVersionProps["buildDate"]>): stri
  */
 export const AppVersion = React.forwardRef<HTMLDivElement, AppVersionProps>(
   ({ version, buildDate, prefix = "v", className, ...props }, ref) => {
+    // Dentro de un `AppShell` plegado no hay sitio para tres datos: el menú
+    // mide 72 px y la línea se partía en cuatro renglones, saliéndose del
+    // componente. Fuera del menú, `collapsed` es siempre falso.
+    const { collapsed } = useSidebar();
     const formattedDate = buildDate === undefined ? null : formatBuildDate(buildDate);
     const parts = [`${prefix}${version}`, `UI ${UI_LIBRARY_VERSION}`, ...(formattedDate ? [formattedDate] : [])];
+    // El detalle completo se conserva en el `title` aunque no se pinte: es lo
+    // que se copia al reportar algo.
+    const shown = collapsed ? parts.slice(0, 1) : parts;
 
     return (
       <div
@@ -62,10 +76,10 @@ export const AppVersion = React.forwardRef<HTMLDivElement, AppVersionProps>(
         title={parts.join(" · ")}
         // Hereda el color: su sitio natural es el pie del menú, que es otro
         // plano cromático. Fijar `text-muted-foreground` lo sacaría de ahí.
-        className={cn("text-ui-caption text-current", className)}
+        className={cn("text-ui-caption text-current", collapsed && "truncate text-center", className)}
         {...props}
       >
-        {parts.map((part, index) => (
+        {shown.map((part, index) => (
           <React.Fragment key={part}>
             {index > 0 ? <span aria-hidden="true"> · </span> : null}
             <span>{part}</span>

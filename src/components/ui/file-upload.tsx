@@ -57,7 +57,7 @@ const FileUpload = React.forwardRef<HTMLDivElement, FileUploadProps>(
             className={cn(
               "mt-1 rounded-md border border-input bg-raised px-3 py-1.5 text-sm font-medium shadow-sm",
               "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             )}
           >
             Elegir archivos
@@ -89,7 +89,7 @@ const FileUpload = React.forwardRef<HTMLDivElement, FileUploadProps>(
                 <ArkFileUpload.ItemDeleteTrigger
                   className={cn(
                     "shrink-0 rounded-sm p-1 text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   )}
                 >
                   <X className="h-4 w-4" />

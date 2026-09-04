@@ -1,7 +1,7 @@
 {
   "name": "@piensa-it/ui-library",
   "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -51,6 +51,7 @@
     "dev": "vite",
     "build": "vite build",
     "verify:package": "npm run build && node scripts/verify-package.mjs",
+    "verify:react18": "node scripts/verify-react18.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
@@ -70,12 +71,20 @@
     "*.{ts,tsx}": "eslint --fix"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.17"
+    "@types/react": "^18.3.0 || ^19.0.0",
+    "@types/react-dom": "^18.3.0 || ^19.0.0",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0",
+    "tailwindcss": "^3.4.17 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "tailwindcss": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
       "optional": true
     }
   },
@@ -102,34 +111,34 @@
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/inter": "^5.2.8",
     "@playwright/test": "^1.62.1",
-    "@storybook/addon-a11y": "^10.5.10",
-    "@storybook/addon-docs": "^10.5.10",
-    "@storybook/react-vite": "^10.5.10",
+    "@storybook/addon-a11y": "^10.6.0",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react-vite": "^10.6.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.6",
     "@types/node": "^22.16.5",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react-swc": "^4.3.3",
     "@vitest/coverage-v8": "^4.1.11",
-    "autoprefixer": "^10.4.20",
     "axe-core": "^4.13.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.5",
-    "eslint-plugin-storybook": "^10.5.10",
+    "eslint-plugin-storybook": "^10.6.0",
     "globals": "^17.11.0",
     "http-server": "^14.1.1",
     "husky": "^9.1.7",
     "jsdom": "^29.0.2",
     "lint-staged": "^17.4.1",
     "postcss": "^8.5.26",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-router-dom": "^6.30.6",
-    "storybook": "^10.5.3",
-    "tailwindcss": "^3.4.17",
+    "storybook": "^10.6.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.68.0",
     "vite": "^8.2.2",

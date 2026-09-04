@@ -80,7 +80,7 @@ function AlertDialogHost() {
         <ArkDialog.Positioner className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <ArkDialog.Content
             className={cn(
-              "w-full max-w-md rounded-lg border border-border bg-raised p-6 shadow-lg outline-none",
+              "w-full panel-md rounded-lg border border-border bg-raised p-6 shadow-lg outline-hidden",
               current?.surface === "outline" && "border-2 shadow-none",
               current?.surface === "elevated" && "rounded-2xl border-border/70 shadow-2xl",
               elevationRing,

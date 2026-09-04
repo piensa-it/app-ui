@@ -23,7 +23,7 @@ const ICON_BY_TYPE: Record<string, ComponentType<{ className?: string }>> = {
  */
 function Toaster() {
   return (
-    <ArkToaster toaster={toaster} className="fixed z-[100] flex flex-col gap-2 outline-none">
+    <ArkToaster toaster={toaster} className="fixed z-[100] flex flex-col gap-2 outline-hidden">
       {(toast: ArkToast.Options) => {
         const Icon = ICON_BY_TYPE[toast.type ?? "info"];
         return (
@@ -64,7 +64,7 @@ function Toaster() {
                 aria-label="Cerrar notificación"
                 className={cn(
                   "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 )}
               >
                 <X className="h-4 w-4" />

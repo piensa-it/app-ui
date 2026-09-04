@@ -44,7 +44,7 @@ const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
           switchControlSizeVariants({ size }),
           "data-[state=checked]:bg-primary",
           "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-          "data-[focus-visible]:outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-2",
+          "data-[focus-visible]:outline-hidden data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-2",
           transition,
         )}
       >

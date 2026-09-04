@@ -10,14 +10,14 @@
 
 /** Anillo de foco consistente en toda la librería. */
 export const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 /**
  * Igual que `focusRing`, pero para elementos donde el foco real vive en un
  * hermano anterior (ej. un input nativo oculto) — se dispara con `peer`.
  */
 export const peerFocusRing =
-  "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2";
+  "peer-focus-visible:outline-hidden peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2";
 
 export const transition = "transition-colors duration-150";
 

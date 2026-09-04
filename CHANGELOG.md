@@ -6,6 +6,39 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-04
+
+### Fixed
+
+- **`w-control-*` no se generaba: los botones de icono salían a media anchura** (#48). `tailwind-preset.js` declaraba `height`, `minWidth` y `minHeight` con la escala de controles, pero no `width`, así que la clase no existía y el botón tomaba la anchura de su contenido. Afectaba a `Button size="icon"`, a los dos botones de `Pagination` y al de configurar columnas de `DataTable`. Verificado en el navegador: los botones de paginación pasan a medir 40×40 exactos. La prueba nueva compila el preset y comprueba que las tres claves de la escala se generan, porque este fallo es invisible en revisión: la clase se escribe y simplemente no existe.
+- **Con el menú plegado, la marca de la organización no quedaba centrada.** Su fila no llevaba `justify-center` ni soltaba el relleno lateral, así que quedaba 14 px a la izquierda del eje de los iconos de abajo. Se notaba en cuanto había dos filas.
+- **Con el menú plegado, la línea de versión se salía del componente.** Intentaba pintar tres datos —versión de la aplicación, de la librería y fecha— en los 48 px útiles que deja un menú de 72, y se partía en cuatro renglones. Ahora muestra solo la versión de la aplicación, centrada; el detalle completo sigue en el `title` para copiarlo en un reporte. Fuera del menú no cambia nada.
+- **El menú lateral no separaba sus secciones** (#49). Los enlaces de una sección y el salto de una sección a la siguiente estaban a la misma distancia, así que con seis secciones y cuarenta enlaces el menú se leía como una lista larga en vez de como secciones. Ahora entre secciones hay cuatro veces la separación que hay entre dos enlaces de la misma, y con el menú plegado la separación es mínima porque la raya ya agrupa. La regla vive en la hoja del componente y se aplica igual estén los grupos dentro de `SidebarNav` o sueltos en el `sidebar` del `AppShell`.
+
+### Changed
+
+- **Tailwind 4** (#58). La librería se construye ahora con Tailwind 4.3.3, y `peerDependencies` pasa a `^3.4.17 || ^4.0.0`.
+
+  **`tailwind-preset.js` no cambia y las aplicaciones lo siguen extendiendo igual.** El spike previo confirmó que v4 carga un preset JS con `@config`, así que se tomó esa vía en lugar de reescribirlo como CSS: es la que no obliga a coordinar tres repositorios a la vez.
+
+  Lo que sí hubo que tocar dentro de la librería:
+  - `@tailwind base/components/utilities` pasa a `@import "tailwindcss"` más `@config`, y PostCSS pasa a `@tailwindcss/postcss`. `autoprefixer` se retira: v4 lo trae incorporado.
+  - Los 43 `outline-none` pasan a `outline-hidden`, que es el equivalente exacto del comportamiento de v3. El nuevo `outline-none` de v4 quita el contorno de verdad, y con él la pista que queda en el modo de alto contraste de Windows.
+  - `theme.container` desaparece de la configuración en v4 y se declara como `@utility`, con los mismos valores.
+  - `button { cursor: pointer }` salió del reset de v4 y se devuelve en la capa base, o todos los botones pasarían a mostrar el cursor de texto.
+  - Las cuatro `shadow` sueltas de `Badge` pasan a `shadow-sm`, que es el token del sistema.
+- **Choque de nombres entre la escala de espaciado y los anchos máximos.** En v4, `max-w-lg` se resuelve contra la escala de espaciado cuando esta declara ese nombre, y la nuestra usa `sm`, `md`, `lg`… El resultado era que `max-w-lg` valía 1,5 rem en vez de 32 rem: **los diálogos se encogían a 50 px de ancho**. Los siete usos internos pasan a utilidades propias (`panel-sm`, `panel-md`, `panel-lg`…), que no admiten ambigüedad. **Una aplicación que use `max-w-lg` con nuestro preset tiene el mismo problema**: ver la guía de migración.
+- **React 19** (#56). La librería se desarrolla ahora contra React 19.2.8, y `peerDependencies` pasa a `^18.3.1 || ^19.0.0`: **las aplicaciones pueden quedarse en 18 o subir cuando quieran**. Salió más barato de lo previsto: ninguna API eliminada estaba en uso y el compilador solo señaló un punto, el genérico de `ReactElement`, que en 19 pasa de `any` a `unknown`. Los 66 `forwardRef` siguen funcionando; convertirlos es opcional y va aparte, porque cambiaría el tipo público de casi toda la librería.
+- **El soporte de las dos versiones se comprueba, no se declara.** `npm run verify:react18` instala React 18 sin tocar `package.json`, corre tipos y pruebas, y restaura el árbol. Verificado: 345 pruebas y cero errores de tipos con 18 y con 19.
+- `@types/react` y `@types/react-dom` pasan a ser peers opcionales, como hace `@testing-library/react`: el `.d.ts` publicado resuelve contra los del consumidor.
+- Ola de mantenimiento (#55): Ark UI 5.39.1, framer-motion 13.2.0, lucide-react 1.41.0, `@internationalized/date` 3.12.4, Storybook 10.6.0 con sus addons, y los plugins de lint. Todo dentro de los rangos ya declarados, así que no cambia el contrato con ningún consumidor. Batería completa en verde, incluidas las 14 capturas comparadas sin diferencias.
+
+### Docs
+
+- **La aplicación de ejemplo y la página del armazón dejan de repetirse.** Las dos montaban un `AppShell` con menú, marca y versión, y había que actualizar ambas ante cualquier cambio del menú. Ahora cada una hace lo suyo: la aplicación de ejemplo muestra **cómo se componen** las piezas (aplicación completa, vista de tabla, vista de formulario) y la página de `AppShell` documenta **el componente y sus estados** (plegado, las tres variantes, secciones plegables, integración con React Router, menú largo). Las dos se enlazan entre sí, para que quien busque un estado no crea que falta.
+- La tolerancia de las capturas comparadas baja de 0.01 a 0.001. La anterior eran 11.520 píxeles sobre 1280×900: cabía un cambio visible sin que la prueba se enterara, y de hecho los dos fallos del menú plegado pasaron por delante de ella sin marcarla.
+- Story del armazón con seis secciones y cuarenta enlaces, que es donde el problema se ve. Las que había caben en la ventana y por eso no lo enseñaban. Añadida además a las capturas comparadas.
+
 ## [0.4.2] - 2026-09-03
 
 Tres cosas que se ven en el sitio de documentación y que, siendo la referencia

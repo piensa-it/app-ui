@@ -147,7 +147,7 @@ function IconCatalog() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar SaveIcon, SearchIcon, UserIcon…"
-          className="h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-hidden transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         />
       </label>
       <p className="text-sm text-muted-foreground">

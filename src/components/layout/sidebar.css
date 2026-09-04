@@ -1,0 +1,28 @@
+/**
+ * Separación entre secciones del menú lateral.
+ *
+ * Va como regla del sistema y no como clase en el componente por dos motivos:
+ * lo que separa un grupo del siguiente depende de que HAYA un grupo antes, que
+ * es exactamente lo que expresa el selector de hermano adyacente; y así vale
+ * igual estén los grupos dentro de `SidebarNav` o sueltos en el `sidebar` del
+ * `AppShell`.
+ *
+ * El tamaño no es decorativo. Los enlaces de una sección se separan entre sí
+ * con `--space-2xs`; entre secciones hay cuatro veces eso. Si lo de dentro y lo
+ * de fuera están a la misma distancia no hay secciones, hay una lista larga:
+ * con seis secciones y cuarenta enlaces el menú dejaba de leerse.
+ *
+ * Nunca antes del primer grupo: el selector solo actúa sobre un grupo que viene
+ * después de otro.
+ */
+[data-ui-sidebar-group="expanded"] + [data-ui-sidebar-group="expanded"] {
+  margin-top: var(--space-md);
+}
+
+/**
+ * Plegado ya hay una raya entre secciones, que agrupa por sí sola. Sumarle el
+ * hueco entero desperdiciaría la altura que el menú en iconos quiere ahorrar.
+ */
+[data-ui-sidebar-group="collapsed"] + [data-ui-sidebar-group="collapsed"] {
+  margin-top: var(--space-2xs);
+}

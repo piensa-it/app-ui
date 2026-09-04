@@ -100,8 +100,8 @@ function splitSheetProps(props: Record<string, unknown>) {
 }
 
 const SIZE_BY_POSITION: Record<NonNullable<SheetProps["position"]>, string> = {
-  left: "inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
-  right: "inset-y-0 right-0 h-full w-3/4 sm:max-w-sm",
+  left: "inset-y-0 left-0 h-full w-3/4 sm:panel-sm",
+  right: "inset-y-0 right-0 h-full w-3/4 sm:panel-sm",
   top: "inset-x-0 top-0 w-full",
   bottom: "inset-x-0 bottom-0 w-full",
 };
@@ -177,7 +177,7 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
               draggable={false}
               {...contentProps}
               className={cn(
-                "fixed flex flex-col gap-4 p-6 outline-none",
+                "fixed flex flex-col gap-4 p-6 outline-hidden",
                 surface && "border-border bg-raised shadow-lg",
                 surface && elevationRing,
                 surface && position === "left" && "border-r",
@@ -194,7 +194,7 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
                 className={cn(
                   "absolute right-4 top-4 rounded-sm opacity-70 transition-opacity",
                   surface ? "text-muted-foreground" : "text-current",
-                  "hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 )}
               >
                 <X className="h-4 w-4" />

@@ -35,12 +35,12 @@ export const fieldControlVariants = cva(
 /** Panel flotante compartido por selectores, búsquedas y calendarios. */
 export const floatingPanelStyles = [
   "z-50 max-w-[calc(100vw-2rem)] overflow-auto rounded-lg",
-  "border border-surface-border bg-raised text-popover-foreground shadow-md outline-none",
+  "border border-surface-border bg-raised text-popover-foreground shadow-md outline-hidden",
 ].join(" ");
 
 /** Opción compartida. Highlight representa teclado/hover; checked, selección. */
 export const optionStyles = [
-  "relative flex min-h-10 cursor-pointer select-none items-center justify-between gap-3 rounded-md px-3 py-2 text-sm outline-none",
+  "relative flex min-h-10 cursor-pointer select-none items-center justify-between gap-3 rounded-md px-3 py-2 text-sm outline-hidden",
   interactiveTransition,
   "data-[highlighted]:bg-surface-hover data-[highlighted]:text-foreground",
   "data-[state=checked]:bg-subtle data-[state=checked]:text-subtle-foreground",
