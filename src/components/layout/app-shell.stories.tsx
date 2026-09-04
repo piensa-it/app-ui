@@ -253,3 +253,56 @@ export const SeccionesPlegables: Story = {
     </AppShell>
   ),
 };
+
+/**
+ * Seis secciones y cuarenta enlaces, que es donde se ve si el menú agrupa o no.
+ *
+ * Las otras historias caben en la ventana y por eso no lo enseñan: con dos
+ * secciones cortas, cualquier separación parece suficiente. La distancia entre
+ * secciones es cuatro veces la que hay entre dos enlaces de la misma sección;
+ * si fueran iguales, esto se leería como una lista de cuarenta.
+ */
+export const MenuLargo: Story = {
+  name: "Menú largo (seis secciones)",
+  render: () => {
+    const secciones = [
+      { label: "Operación", enlaces: ["Movimientos", "Arqueo de caja", "Conciliación", "Cierres", "Traslados"] },
+      { label: "Cartera", enlaces: ["Clientes", "Facturas", "Recaudos", "Notas crédito", "Cobranza"] },
+      { label: "Compras", enlaces: ["Proveedores", "Órdenes", "Recepciones", "Cuentas por pagar"] },
+      { label: "Tesorería", enlaces: ["Cuentas bancarias", "Pagos programados", "Extractos", "Flujo de caja"] },
+      { label: "Informes", enlaces: ["Estado de resultados", "Balance", "Auxiliares", "Impuestos", "Exportaciones"] },
+      { label: "Administración", enlaces: ["Usuarios", "Permisos", "Sucursales", "Parámetros", "Auditoría"] },
+    ];
+    return (
+      <AppShell
+        storageKey="demo-largo"
+        brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+        sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+        sidebar={
+          <SidebarNav>
+            {secciones.map((seccion, indice) => (
+              <SidebarNavGroup key={seccion.label} label={seccion.label}>
+                {seccion.enlaces.map((enlace, posicion) => (
+                  <SidebarNavItem
+                    key={enlace}
+                    icon={<ReceiptIcon />}
+                    active={indice === 0 && posicion === 0}
+                  >
+                    {enlace}
+                  </SidebarNavItem>
+                ))}
+              </SidebarNavGroup>
+            ))}
+          </SidebarNav>
+        }
+      >
+        <PageContainer>
+          <PageHeader
+            title="Movimientos"
+            description="Con seis secciones, la separación entre ellas es lo que permite leer el menú."
+          />
+        </PageContainer>
+      </AppShell>
+    );
+  },
+};

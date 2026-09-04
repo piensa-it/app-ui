@@ -140,6 +140,8 @@ test.describe("Armazón", () => {
     ["armazon-plegado", "layout-appshell--plegado"],
     ["armazon-router", "layout-appshell--con-router"],
     ["armazon-secciones", "layout-appshell--secciones-plegables"],
+    // Seis secciones: es donde se ve si el menú agrupa o se lee como una lista.
+    ["armazon-menu-largo", "layout-appshell--menu-largo"],
   ] as const;
 
   for (const [name, id] of shellStories) {

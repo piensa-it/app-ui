@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **El menú lateral no separaba sus secciones** (#49). Los enlaces de una sección y el salto de una sección a la siguiente estaban a la misma distancia, así que con seis secciones y cuarenta enlaces el menú se leía como una lista larga en vez de como secciones. Ahora entre secciones hay cuatro veces la separación que hay entre dos enlaces de la misma, y con el menú plegado la separación es mínima porque la raya ya agrupa. La regla vive en la hoja del componente y se aplica igual estén los grupos dentro de `SidebarNav` o sueltos en el `sidebar` del `AppShell`.
+
+### Docs
+
+- Story del armazón con seis secciones y cuarenta enlaces, que es donde el problema se ve. Las que había caben en la ventana y por eso no lo enseñaban. Añadida además a las capturas comparadas.
+
 ## [0.4.2] - 2026-09-03
 
 Tres cosas que se ven en el sitio de documentación y que, siendo la referencia

@@ -5,6 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 
+import "./sidebar.css";
+
 export interface SidebarNavProps extends React.HTMLAttributes<HTMLUListElement> {
   children: React.ReactNode;
 }
@@ -52,8 +54,15 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
     if (collapsed) {
       // Con el menú en iconos no hay sitio para el encabezado ni para el
       // control: los enlaces se muestran siempre y una línea separa secciones.
+      // La raya ya agrupa, así que la separación es la mínima: sumarle el hueco
+      // entero desperdiciaría la altura que el menú plegado quiere ahorrar.
       return (
-        <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+        <div
+          ref={ref}
+          data-ui-sidebar-group="collapsed"
+          className={cn("flex flex-col gap-2xs", className)}
+          {...props}
+        >
           <hr className="mx-auto my-2xs w-6 border-sidebar-border" />
           {children}
         </div>
@@ -61,7 +70,12 @@ export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupP
     }
 
     return (
-      <div ref={ref} className={cn("flex flex-col gap-2xs", className)} {...props}>
+      <div
+        ref={ref}
+        data-ui-sidebar-group="expanded"
+        className={cn("flex flex-col gap-2xs", className)}
+        {...props}
+      >
         {collapsible ? (
           <button
             type="button"
