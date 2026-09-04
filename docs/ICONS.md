@@ -3,7 +3,7 @@
 ## Por qué existe este documento
 
 `@piensa-it/ui-library` declara `lucide-react@^1.35.0` como dependencia directa
-(`package.json`) y re-exporta un catálogo curado de 167 iconos desde
+(`package.json`) y re-exporta un catálogo curado de 208 iconos desde
 `src/icons.ts`, disponible en el barrel público (`src/index.ts`). Las apps
 consumidoras (MiDivisa, Corelink) declaran además su propia dependencia de
 `lucide-react@^0.462.0`. Como los rangos no son compatibles, npm instala **dos
@@ -36,7 +36,7 @@ válido. Solo cambia el nombre y el origen del import.
 
 ## Tabla de equivalencias
 
-Los 167 iconos del catálogo, ordenados alfabéticamente por su nombre en
+Los 208 iconos del catálogo, ordenados alfabéticamente por su nombre en
 lucide-react. Generada leyendo `src/icons.ts`.
 
 Los marcados con † usan un nombre que en lucide 1.35.0 es un **alias** de otro
@@ -212,6 +212,57 @@ pero conviene saberlo si se comparan glifos.
 | `Wrench` | `ToolsIcon` | `import { ToolsIcon } from "@piensa-it/ui-library";` |
 | `X` | `CloseIcon` | `import { CloseIcon } from "@piensa-it/ui-library";` |
 | `Zap` | `LightningIcon` | `import { LightningIcon } from "@piensa-it/ui-library";` |
+
+### Añadidos en 0.7.0 (adopción en Lynx)
+
+Iconos de dominio inmobiliario y de portafolio que Lynx usaba desde su copia
+de lucide y no estaban en la tabla: activos, capas, obra, acuerdos,
+sostenibilidad, flujos, además del spinner de carga y el archivo rechazado.
+`FileSignature` no existe en lucide 1.x; su equivalente es `Signature`.
+
+| Nombre en lucide-react | Export de la librería | Import nuevo |
+| --- | --- | --- |
+| `ArrowDownRight` | `ArrowDownRightIcon` | `import { ArrowDownRightIcon } from "@piensa-it/ui-library";` |
+| `ArrowUpRight` | `ArrowUpRightIcon` | `import { ArrowUpRightIcon } from "@piensa-it/ui-library";` |
+| `Boxes` | `BoxesIcon` | `import { BoxesIcon } from "@piensa-it/ui-library";` |
+| `Building` | `BuildingIcon` | `import { BuildingIcon } from "@piensa-it/ui-library";` |
+| `CalendarDays` | `CalendarDaysIcon` | `import { CalendarDaysIcon } from "@piensa-it/ui-library";` |
+| `ChevronsUpDown` | `ChevronsUpDownIcon` | `import { ChevronsUpDownIcon } from "@piensa-it/ui-library";` |
+| `Circle` | `CircleIcon` | `import { CircleIcon } from "@piensa-it/ui-library";` |
+| `CircleDashed` | `CircleDashedIcon` | `import { CircleDashedIcon } from "@piensa-it/ui-library";` |
+| `CircleSlash` | `CircleSlashIcon` | `import { CircleSlashIcon } from "@piensa-it/ui-library";` |
+| `ClipboardList` | `ClipboardListIcon` | `import { ClipboardListIcon } from "@piensa-it/ui-library";` |
+| `Coins` | `CoinsIcon` | `import { CoinsIcon } from "@piensa-it/ui-library";` |
+| `DollarSign` | `DollarSignIcon` | `import { DollarSignIcon } from "@piensa-it/ui-library";` |
+| `Droplets` | `DropletsIcon` | `import { DropletsIcon } from "@piensa-it/ui-library";` |
+| `FileX` | `RejectedFileIcon` | `import { RejectedFileIcon } from "@piensa-it/ui-library";` |
+| `Flame` | `FlameIcon` | `import { FlameIcon } from "@piensa-it/ui-library";` |
+| `Hammer` | `HammerIcon` | `import { HammerIcon } from "@piensa-it/ui-library";` |
+| `Handshake` | `HandshakeIcon` | `import { HandshakeIcon } from "@piensa-it/ui-library";` |
+| `Layers` | `LayersIcon` | `import { LayersIcon } from "@piensa-it/ui-library";` |
+| `Leaf` | `LeafIcon` | `import { LeafIcon } from "@piensa-it/ui-library";` |
+| `LoaderCircle` | `SpinnerIcon` | `import { SpinnerIcon } from "@piensa-it/ui-library";` |
+| `Palette` | `PaletteIcon` | `import { PaletteIcon } from "@piensa-it/ui-library";` |
+| `PiggyBank` | `SavingsIcon` | `import { SavingsIcon } from "@piensa-it/ui-library";` |
+| `Ruler` | `RulerIcon` | `import { RulerIcon } from "@piensa-it/ui-library";` |
+| `Scale` | `ScaleIcon` | `import { ScaleIcon } from "@piensa-it/ui-library";` |
+| `Shield` | `ShieldIcon` | `import { ShieldIcon } from "@piensa-it/ui-library";` |
+| `Signature` | `SignatureIcon` | `import { SignatureIcon } from "@piensa-it/ui-library";` |
+| `ShieldAlert` | `ShieldAlertIcon` | `import { ShieldAlertIcon } from "@piensa-it/ui-library";` |
+| `Square` | `SquareIcon` | `import { SquareIcon } from "@piensa-it/ui-library";` |
+| `Unlink` | `UnlinkIcon` | `import { UnlinkIcon } from "@piensa-it/ui-library";` |
+| `Workflow` | `WorkflowIcon` | `import { WorkflowIcon } from "@piensa-it/ui-library";` |
+| `ChartArea` | `AreaChartIcon` | `import { AreaChartIcon } from "@piensa-it/ui-library";` |
+| `BadgePercent` | `PercentBadgeIcon` | `import { PercentBadgeIcon } from "@piensa-it/ui-library";` |
+| `ChartColumn` | `ColumnChartIcon` | `import { ColumnChartIcon } from "@piensa-it/ui-library";` |
+| `CalendarClock` | `CalendarClockIcon` | `import { CalendarClockIcon } from "@piensa-it/ui-library";` |
+| `ChartCandlestick` | `CandlestickChartIcon` | `import { CandlestickChartIcon } from "@piensa-it/ui-library";` |
+| `Construction` | `ConstructionIcon` | `import { ConstructionIcon } from "@piensa-it/ui-library";` |
+| `FileSearch` | `FileSearchIcon` | `import { FileSearchIcon } from "@piensa-it/ui-library";` |
+| `FolderKanban` | `KanbanIcon` | `import { KanbanIcon } from "@piensa-it/ui-library";` |
+| `Headset` | `HeadsetIcon` | `import { HeadsetIcon } from "@piensa-it/ui-library";` |
+| `ChartLine` | `LineChartIcon` | `import { LineChartIcon } from "@piensa-it/ui-library";` |
+| `Tag` | `TagIcon` | `import { TagIcon } from "@piensa-it/ui-library";` |
 
 ## Iconos que no están en el catálogo
 
