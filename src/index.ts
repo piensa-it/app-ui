@@ -76,6 +76,12 @@ export { RadioGroup, RadioGroupItem, type RadioGroupProps, type RadioGroupItemPr
 export { Switch, type SwitchProps } from "./components/ui/switch";
 export { Slider, type SliderProps } from "./components/ui/slider";
 export { Dialog, DialogHeader, DialogFooter, DialogTitle, DialogDescription, type DialogProps } from "./components/ui/dialog";
+export {
+  AppSwitcher,
+  type AppSwitcherProps,
+  type AppSwitcherGroup,
+  type AppSwitcherItem,
+} from "./components/ui/app-switcher";
 export { AlertDialogHost, confirmAlert, type ConfirmAlertOptions } from "./components/ui/alert-dialog";
 export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sidebar";
 export { Popover, PopoverTrigger, PopoverContent, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps } from "./components/ui/popover";
