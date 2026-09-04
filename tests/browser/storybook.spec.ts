@@ -6,16 +6,26 @@ const storyUrl = (id: string, globals = "theme:light;palette:indigo;fontFamily:g
 };
 
 /**
- * Tolerancia de las capturas comparadas.
+ * Tolerancia de las capturas comparadas, en píxeles.
  *
- * Estaba en 0.01, que sobre 1280×900 son 11.520 píxeles: cabía un cambio a
- * simple vista sin que la prueba se enterara. Se descubrió porque la marca del
- * menú plegado pasó de descentrada a centrada y de no tener pie de versión a
- * tenerlo, y la captura siguió dándose por buena.
+ * El problema no era la cota sino la unidad y la plataforma. Medido sobre este
+ * repositorio, con el comparador de Playwright:
  *
- * 0.001 son ~1.150 píxeles: sigue absorbiendo el antialiasing entre máquinas,
- * pero no un elemento que se mueve.
+ * - Señal: los dos fallos de la marca plegada —descentrada respecto de los
+ *   iconos, y la versión desbordando el componente— movieron **518 px** de una
+ *   captura de 1.280×900.
+ * - Ruido: la misma tira de botones renderizada en macOS y en el Linux de CI
+ *   difiere en **963 px**, todos en el contorno de las letras.
+ *
+ * O sea que comparando una plataforma contra otra el ruido casi duplica la
+ * señal, y ninguna cota las separa: 0,01 dejaba pasar los fallos y 0,001
+ * tampoco los habría visto (son 1.150 px, más que los 518 que cambiaron), pero
+ * sí tropezaba con las fuentes. Por eso cada plataforma compara ahora contra su
+ * propia referencia (`{platform}` en `snapshotPathTemplate`): sin ruido de
+ * rasterizado, un margen pequeño basta y vuelve a detectar lo que debe.
  */
+const MAX_DIFF_PIXELS = 120;
+
 const stabilize = async (page: Page) => {
   await page.addStyleTag({
     content: `
@@ -38,7 +48,7 @@ test.describe("Storybook browser gate", () => {
     await expect(story.getByRole("button", { name: "Solid" })).toBeVisible();
     await expect(story).toHaveScreenshot("button-variants.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.001,
+      maxDiffPixels: MAX_DIFF_PIXELS,
     });
   });
 
@@ -121,7 +131,7 @@ test.describe("Storybook browser gate", () => {
     await expect(page.getByText("La configuración quedó lista")).toBeVisible();
     await expect(story).toHaveScreenshot("animated-banner-success.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.001,
+      maxDiffPixels: MAX_DIFF_PIXELS,
     });
   });
 });
@@ -136,7 +146,7 @@ test.describe("Tokens", () => {
       await stabilize(page);
       await expect(page.locator("#storybook-root")).toHaveScreenshot(`surfaces-${theme}.png`, {
         animations: "disabled",
-        maxDiffPixelRatio: 0.001,
+        maxDiffPixels: MAX_DIFF_PIXELS,
       });
     });
   }
@@ -161,7 +171,7 @@ test.describe("Armazón", () => {
       await stabilize(page);
       await expect(page.locator("#storybook-root")).toHaveScreenshot(`${name}.png`, {
         animations: "disabled",
-        maxDiffPixelRatio: 0.001,
+        maxDiffPixels: MAX_DIFF_PIXELS,
       });
     });
   }

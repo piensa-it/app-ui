@@ -75,6 +75,16 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+      # Cuando el gate falla, Playwright deja en disco lo que acaba de
+      # renderizar. Subirlo permite comparar contra la referencia de Linux —o
+      # crearla— sin tener que reproducir el entorno del runner en local.
+      - name: Upload generated snapshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: snapshots-linux
+          path: tests/browser/__screenshots__/
+          retention-days: 7
 
   deploy-docs:
     # El sitio de documentación se publicaba por la integración Git de

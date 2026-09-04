@@ -1,0 +1,48 @@
+# Regenera las capturas de referencia de Linux, que son las que compara el
+# `browser-gate` de CI.
+#
+# Existe porque las referencias no se pueden generar en la máquina de quien
+# desarrolla: macOS y Linux no rasterizan las letras igual, y ese ruido tapaba
+# la señal —la misma tira de botones difiere en 963 px entre plataformas,
+# mientras que dos fallos reales del menú plegado movieron 518 px—. Cada
+# plataforma compara contra su propia referencia; las de macOS se regeneran en
+# local con `npm run test:browser -- --update-snapshots`, y estas acá.
+#
+# Se dispara a mano. Descargá el artefacto, copiá los `*-linux.png` sobre
+# `tests/browser/__screenshots__/` y subilos en la misma rama del cambio visual.
+name: snapshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Rama sobre la que generar las capturas"
+        required: false
+        default: ""
+
+jobs:
+  linux-snapshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      # `--update-snapshots` reescribe las que difieren y crea las que faltan,
+      # así que el paso no falla aunque todavía no exista ninguna de Linux.
+      - name: Regenerar las capturas de Linux
+        run: npm run test:browser -- --update-snapshots
+      - name: Subir las capturas
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: snapshots-linux
+          path: tests/browser/__screenshots__/
+          retention-days: 7

@@ -9,8 +9,12 @@ export default defineConfig({
   reporter: process.env.CI
     ? [["line"], ["html", { open: "never" }]]
     : [["list"], ["html", { open: "never" }]],
+  // La referencia se guarda por plataforma a propósito: macOS y Linux no
+  // rasterizan las letras igual, y comparar una contra la otra mete más ruido
+  // que señal (ver la nota de tolerancia en storybook.spec.ts). Las de Linux
+  // —las que mira CI— se regeneran con el flujo `snapshots.yml`.
   snapshotPathTemplate:
-    "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
+    "{testDir}/__screenshots__/{testFilePath}/{arg}-{platform}{ext}",
   use: {
     baseURL: "http://127.0.0.1:6106",
     trace: "retain-on-failure",
