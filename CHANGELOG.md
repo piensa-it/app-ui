@@ -8,6 +8,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Added
 
+- **`SidebarBrand` puede abrir algo que no sea su propio menú** (#75). Con `onSelect`, el disparador conserva su aspecto —marca, nombre, distintivo— y llama a la aplicación en vez de desplegar sus `groups`. Hacía falta porque elegir no siempre es cambiar de pestaña: cambiar de empresa cambia los datos, los permisos y quién emite lo que se factura, y esa decisión pide una ventana con sitio para el NIT, el rol y una confirmación. Sin esto, CoreLink tuvo que dejar de usar el componente y duplicar el bloque de marca, y esa copia se desvía del original en cuanto la librería lo retoca. El botón es ahora una sola pieza abra lo que abra, así que las dos formas no pueden divergir. Con `onSelect` en `undefined` —una sola empresa— no pinta ningún control, igual que sin `groups`.
+
 - **Qué tokens puede mover un tema, documentado y con mecanismo** (#76). Los tokens de color no son todos de la misma clase, y los dos que se leen igual son los que más caro salen: `--primary` es identidad y `--accent` es el gris de interacción —el fondo de los `hover` de botones fantasma y opciones de menú—. Una aplicación del grupo escribió su selector de color moviendo `--accent`, y con el tema en verde todos los hover salían en verde saturado con el texto gris de dentro ilegible; la misma paleta no movía `--ring`, así que el anillo de foco se quedaba en el azul de fábrica.
 
   Ahora hay una tabla —en el README y en la página de tokens de Storybook— que dice de qué clase es cada token: identidad (siete, los únicos que un tema mueve), significado universal, estado de interacción, estructura y menú lateral.

@@ -71,6 +71,25 @@ export interface SidebarBrandProps extends Omit<React.HTMLAttributes<HTMLDivElem
    */
   footer?: React.ReactNode;
   /**
+   * Desvía el disparador: en vez de abrir el menú propio, llama a esto.
+   *
+   * Existe porque elegir no siempre es cambiar de pestaña. Cambiar de empresa
+   * cambia los datos, los permisos y quién emite lo que se factura, y esa
+   * decisión necesita sitio para el NIT, el rol y una confirmación — una
+   * ventana, no un desplegable. Sin esto, la aplicación tiene que dejar de usar
+   * `SidebarBrand` y duplicar el bloque de marca para que la cabecera se siga
+   * viendo igual, que es lo que pasó en CoreLink (#75).
+   *
+   * **Pásalo `undefined` cuando no haya nada que elegir** —una sola empresa— y
+   * el componente vuelve a pintar el nombre sin ningún control, igual que sin
+   * `groups`. Un selector de un elemento es ruido.
+   *
+   * Manda sobre `groups`: si vienen los dos, el menú propio no se monta.
+   *
+   * @example onSelect={empresas.length > 1 ? abrirSelector : undefined}
+   */
+  onSelect?: () => void;
+  /**
    * Muestra solo la marca, sin el nombre. Dentro de `AppShell` se toma del
    * estado del menú: no hace falta pasarlo ni levantar ese estado.
    */
@@ -126,7 +145,10 @@ function initialsFrom(name: string): string {
  * ```
  */
 export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
-  ({ name, logo, initials, environment, groups, footer, collapsed: collapsedProp, className, ...props }, ref) => {
+  (
+    { name, logo, initials, environment, groups, footer, onSelect, collapsed: collapsedProp, className, ...props },
+    ref,
+  ) => {
     const sidebar = useSidebar();
     const collapsed = collapsedProp ?? sidebar.collapsed;
     const mark = (
@@ -176,6 +198,39 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
       </>
     );
 
+    // El disparador es la misma pieza abra lo que abra: si cada camino pintara
+    // el suyo, se desviarían al primer retoque, que es exactamente el problema
+    // que trajo a esta prop.
+    const trigger = (
+      <button
+        type="button"
+        // Con el menú plegado el nombre desaparece de la vista, pero no del
+        // nombre accesible del control.
+        aria-label={collapsed ? name : undefined}
+        className={cn(
+          "flex w-full items-center gap-ui-sm rounded-md text-left",
+          collapsed ? "justify-center p-0" : "p-ui-2xs",
+          "transition-colors duration-normal",
+          "hover:bg-sidebar-hover",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+        )}
+      >
+        {identity}
+        {collapsed ? null : (
+          <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0 text-sidebar-muted" />
+        )}
+      </button>
+    );
+
+    // Desviado: el disparador llama a la aplicación y no monta menú alguno.
+    if (onSelect) {
+      return (
+        <div ref={ref} className={cn("py-ui-xs", collapsed ? "px-0" : "px-ui-2xs", className)} {...props}>
+          {React.cloneElement(trigger, { onClick: onSelect, "aria-haspopup": "dialog" })}
+        </div>
+      );
+    }
+
     if (!groups || groups.length === 0) {
       return (
         <div
@@ -197,29 +252,7 @@ export const SidebarBrand = React.forwardRef<HTMLDivElement, SidebarBrandProps>(
     return (
       <div ref={ref} className={cn("py-ui-xs", collapsed ? "px-0" : "px-ui-2xs", className)} {...props}>
         <Menu>
-          <MenuTrigger>
-            <button
-              type="button"
-              // Con el menú plegado el nombre desaparece de la vista, pero no
-              // del nombre accesible del control.
-              aria-label={collapsed ? name : undefined}
-              className={cn(
-                "flex w-full items-center gap-ui-sm rounded-md text-left",
-                collapsed ? "justify-center p-0" : "p-ui-2xs",
-                "transition-colors duration-normal",
-                "hover:bg-sidebar-hover",
-                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-              )}
-            >
-              {identity}
-              {collapsed ? null : (
-                <ChevronsUpDown
-                  aria-hidden="true"
-                  className="size-4 shrink-0 text-sidebar-muted"
-                />
-              )}
-            </button>
-          </MenuTrigger>
+          <MenuTrigger>{trigger}</MenuTrigger>
           <MenuContent className="w-72">
             {groups.map((group, index) => (
               <React.Fragment key={group.id}>
