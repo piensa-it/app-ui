@@ -81,33 +81,44 @@ describe("menú plegado — la línea de versión", () => {
     expect(pie.textContent?.trim()).toBe("v4.2.0");
   });
 
-  it("el detalle completo sigue estando, para copiarlo en un reporte", () => {
-    const { container } = menu();
-    const version = container.querySelector("aside div.border-t > div") as HTMLElement;
-    const detalle = version.getAttribute("title") ?? "";
-    expect(detalle).toContain("4.2.0");
-    expect(detalle).toContain(UI_LIBRARY_VERSION);
-    expect(detalle).toContain("2026");
-  });
-
   it("no parte la versión en varias líneas", () => {
     const { container } = menu();
-    const version = container.querySelector("aside div.border-t > div") as HTMLElement;
+    const version = container.querySelector("aside div.border-t > div > span") as HTMLElement;
     expect(version.className).toMatch(/truncate|whitespace-nowrap/);
   });
 
-  it("desplegado sigue mostrando las tres partes", () => {
+  it("`details` se ignora al plegar, o volvería a desbordarse", () => {
+    // El detalle son dos datos más en 48 px útiles: es justo el fallo que se
+    // corrigió en la 0.5.0, y `details` no debe poder reintroducirlo.
+    render(
+      <AppShell
+        defaultCollapsed
+        brand={<SidebarBrand name="Acme" />}
+        sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" details />}
+        sidebar={<a href="/x">Inicio</a>}
+      >
+        <p>Contenido</p>
+      </AppShell>,
+    );
+    expect(screen.queryByText(`UI ${UI_LIBRARY_VERSION}`)).not.toBeInTheDocument();
+  });
+
+  it("desplegado tampoco añade nada por su cuenta", () => {
     render(
       <AppShell brand={<SidebarBrand name="Acme" />} sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />} sidebar={<a href="/x">Inicio</a>}>
         <p>Contenido</p>
       </AppShell>,
     );
     expect(screen.getByText("v4.2.0")).toBeInTheDocument();
-    expect(screen.getByText(`UI ${UI_LIBRARY_VERSION}`)).toBeInTheDocument();
+    expect(screen.queryByText(`UI ${UI_LIBRARY_VERSION}`)).not.toBeInTheDocument();
   });
 
-  it("fuera del menú no se acorta nunca", () => {
-    render(<AppVersion version="4.2.0" buildDate="2026-09-03" />);
+  it("desplegado sí respeta `details`, que es donde hay sitio", () => {
+    render(
+      <AppShell brand={<SidebarBrand name="Acme" />} sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" details />} sidebar={<a href="/x">Inicio</a>}>
+        <p>Contenido</p>
+      </AppShell>,
+    );
     expect(screen.getByText(`UI ${UI_LIBRARY_VERSION}`)).toBeInTheDocument();
   });
 });

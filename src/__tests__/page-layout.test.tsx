@@ -73,29 +73,39 @@ describe("PageHeader", () => {
 });
 
 describe("AppVersion", () => {
-  it("muestra la versión de la aplicación y la de la librería", () => {
-    render(<AppVersion version="1.4.2" />);
+  it("en el menú muestra solo la versión de la aplicación", () => {
     // Texto exacto en vez de expresión regular: la versión lleva puntos y
     // construir el patrón escapándolos a mano es una fuente de errores.
+    render(<AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />);
     expect(screen.getByText("v1.4.2")).toBeInTheDocument();
-    expect(screen.getByText(`UI ${UI_LIBRARY_VERSION}`)).toBeInTheDocument();
+    // Ni la versión de la librería ni la fecha, aunque se le pase la fecha:
+    // en el pie del menú compiten con lo único que se consulta a diario.
+    expect(screen.queryByText(`UI ${UI_LIBRARY_VERSION}`)).not.toBeInTheDocument();
+    expect(screen.queryByText(/2026/)).not.toBeInTheDocument();
   });
 
-  it("muestra la fecha de compilación cuando se le pasa", () => {
-    render(<AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />);
+  it("con `details` añade la versión de la librería y la fecha", () => {
+    render(<AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" details />);
+    expect(screen.getByText("v1.4.2")).toBeInTheDocument();
+    expect(screen.getByText(`UI ${UI_LIBRARY_VERSION}`)).toBeInTheDocument();
     expect(screen.getByText(/2026/)).toBeInTheDocument();
   });
 
-  it("deja el detalle completo accesible para pegar en un reporte", () => {
-    const { container } = render(<AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />);
+  it("el detalle se puede leer del texto, no de un atributo", () => {
+    // La versión anterior lo dejaba en `title`, con la idea de copiarlo al
+    // reportar algo. Un `title` no se selecciona ni se copia: si el detalle
+    // existe, tiene que estar en el texto.
+    const { container } = render(
+      <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" details />,
+    );
     const root = container.firstElementChild as HTMLElement;
-    const detalle = root.getAttribute("title") ?? root.textContent ?? "";
-    expect(detalle).toContain("1.4.2");
-    expect(detalle).toContain(UI_LIBRARY_VERSION);
+    expect(root.textContent).toContain("1.4.2");
+    expect(root.textContent).toContain(UI_LIBRARY_VERSION);
+    expect(root.getAttribute("title")).toBeNull();
   });
 
   it("funciona sin fecha de compilación", () => {
-    render(<AppVersion version="1.4.2" />);
+    render(<AppVersion version="1.4.2" details />);
     expect(screen.getByText(/1\.4\.2/)).toBeInTheDocument();
   });
 });
@@ -114,7 +124,7 @@ describe("AppVersion — fecha de compilación", () => {
     "una fecha ISO sin hora se ve igual en %s",
     (timeZone) => {
       process.env.TZ = timeZone;
-      render(<AppVersion version="0.1.0" buildDate="2026-09-03" />);
+      render(<AppVersion version="0.1.0" buildDate="2026-09-03" details />);
       expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
       cleanup();
     },
@@ -122,19 +132,19 @@ describe("AppVersion — fecha de compilación", () => {
 
   it("una marca de tiempo completa se sigue interpretando como instante", () => {
     process.env.TZ = "UTC";
-    render(<AppVersion version="0.1.0" buildDate="2026-09-03T10:15:00Z" />);
+    render(<AppVersion version="0.1.0" buildDate="2026-09-03T10:15:00Z" details />);
     expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
   });
 
   it("acepta un objeto Date y un número", () => {
-    const { rerender } = render(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3)} />);
+    const { rerender } = render(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3)} details />);
     expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
-    rerender(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3).getTime()} />);
+    rerender(<AppVersion version="0.1.0" buildDate={new Date(2026, 8, 3).getTime()} details />);
     expect(screen.getByText(/3\/09\/2026/)).toBeInTheDocument();
   });
 
   it("una fecha ilegible no rompe la línea de versión", () => {
-    render(<AppVersion version="0.1.0" buildDate="no es una fecha" />);
+    render(<AppVersion version="0.1.0" buildDate="no es una fecha" details />);
     expect(screen.getByText(/0\.1\.0/)).toBeInTheDocument();
   });
 });

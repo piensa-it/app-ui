@@ -10,15 +10,20 @@ export interface AppVersionProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Fecha de compilación de la aplicación, en cualquier formato que entienda
    * `Date`. Normalmente se inyecta en el build (`define` de Vite).
+   *
+   * Solo se pinta con `details`.
    */
   buildDate?: string | number | Date;
   /**
-   * Prefijo delante de la versión de la aplicación. @default "v"
+   * Añade la versión de la librería y la fecha de compilación en una segunda
+   * línea. @default false
    *
-   * Dentro de un `AppShell` plegado se muestra solo la versión de la
-   * aplicación, porque las tres partes no caben en el ancho del menú. El
-   * detalle completo sigue en el `title`.
+   * Su sitio es una pantalla de ayuda o de «acerca de», donde el texto se
+   * puede leer y seleccionar. En el pie del menú lateral no: ahí compiten con
+   * lo único que se consulta a diario, que es la versión de la aplicación.
    */
+  details?: boolean;
+  /** Prefijo delante de la versión de la aplicación. @default "v" */
   prefix?: string;
 }
 
@@ -45,46 +50,58 @@ function formatBuildDate(value: NonNullable<AppVersionProps["buildDate"]>): stri
 }
 
 /**
- * Línea de versión para el pie del menú lateral o la pantalla de ayuda.
+ * Línea de versión para el pie del menú lateral.
  *
- * Muestra la versión de la aplicación, la de la librería y la fecha de
- * compilación. Existe para depurar: lo primero al recibir un reporte es saber
- * contra qué compilado estaba mirando quien lo envía, y eso son dos versiones,
- * no una. El detalle completo queda además en el `title`, listo para copiar y
- * pegar en el reporte.
+ * Muestra **solo la versión de la aplicación**, que es el único dato que se
+ * consulta a diario. La versión de la librería y la fecha de compilación
+ * también sirven para depurar un reporte, pero no en el menú: hasta la 0.6.0 se
+ * pintaban las tres, y en un menú de 256 px la línea quedaba llena de datos que
+ * nadie leía. Para eso está `details`, en una pantalla de ayuda, donde el texto
+ * se puede leer y seleccionar de verdad.
+ *
+ * Antes el detalle vivía además en el `title`, con la idea de copiarlo al
+ * reportar algo. No se usaba: un `title` no se puede seleccionar ni copiar sin
+ * transcribirlo a mano.
  *
  * @example
  * ```tsx
- * <AppVersion version={import.meta.env.VITE_APP_VERSION} buildDate={import.meta.env.VITE_BUILD_DATE} />
+ * // En el pie del menú: solo la versión.
+ * <AppVersion version={import.meta.env.VITE_APP_VERSION} />
+ *
+ * // En la pantalla de ayuda: todo, para pegarlo en un reporte.
+ * <AppVersion version={APP_VERSION} buildDate={BUILD_DATE} details />
  * ```
  */
 export const AppVersion = React.forwardRef<HTMLDivElement, AppVersionProps>(
-  ({ version, buildDate, prefix = "v", className, ...props }, ref) => {
-    // Dentro de un `AppShell` plegado no hay sitio para tres datos: el menú
-    // mide 72 px y la línea se partía en cuatro renglones, saliéndose del
-    // componente. Fuera del menú, `collapsed` es siempre falso.
+  ({ version, buildDate, details = false, prefix = "v", className, ...props }, ref) => {
+    // Fuera de un `AppShell`, `collapsed` es siempre falso.
     const { collapsed } = useSidebar();
     const formattedDate = buildDate === undefined ? null : formatBuildDate(buildDate);
-    const parts = [`${prefix}${version}`, `UI ${UI_LIBRARY_VERSION}`, ...(formattedDate ? [formattedDate] : [])];
-    // El detalle completo se conserva en el `title` aunque no se pinte: es lo
-    // que se copia al reportar algo.
-    const shown = collapsed ? parts.slice(0, 1) : parts;
+    // Con el menú plegado quedan 48 px útiles, así que `details` se ignora: si
+    // se respetara, la línea volvería a partirse en cuatro renglones y a
+    // salirse del componente, que es el fallo que se corrigió en la 0.5.0.
+    const extras =
+      details && !collapsed ? [`UI ${UI_LIBRARY_VERSION}`, ...(formattedDate ? [formattedDate] : [])] : [];
 
     return (
       <div
         ref={ref}
-        title={parts.join(" · ")}
         // Hereda el color: su sitio natural es el pie del menú, que es otro
         // plano cromático. Fijar `text-muted-foreground` lo sacaría de ahí.
-        className={cn("text-ui-caption text-current", collapsed && "truncate text-center", className)}
+        className={cn("text-ui-caption text-current", collapsed && "text-center", className)}
         {...props}
       >
-        {shown.map((part, index) => (
-          <React.Fragment key={part}>
-            {index > 0 ? <span aria-hidden="true"> · </span> : null}
-            <span>{part}</span>
-          </React.Fragment>
-        ))}
+        <span className="block truncate">{`${prefix}${version}`}</span>
+        {extras.length > 0 ? (
+          <span className="block truncate opacity-75">
+            {extras.map((extra, index) => (
+              <React.Fragment key={extra}>
+                {index > 0 ? <span aria-hidden="true"> · </span> : null}
+                <span>{extra}</span>
+              </React.Fragment>
+            ))}
+          </span>
+        ) : null}
       </div>
     );
   },

@@ -80,13 +80,26 @@ export const Ancho: Story = {
   ),
 };
 
-/** La línea de versión: dos versiones y la fecha, para saber contra qué compilado se mira. */
+/** La línea de versión: la de la aplicación en el menú, el detalle en la ayuda. */
 export const Version: Story = {
   name: "AppVersion",
   render: () => (
-    <div className="flex flex-col gap-ui-sm">
-      <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />
-      <AppVersion version="1.4.2" />
+    <div className="flex flex-col gap-ui-lg">
+      <div className="space-y-ui-2xs">
+        <p className="text-ui-caption font-medium">En el pie del menú</p>
+        <p className="text-ui-caption text-muted-foreground">
+          Solo la versión de la aplicación, que es lo que se consulta a diario.
+        </p>
+        <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" />
+      </div>
+      <div className="space-y-ui-2xs">
+        <p className="text-ui-caption font-medium">En una pantalla de ayuda</p>
+        <p className="text-ui-caption text-muted-foreground">
+          Con <code className="font-mono">details</code>: añade la versión de la librería y la fecha de
+          compilación, que es lo que hace falta para saber contra qué compilado mira quien reporta algo.
+        </p>
+        <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" details />
+      </div>
     </div>
   ),
 };
