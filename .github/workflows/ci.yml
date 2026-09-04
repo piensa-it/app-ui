@@ -115,7 +115,13 @@ jobs:
           # texto arbitrario y no debe llegar al shell como código.
           DEPLOY_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
+          # Netlify manda el mensaje en la URI de la petición, y el de un merge
+          # squash trae el cuerpo entero de todos los commits de la rama. Con
+          # eso responde "Request URI Too Long" y el sitio se queda sin
+          # actualizar, que es lo que pasó al publicar la 0.5.0. Basta el
+          # asunto, recortado.
+          MENSAJE=$(printf '%s' "$DEPLOY_MESSAGE" | head -n 1 | cut -c1-120)
           npx --yes netlify-cli@27 deploy \
             --dir=storybook-static \
             --prod \
-            --message "$DEPLOY_MESSAGE"
+            --message "$MENSAJE"
