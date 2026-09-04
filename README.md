@@ -135,6 +135,41 @@ library stylesheet:
 }
 ```
 
+### What a theme may move
+
+Colour tokens are not all the same kind of thing, and the two that read alike
+are the ones that cost the most: `--primary` is identity, `--accent` is the grey
+of interaction — the background of ghost-button and menu-item hovers. A palette
+that moves `--accent` turns every hover into saturated brand colour with
+unreadable grey text inside.
+
+| Class | Themable | Tokens |
+|---|---|---|
+| **Identity** | **yes** | `--primary`, `--primary-foreground`, `--ring`, `--subtle`, `--subtle-hover`, `--subtle-foreground`, `--chart-1` |
+| Universal meaning | no | `--destructive`, `--success`, `--warning`, `--overlay`, `--shadow-color` |
+| Interaction state | no | `--accent`, `--muted`, `--secondary` (and their foregrounds) |
+| Structure | no | `--ground`, `--surface`, `--raised`, `--border`, `--input`, `--card`, `--popover` |
+| Sidebar | no | `--sidebar-*` — its own plane, picked with `AppShell`'s `variant` |
+
+Seven tokens. Everything else belongs to the system, not to the brand. Do not
+forget `--ring`: leave it out and the focus ring stays the factory colour, the
+one place on screen that never hears about the theme.
+
+For a brand that is none of the six bundled palettes, `createPalette` builds the
+seven from one colour. The tokens that must not move are not in its signature,
+so they cannot be moved by accident:
+
+```tsx
+import { createPalette } from "@piensa-it/ui-library";
+
+<div style={createPalette({ primary: "158 64% 32%" })}>
+  <UiProvider>{children}</UiProvider>
+</div>
+```
+
+With a runtime colour picker and a dark theme, an inline style cannot react to
+`.dark`; use `paletteDeclarations` to write both into a rule instead.
+
 Both halves of the theme — `:root` and `.dark` — ship inside `@layer base`, so
 an application can override either one from its own `@layer base` and win. Until
 0.6.0 the `.dark` block sat outside every layer, and since unlayered CSS always

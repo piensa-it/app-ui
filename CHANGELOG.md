@@ -6,6 +6,16 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **Qué tokens puede mover un tema, documentado y con mecanismo** (#76). Los tokens de color no son todos de la misma clase, y los dos que se leen igual son los que más caro salen: `--primary` es identidad y `--accent` es el gris de interacción —el fondo de los `hover` de botones fantasma y opciones de menú—. Una aplicación del grupo escribió su selector de color moviendo `--accent`, y con el tema en verde todos los hover salían en verde saturado con el texto gris de dentro ilegible; la misma paleta no movía `--ring`, así que el anillo de foco se quedaba en el azul de fábrica.
+
+  Ahora hay una tabla —en el README y en la página de tokens de Storybook— que dice de qué clase es cada token: identidad (siete, los únicos que un tema mueve), significado universal, estado de interacción, estructura y menú lateral.
+
+  Y el mecanismo: `createPalette({ primary })` construye los siete a partir del color de marca, derivando el resto para que una paleta propia quede en la misma familia visual que las seis incluidas. **Los tokens que no se tocan no están en su firma**, así que no se pueden mover por error. `paletteDeclarations` los escribe como CSS, para cuando la marca se elige en tiempo de ejecución y hay tema oscuro: un `style` en línea no puede reaccionar a `.dark`.
+
+  Conviene decirlo: el fallo no estaba en la librería. `data-ui-palette` ya movía los siete tokens correctos y no tocaba `--accent`; lo que faltaba era decirlo en alguna parte y dar salida a una marca que no fuese ninguna de las seis.
+
 ### Changed
 
 - **La línea de versión del menú muestra solo la versión de la aplicación.** Pintaba tres datos —la de la aplicación, la de la librería y la fecha de compilación— y dejaba además el detalle completo en el `title`, con la idea de copiarlo al reportar algo. No servía: un `title` no se puede seleccionar ni copiar sin transcribirlo a mano. El detalle pasa a la prop `details`, pensada para una pantalla de ayuda, donde el texto se lee y se selecciona de verdad. Con el menú plegado `details` se ignora, o la línea volvería a partirse en cuatro renglones como antes de la 0.5.0.

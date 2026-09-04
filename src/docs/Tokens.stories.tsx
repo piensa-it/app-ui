@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Switch } from "../components/ui/switch";
+import { Badge } from "../components/ui/badge";
+import { cn } from "../lib/utils";
 
 const meta = {
   title: "Tokens",
@@ -107,6 +109,53 @@ const spacingRoles = [
   },
 ];
 
+/**
+ * Qué clase de token es cada uno. La distinción no es cosmética: `--primary` y
+ * `--accent` se leen igual y no se parecen en nada, y confundirlos deja todos
+ * los `hover` teñidos del color de marca (#76).
+ */
+const tokenClasses = [
+  {
+    id: "identidad",
+    title: "Identidad",
+    themable: true,
+    summary: "Lo que cambia de una marca a otra. Es lo único que mueve una paleta.",
+    tokens: ["--primary", "--primary-foreground", "--ring", "--subtle", "--subtle-hover", "--subtle-foreground", "--chart-1"],
+  },
+  {
+    id: "significado",
+    title: "Significado universal",
+    themable: false,
+    summary:
+      "Rojo es peligro y ámbar es atención en cualquier marca. Teñirlos de la marca borra lo único que comunican.",
+    tokens: ["--destructive", "--success", "--warning", "--overlay", "--shadow-color"],
+  },
+  {
+    id: "interaccion",
+    title: "Estado de interacción",
+    themable: false,
+    summary:
+      "Son grises deliberados: el fondo de un hover, de una opción de menú o de un texto secundario. Con color de marca dejan el texto de dentro ilegible.",
+    tokens: ["--accent", "--accent-foreground", "--muted", "--muted-foreground", "--secondary", "--secondary-foreground"],
+  },
+  {
+    id: "estructura",
+    title: "Estructura",
+    themable: false,
+    summary:
+      "Superficies, bordes y campos. Sostienen la escala de elevación: moverlos por marca la rompe en todas las pantallas a la vez.",
+    tokens: ["--ground", "--surface", "--raised", "--border", "--input", "--card", "--popover"],
+  },
+  {
+    id: "menu",
+    title: "Menú lateral",
+    themable: false,
+    summary:
+      "Un plano cromático aparte, oscuro en los dos temas. Se elige con `variant` en AppShell, no con la paleta.",
+    tokens: ["--sidebar", "--sidebar-foreground", "--sidebar-active", "--sidebar-hover", "--sidebar-ring"],
+  },
+];
+
 const palettes = [
   { value: "indigo", label: "Índigo" },
   { value: "ocean", label: "Océano" },
@@ -209,6 +258,74 @@ export const EscalaTipografica: Story = {
           </div>
         </div>
       ))}
+    </div>
+  ),
+};
+
+export const QuePuedeMoverUnTema: Story = {
+  name: "Qué puede mover un tema",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Los tokens de color no son todos de la misma clase. Solo los de identidad son de la marca; el resto sostiene significados, estados o estructura, y moverlos desde una paleta rompe cosas que no se ven hasta que alguien las usa.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-ui-lg">
+      <p className="max-w-3xl text-ui-body-sm text-muted-foreground">
+        Una paleta mueve <strong>siete</strong> tokens. El resto no es de la marca. El caso que motivó esta
+        página: una aplicación movió <code className="font-mono">--accent</code> creyendo que era un color de
+        identidad —es el gris de los <em>hover</em>—, y con el tema en verde todos los hover salieron en verde
+        saturado con el texto gris de dentro ilegible. La misma paleta no movía{" "}
+        <code className="font-mono">--ring</code>, así que el anillo de foco se quedó en el azul de fábrica: el
+        único sitio de la pantalla que no se enteraba del cambio de tema.
+      </p>
+
+      {tokenClasses.map((clase) => (
+        <section
+          key={clase.id}
+          className={cn(
+            "rounded-xl border p-inset",
+            clase.themable ? "border-primary/40 bg-subtle" : "border-surface-border bg-surface",
+          )}
+        >
+          <div className="flex flex-wrap items-center gap-ui-sm">
+            <h3 className="text-ui-title-sm font-semibold">{clase.title}</h3>
+            <Badge variant={clase.themable ? "success" : "secondary"}>
+              {clase.themable ? "Se puede tematizar" : "No se toca"}
+            </Badge>
+          </div>
+          <p className="mt-ui-2xs max-w-3xl text-ui-body-sm text-muted-foreground">{clase.summary}</p>
+          <div className="mt-ui-sm flex flex-wrap gap-ui-2xs">
+            {clase.tokens.map((token) => (
+              <code
+                key={token}
+                className="rounded-md border border-border bg-raised px-ui-2xs py-px font-mono text-ui-caption"
+              >
+                {token}
+              </code>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section className="rounded-xl border border-surface-border bg-surface p-inset">
+        <h3 className="text-ui-title-sm font-semibold">Declarar una marca propia</h3>
+        <p className="mt-ui-2xs max-w-3xl text-ui-body-sm text-muted-foreground">
+          Si la marca no es ninguna de las seis paletas incluidas, <code className="font-mono">createPalette</code>{" "}
+          construye los siete tokens a partir del color. Los que no se tocan no están en su firma, así que no se
+          pueden mover por error.
+        </p>
+        <pre className="mt-ui-sm overflow-x-auto rounded-lg border border-border bg-raised p-ui-sm font-mono text-ui-caption">
+{`import { createPalette } from "@piensa-it/ui-library";
+
+<div style={createPalette({ primary: "158 64% 32%" })}>
+  <UiProvider>{children}</UiProvider>
+</div>`}
+        </pre>
+      </section>
     </div>
   ),
 };

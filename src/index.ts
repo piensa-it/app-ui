@@ -172,6 +172,14 @@ export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./compon
 // --- Utilidades ---
 export { cn } from "./lib/utils";
 export {
+  createPalette,
+  paletteDeclarations,
+  THEMABLE_TOKENS,
+  type BrandColors,
+  type CreatePaletteOptions,
+  type TokenColor,
+} from "./lib/palette";
+export {
   iconConfig,
   type IconSize,
   type IconColor,
