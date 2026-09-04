@@ -236,9 +236,9 @@ test.describe("AppSwitcher", () => {
     const buscador = page.getByRole("combobox");
     await expect(buscador).toBeFocused();
     await buscador.fill("cuentas");
-    await page.keyboard.press("ArrowDown");
+    await buscador.press("ArrowDown");
     await expect(buscador).toBeFocused();
-    await page.keyboard.press("Enter");
+    await buscador.press("Enter");
     await expect(page.getByText("Módulo activo: cxp")).toBeVisible();
     await expect(page.getByRole("dialog")).toBeHidden();
   });
@@ -248,7 +248,11 @@ test.describe("AppSwitcher", () => {
     await page.goto(storyUrl("ui-appswitcher--quince-opciones"));
     await stabilize(page);
 
-    await page.keyboard.press("End");
+    // Ark enfoca el buscador después de montar: pulsar antes de que llegue el
+    // foco deja la tecla en el vacío, y en el runner de CI llega más tarde.
+    const buscador = page.getByRole("combobox");
+    await expect(buscador).toBeFocused();
+    await buscador.press("End");
     const ultima = page.getByRole("option", { name: /Ajustes/ }).last();
     await expect(ultima).toBeInViewport();
     await expect(ultima).toHaveAttribute("aria-selected", "true");
