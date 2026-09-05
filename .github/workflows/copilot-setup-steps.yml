@@ -1,0 +1,33 @@
+# Entorno en el que trabaja el agente de Copilot cuando se le asigna un issue.
+#
+# El job tiene que llamarse exactamente `copilot-setup-steps` y el archivo
+# tiene que estar en la rama por defecto, o Copilot no lo recoge. Es lo mismo
+# que hace `quality-gate` en ci.yml antes de correr nada, para que el agente
+# pueda ejecutar las mismas puertas que exigimos a cualquier PR: tipos,
+# pruebas, lint, paquete y navegador.
+#
+# El runner es Linux, así que las capturas comparadas que el agente puede
+# regenerar son las `*-linux.png`. Las de macOS no las toca.
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium

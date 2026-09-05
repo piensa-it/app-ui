@@ -75,3 +75,4 @@ src/
 
 - Este archivo (`.claude/CLAUDE.md`) es el **único** origen de instrucciones del proyecto. `AGENTS.md` en la raíz es un symlink a él, para que otros agentes (Cursor, Codex...) lean exactamente lo mismo — edita siempre este archivo, nunca el symlink.
 - Preferencias personales de cada quien: copia `CLAUDE.local.md.example` a `CLAUDE.local.md` (está en `.gitignore`). No metas preferencias individuales aquí.
+- El agente de Copilot en la nube lee este mismo archivo vía `AGENTS.md`, más `.github/copilot-instructions.md` (lo específico de trabajar como agente: puertas, capturas de Linux, commits). Sus perfiles viven en `.github/agents/*.agent.md` —`validar-hu`, `implementar-hu`, `revisar-pr`— y su entorno lo prepara `.github/workflows/copilot-setup-steps.yml`. Si cambiás una regla aquí, no hace falta duplicarla allá.
