@@ -96,7 +96,11 @@ const preview: Preview = {
     },
   },
   initialGlobals: {
-    theme: "light",
+    // "system" y no "light": la página de docs renderiza la aplicación de
+    // ejemplo en iframes propios (`inline: false`) que no reciben los
+    // `globals` del toolbar, así que caen a este valor. Con "light" el toggle
+    // «Sistema» no cambiaba nada allí aunque el SO estuviera en oscuro.
+    theme: "system",
     palette: "indigo",
     fontFamily: "geist",
   },

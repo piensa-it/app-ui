@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Docs
+
+- **El tema «Sistema» de Storybook no cambiaba nada en la página de docs.** La aplicación de ejemplo se renderiza allí en iframes propios (`inline: false`) que no reciben los `globals` del toolbar, así que caían al valor inicial, que era `light`: con el sistema operativo en oscuro seguían saliendo en claro. El valor inicial pasa a `system`. Verificado con Playwright emulando `prefers-color-scheme` en los dos sentidos.
+
+### Chore
+
+- **Agentes de Copilot para este repositorio.** `.github/workflows/copilot-setup-steps.yml` prepara el mismo entorno que `quality-gate` (Node 22, dependencias, Chromium) para que el agente corra las mismas puertas que un PR humano; `.github/copilot-instructions.md` dice lo que `AGENTS.md` no dice porque es específico de trabajar en la nube; y tres perfiles en `.github/agents/` reproducen el circuito de las últimas historias: `validar-hu` (reproduce, mide y comprueba el remedio antes de implementar; no edita), `implementar-hu` (de punta a punta, con story, prueba, export y CHANGELOG) y `revisar-pr` (corre las puertas y revisa contra las reglas; no edita). La política de ramas admite las `copilot/…` que abre el agente, que no elige su nombre.
+
 ## [0.7.1] - 2026-09-04
 
 Solo iconos: nada que migrar al subir desde 0.7.0.
