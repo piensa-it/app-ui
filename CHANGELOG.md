@@ -8,7 +8,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Docs
 
-- **El tema «Sistema» de Storybook no cambiaba nada en la página de docs.** La aplicación de ejemplo se renderiza allí en iframes propios (`inline: false`) que no reciben los `globals` del toolbar, así que caían al valor inicial, que era `light`: con el sistema operativo en oscuro seguían saliendo en claro. El valor inicial pasa a `system`. Verificado con Playwright emulando `prefers-color-scheme` en los dos sentidos.
+- **El tema «Sistema» de Storybook no cambiaba nada en la página de docs.** La aplicación de ejemplo se renderiza allí en iframes propios (`inline: false`) que no reciben los `globals` del toolbar, así que caían al valor inicial, que era `light`: con el sistema operativo en oscuro seguían saliendo en claro. Y eso a medias no bastaba: con el valor inicial en `system`, el toggle en «Claro» tampoco les llegaba y con el sistema en oscuro seguían oscuros. Ahora el iframe anidado hereda los `globals` del documento de docs que lo contiene y escucha sus cambios por el canal, así que tema, paleta y tipografía siguen al toolbar en vivo. Verificado con Playwright emulando `prefers-color-scheme` en los dos sentidos y cambiando el tema por el canal.
 
 ### Chore
 

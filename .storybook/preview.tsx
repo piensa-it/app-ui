@@ -28,6 +28,62 @@ function useResolvedDark(themeSetting: string): boolean {
   return themeSetting === "dark";
 }
 
+
+type UiGlobals = { theme?: string; palette?: string; fontFamily?: string };
+
+/**
+ * Hereda los `globals` del toolbar cuando esta historia vive en un iframe
+ * anidado dentro de la página de docs.
+ *
+ * Las historias con `docs.story.inline: false` —la aplicación de ejemplo— se
+ * renderizan en un iframe propio al que Storybook NO le pasa los `globals`:
+ * su URL es `iframe.html?viewMode=story&id=…` a secas, así que caen a
+ * `initialGlobals` hagas lo que hagas en el toolbar. Con «Sistema» no
+ * cambiaban a oscuro, y arreglado eso, con «Claro» no volvían a claro.
+ *
+ * El documento de docs sí tiene los globals vigentes
+ * (`__STORYBOOK_PREVIEW__.storyStore.userGlobals`) y avisa por el canal
+ * cuando cambian. Somos del mismo origen, así que se leen del padre y se
+ * escucha `globalsUpdated` para seguirlos en vivo.
+ */
+function useInheritedGlobals(own: UiGlobals): UiGlobals {
+  const parentPreview = () => {
+    try {
+      if (typeof window === "undefined" || window.parent === window) return null;
+      const parent = window.parent as Window & {
+        __STORYBOOK_PREVIEW__?: { storyStore?: { userGlobals?: { get?: () => UiGlobals } } };
+        __STORYBOOK_ADDONS_CHANNEL__?: { on: (e: string, h: (d: unknown) => void) => void; off: (e: string, h: (d: unknown) => void) => void };
+      };
+      const store = parent.__STORYBOOK_PREVIEW__?.storyStore?.userGlobals;
+      if (!store?.get || !parent.__STORYBOOK_ADDONS_CHANNEL__) return null;
+      return { store, channel: parent.__STORYBOOK_ADDONS_CHANNEL__ };
+    } catch {
+      // Otro origen o sin Storybook arriba: no hay nada que heredar.
+      return null;
+    }
+  };
+
+  const [inherited, setInherited] = React.useState<UiGlobals | null>(() => parentPreview()?.store.get?.() ?? null);
+
+  React.useEffect(() => {
+    const parent = parentPreview();
+    if (!parent) return;
+    // Se relee la tienda del padre en vez de usar el payload del evento: por
+    // el canal del padre también pasan los `globalsUpdated` que emiten los
+    // iframes hermanos al arrancar, con SU valor inicial, y el que montaba
+    // después los tomaba por un cambio del toolbar. La tienda del padre solo
+    // cambia cuando cambia el toolbar.
+    const onUpdate = () => {
+      const next = parent.store.get?.();
+      if (next) setInherited({ theme: next.theme, palette: next.palette, fontFamily: next.fontFamily });
+    };
+    parent.channel.on("globalsUpdated", onUpdate);
+    return () => parent.channel.off("globalsUpdated", onUpdate);
+  }, []);
+
+  return inherited ? { ...own, ...inherited } : own;
+}
+
 /**
  * Preview global de Storybook — este es el "sitio de documentación" de
  * @piensa-it/ui-library. Todas las historias se renderizan dentro de un
@@ -106,9 +162,10 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => {
-      const themeSetting = context.globals.theme ?? "light";
-      const palette = context.globals.palette ?? "indigo";
-      const fontFamily = context.globals.fontFamily ?? "geist";
+      const globals = useInheritedGlobals(context.globals as UiGlobals);
+      const themeSetting = globals.theme ?? "system";
+      const palette = globals.palette ?? "indigo";
+      const fontFamily = globals.fontFamily ?? "geist";
       const isDark = useResolvedDark(themeSetting);
       const story = (
         <UiProvider>
