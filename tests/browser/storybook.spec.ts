@@ -280,3 +280,18 @@ test.describe("AppSwitcher · confirmación", () => {
     await expect(page.getByRole("dialog")).toBeHidden();
   });
 });
+
+test.describe("PageContainer · bloque vacío", () => {
+  // Medido en MiDivisa: cabecera y tabla a 48 px en vez de 24, por un modal
+  // cerrado montado entre las dos. jsdom no aplica `:empty`; esto sí lo mide.
+  test("un modal cerrado entre dos bloques no separa más de un paso de ritmo", async ({ page }) => {
+    await page.goto(storyUrl("layout-pagecontainer--bloque-vacio"));
+    await stabilize(page);
+    const cabecera = await page.getByRole("heading", { name: "Transacciones" }).locator("xpath=ancestor::*[@data-ui-stagger-item]").boundingBox();
+    const tarjeta = await page.getByText(/un solo paso de ritmo/).locator("xpath=ancestor::*[@data-ui-stagger-item]").boundingBox();
+    expect(cabecera && tarjeta).toBeTruthy();
+    const separacion = tarjeta!.y - (cabecera!.y + cabecera!.height);
+    expect(separacion).toBeGreaterThanOrEqual(23);
+    expect(separacion).toBeLessThanOrEqual(25);
+  });
+});

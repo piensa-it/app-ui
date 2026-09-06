@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PageContainer } from "./page-container";
 import { PageHeader } from "./page-header";
 import { AppVersion } from "./app-version";
+import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -101,5 +102,40 @@ export const Version: Story = {
         <AppVersion version="1.4.2" buildDate="2026-09-03T10:15:00Z" details />
       </div>
     </div>
+  ),
+};
+
+/**
+ * Un bloque que no pinta nada no deja hueco.
+ *
+ * Aquí hay un modal cerrado entre la cabecera y la tarjeta. En un contenedor
+ * de bloque normal no se notaría: los márgenes de `space-y` colapsan a través
+ * de un elemento vacío de alto cero. Pero en cuanto la página es una columna
+ * flex —para anclar una barra al pie, por ejemplo— o una cuadrícula, los
+ * márgenes no colapsan y el envoltorio vacío cobraba un paso entero: cabecera
+ * y tarjeta a 48 px en vez de 24 (#91). La hoja de `Stagger` oculta el
+ * envoltorio vacío, y la distancia vuelve a ser un solo paso en los dos casos.
+ */
+export const BloqueVacio: Story = {
+  name: "Bloque vacío, sin hueco",
+  render: () => (
+    <PageContainer className="flex min-h-[24rem] flex-col">
+      <PageHeader title="Transacciones" description="El detalle se monta como modal cerrado justo debajo." />
+      <Dialog open={false} onOpenChange={() => {}}>
+        <DialogHeader>
+          <DialogTitle>Detalle</DialogTitle>
+        </DialogHeader>
+      </Dialog>
+      {null}
+      <Card>
+        <CardContent>
+          <p className="text-ui-body-sm text-muted-foreground">
+            Entre la cabecera y esta tarjeta hay un modal cerrado y un `null`: la distancia sigue siendo un solo paso
+            de ritmo (24 px), no dos, aunque esta página sea una columna flex.
+          </p>
+        </CardContent>
+      </Card>
+      <p className="mt-auto text-ui-caption text-muted-foreground">Barra anclada al pie: por esto la página es flex.</p>
+    </PageContainer>
   ),
 };

@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **Once iconos más en el catálogo** (#90): `ArrowDownLeft`, `ArrowLeftRight`, `Euro`, `Flag`, `Hotel`, `Plug`, `PoundSterling`, `ScrollText`, `ToggleLeft`, `ToggleRight` y `UserCog`, con su alias `*Icon`. Eran los que faltaban al retirar `lucide-react` de MiDivisa; tres son de moneda, que una casa de cambio necesita distinguir de un vistazo y ni `Coins` ni `Banknote` lo hacen. Con esto MiDivisa retira sus sustitutos marcados `TODO(app-ui#90)`. El catálogo pasa de 208 a 219.
+
+### Fixed
+
+- **`PageContainer` deja de dejar un hueco por cada bloque que no pinta nada** (#91). `Stagger` envuelve cada hijo de primer nivel para escalonar la entrada, y un hijo que no renderiza nada —un modal cerrado, una sección condicional que devuelve `null`, un `Fragment` vacío— dejaba un envoltorio vacío que cobraba el ritmo vertical en cuanto la página era una columna flex o una cuadrícula —donde los márgenes no colapsan—: en MiDivisa, cabecera y tabla quedaban a 48 px en vez de 24 en todas las pantallas de maestros, que montan su modal entre las dos. En un bloque normal no se notaba, porque los márgenes de `space-y` colapsan a través de un elemento vacío; por eso costó reproducirlo. La hoja de `Stagger` oculta ahora el envoltorio vacío (`:empty`); MiDivisa retira la regla marcada `TODO(app-ui#91)` de su `index.css`. Se descartó `display: contents` en el envoltorio: los márgenes de `space-y` no se aplican a un elemento con `display: contents` y el ritmo se perdería entero.
+
 ### Docs
 
 - **El tema «Sistema» de Storybook no cambiaba nada en la página de docs.** La aplicación de ejemplo se renderiza allí en iframes propios (`inline: false`) que no reciben los `globals` del toolbar, así que caían al valor inicial, que era `light`: con el sistema operativo en oscuro seguían saliendo en claro. Y eso a medias no bastaba: con el valor inicial en `system`, el toggle en «Claro» tampoco les llegaba y con el sistema en oscuro seguían oscuros. Ahora el iframe anidado hereda los `globals` del documento de docs que lo contiene y escucha sus cambios por el canal, así que tema, paleta y tipografía siguen al toolbar en vivo. Verificado con Playwright emulando `prefers-color-scheme` en los dos sentidos y cambiando el tema por el canal.

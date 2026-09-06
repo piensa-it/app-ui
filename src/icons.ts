@@ -214,4 +214,20 @@ export {
   Headset as HeadsetIcon,
   ChartLine as LineChartIcon,
   Tag as TagIcon,
+
+  // Ampliación 0.7.2: los once que faltaban al retirar lucide de MiDivisa
+  // (#90). Tres son de moneda —una casa de cambio necesita distinguirlas de un
+  // vistazo, y `Coins` o `Banknote` no lo hacen—, y `ArrowDownLeft` es la
+  // pareja de `ArrowUpRight` para compra/venta.
+  ArrowDownLeft as ArrowDownLeftIcon,
+  ArrowLeftRight as ArrowLeftRightIcon,
+  Euro as EuroIcon,
+  Flag as FlagIcon,
+  Hotel as HotelIcon,
+  Plug as PlugIcon,
+  PoundSterling as PoundSterlingIcon,
+  ScrollText as ScrollTextIcon,
+  ToggleLeft as ToggleLeftIcon,
+  ToggleRight as ToggleRightIcon,
+  UserCog as UserCogIcon,
 } from "lucide-react";
