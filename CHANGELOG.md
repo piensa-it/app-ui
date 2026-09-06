@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-09-06
+
+Las dos historias salen de la adopción de la 0.7.1 en MiDivisa.
+
 ### Added
 
 - **Once iconos más en el catálogo** (#90): `ArrowDownLeft`, `ArrowLeftRight`, `Euro`, `Flag`, `Hotel`, `Plug`, `PoundSterling`, `ScrollText`, `ToggleLeft`, `ToggleRight` y `UserCog`, con su alias `*Icon`. Eran los que faltaban al retirar `lucide-react` de MiDivisa; tres son de moneda, que una casa de cambio necesita distinguir de un vistazo y ni `Coins` ni `Banknote` lo hacen. Con esto MiDivisa retira sus sustitutos marcados `TODO(app-ui#90)`. El catálogo pasa de 208 a 219.
@@ -307,6 +311,8 @@ consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.
 
 - Migración a TanStack Table v9 y Vite 8; primitivas de motion (stagger, reveal, animated-number, presets de skeleton).
 
+[0.7.2]: https://github.com/piensa-it/app-ui/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/piensa-it/app-ui/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/piensa-it/app-ui/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/piensa-it/app-ui/compare/v0.5.0...v0.6.0
 [0.3.0]: https://github.com/piensa-it/app-ui/compare/v0.2.1...v0.3.0

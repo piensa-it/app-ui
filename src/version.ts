@@ -13,13 +13,22 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.7.1";
+export const UI_LIBRARY_VERSION = "0.7.2";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Iconos: los once que faltaban ya están en el catálogo (`EuroIcon`, `PoundSterlingIcon`, `HotelIcon`, `UserCogIcon`, `ArrowLeftRightIcon`, `ArrowDownLeftIcon`, `FlagIcon`, `PlugIcon`, `ScrollTextIcon`, `ToggleLeftIcon`, `ToggleRightIcon`). Retirá los sustitutos marcados `TODO(app-ui#90)` e importalos de la librería.",
+      "`PageContainer`/`Stagger`: un bloque que no pinta nada ya no deja hueco. Retirá la regla `[data-ui-stagger] > [data-ui-stagger-item]:empty { display: none }` marcada `TODO(app-ui#91)` de tu CSS: la trae la librería.",
+    ],
+  },
+  {
+    version: "0.7.1",
+    channel: "maintenance",
+    publishedAt: "2026-09-04",
     migration: [
       "Solo entran 41 iconos al catálogo (docs/ICONS.md). Nada que migrar: si tu app los pedía desde lucide, ya podés importarlos de la librería y retirar lucide-react.",
     ],
