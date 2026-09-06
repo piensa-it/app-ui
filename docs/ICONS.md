@@ -3,7 +3,7 @@
 ## Por qué existe este documento
 
 `@piensa-it/ui-library` declara `lucide-react@^1.35.0` como dependencia directa
-(`package.json`) y re-exporta un catálogo curado de 208 iconos desde
+(`package.json`) y re-exporta un catálogo curado de 219 iconos desde
 `src/icons.ts`, disponible en el barrel público (`src/index.ts`). Las apps
 consumidoras (MiDivisa, Corelink) declaran además su propia dependencia de
 `lucide-react@^0.462.0`. Como los rangos no son compatibles, npm instala **dos
@@ -36,7 +36,7 @@ válido. Solo cambia el nombre y el origen del import.
 
 ## Tabla de equivalencias
 
-Los 208 iconos del catálogo, ordenados alfabéticamente por su nombre en
+Los 219 iconos del catálogo, ordenados alfabéticamente por su nombre en
 lucide-react. Generada leyendo `src/icons.ts`.
 
 Los marcados con † usan un nombre que en lucide 1.35.0 es un **alias** de otro
@@ -263,6 +263,27 @@ sostenibilidad, flujos, además del spinner de carga y el archivo rechazado.
 | `Headset` | `HeadsetIcon` | `import { HeadsetIcon } from "@piensa-it/ui-library";` |
 | `ChartLine` | `LineChartIcon` | `import { LineChartIcon } from "@piensa-it/ui-library";` |
 | `Tag` | `TagIcon` | `import { TagIcon } from "@piensa-it/ui-library";` |
+
+### Añadidos en 0.7.2 (adopción en MiDivisa)
+
+Los once que faltaban al retirar `lucide-react` de MiDivisa (#90): monedas
+(`Euro`, `PoundSterling`; `DollarSign` ya estaba), la pareja de flechas de
+compra/venta, y los del menú y la configuración. Con esto MiDivisa retira sus
+sustitutos provisionales marcados `TODO(app-ui#90)`.
+
+| Nombre en lucide-react | Export de la librería | Import nuevo |
+| --- | --- | --- |
+| `ArrowDownLeft` | `ArrowDownLeftIcon` | `import { ArrowDownLeftIcon } from "@piensa-it/ui-library";` |
+| `ArrowLeftRight` | `ArrowLeftRightIcon` | `import { ArrowLeftRightIcon } from "@piensa-it/ui-library";` |
+| `Euro` | `EuroIcon` | `import { EuroIcon } from "@piensa-it/ui-library";` |
+| `Flag` | `FlagIcon` | `import { FlagIcon } from "@piensa-it/ui-library";` |
+| `Hotel` | `HotelIcon` | `import { HotelIcon } from "@piensa-it/ui-library";` |
+| `Plug` | `PlugIcon` | `import { PlugIcon } from "@piensa-it/ui-library";` |
+| `PoundSterling` | `PoundSterlingIcon` | `import { PoundSterlingIcon } from "@piensa-it/ui-library";` |
+| `ScrollText` | `ScrollTextIcon` | `import { ScrollTextIcon } from "@piensa-it/ui-library";` |
+| `ToggleLeft` | `ToggleLeftIcon` | `import { ToggleLeftIcon } from "@piensa-it/ui-library";` |
+| `ToggleRight` | `ToggleRightIcon` | `import { ToggleRightIcon } from "@piensa-it/ui-library";` |
+| `UserCog` | `UserCogIcon` | `import { UserCogIcon } from "@piensa-it/ui-library";` |
 
 ## Iconos que no están en el catálogo
 

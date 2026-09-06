@@ -115,6 +115,15 @@
   animation-delay: var(--ui-stagger-delay, 0ms);
 }
 
+/* Un hijo que no pinta nada —un modal cerrado, una sección condicional que
+   devuelve null, un Fragment vacío— deja un envoltorio vacío que igual cobra
+   el ritmo vertical de `space-y`: la página quedaba con huecos de 24 px entre
+   bloques que sí se ven (#91). Los modales de Ark no dejan nodos en su sitio
+   cuando están cerrados, así que el envoltorio queda `:empty` de verdad. */
+[data-ui-stagger] > [data-ui-stagger-item]:empty {
+  display: none;
+}
+
 /* ── Reveal: oculto hasta entrar al viewport (reveal.tsx) ───────────────── */
 @media (prefers-reduced-motion: no-preference) {
   [data-ui-reveal="pending"] {
