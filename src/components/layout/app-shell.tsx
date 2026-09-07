@@ -15,11 +15,14 @@ export type SidebarVariant = "graphite" | "ink" | "smoke";
  * - `floating`: el menú es una tarjeta con radio, borde y sombra, separada
  *   de los bordes por un paso de espaciado.
  * - `rail`: riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono.
+ * - `framed`: el menú encierra el contenido (#118): la raíz es del color del
+ *   menú y la página va dentro como un panel redondeado con margen, que es
+ *   quien se desplaza. En móvil no hay marco.
  * - `rail-panel`: dos niveles (#114): el riel lleva los módulos (`rail`) y un
  *   panel de sección al lado lleva el árbol del módulo activo (`sidebar`).
  *   Plegar oculta el panel; el riel nunca se oculta. Sin `rail`, es `rail`.
  */
-export type AppShellLayout = "docked" | "floating" | "rail" | "rail-panel";
+export type AppShellLayout = "docked" | "floating" | "rail" | "framed" | "rail-panel";
 
 /**
  * Tono del menú. `dark` es la regla: el menú es un plano distinto y no cambia
@@ -80,6 +83,7 @@ const WIDTHS: Record<AppShellLayout, { expanded: string; collapsed: string }> = 
   floating: { expanded: "w-[calc(16rem_+_var(--space-sm))]", collapsed: "w-[calc(4.5rem_+_var(--space-sm))]" },
   // Medio rem más que el plegado: las etiquetas en español no caben en 5 rem.
   rail: { expanded: "w-22", collapsed: "w-22" },
+  framed: { expanded: "w-64", collapsed: "w-[4.5rem]" },
   // Riel más panel; plegado queda el riel.
   "rail-panel": { expanded: "w-[calc(5.5rem_+_16rem)]", collapsed: "w-22" },
 };
@@ -367,8 +371,58 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       );
     }
 
+    const framed = layout === "framed";
+    const column = (
+      <>
+        <header
+          className={cn(
+            "sticky top-0 z-40 flex h-16 shrink-0 items-center gap-ui-sm px-ui-md",
+            // Flotante y enmarcado, la barra es la propia página: con
+            // superficie y borde dejaba una costura justo donde empieza la
+            // columna del menú, o un segundo marco dentro del marco.
+            layout === "floating" || framed ? "bg-ground" : "border-b border-border bg-surface",
+          )}
+        >
+          <button
+            type="button"
+            aria-label="Abrir el menú"
+            onClick={() => setMobileOpen(true)}
+            className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+          >
+            <MenuIcon aria-hidden="true" className="size-5" />
+          </button>
+          {railOnly ? null : (
+            <button
+              type="button"
+              aria-label={collapsed ? "Desplegar el menú" : "Plegar el menú"}
+              aria-expanded={!collapsed}
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:grid"
+            >
+              <PanelLeft aria-hidden="true" className="size-5" />
+            </button>
+          )}
+          {topbarStart}
+          {topbarCenter ? (
+            <div className="mx-auto hidden min-w-0 flex-1 items-center justify-center px-ui-md md:flex">{topbarCenter}</div>
+          ) : null}
+          <div className={cn("flex items-center gap-ui-xs", !topbarCenter && "ml-auto")}>{topbar}</div>
+        </header>
+
+        <main className="min-w-0 flex-1">{children}</main>
+      </>
+    );
+
     return (
-      <div ref={ref} data-layout={layout} className={cn("flex min-h-screen w-full bg-ground", className)} {...props}>
+      <div
+        ref={ref}
+        data-layout={layout}
+        // Enmarcado, la raíz lleva el color del menú y por eso necesita sus
+        // tokens; la página va dentro, en su panel.
+        data-sidebar={framed ? variant : undefined}
+        className={cn("flex min-h-screen w-full", framed ? "bg-sidebar" : "bg-ground", className)}
+        {...props}
+      >
         {/* Menú fijo. Oculto en pantallas estrechas: allí se abre como panel. */}
         <aside
           data-sidebar={variant}
@@ -382,7 +436,8 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
             "hidden shrink-0 flex-col text-sidebar-foreground md:flex",
             // Flotante, la columna es transparente y la tarjeta de dentro
             // lleva el fondo: así el borde y la sombra rodean al menú entero.
-            layout === "floating" ? "p-ui-sm pr-0" : "border-r border-sidebar-border bg-sidebar",
+            // Enmarcado, sin borde: el menú y el marco son el mismo plano.
+            layout === "floating" ? "p-ui-sm pr-0" : framed ? "bg-sidebar" : "border-r border-sidebar-border bg-sidebar",
             // La animación de ancho vive aquí y no en cada aplicación.
             "transition-[width] duration-normal ease-standard motion-reduce:transition-none",
             WIDTHS[layout][collapsed ? "collapsed" : "expanded"],
@@ -403,43 +458,22 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header
-            className={cn(
-              "sticky top-0 z-40 flex h-16 shrink-0 items-center gap-ui-sm px-ui-md",
-              // Flotante, la barra es la propia página: con superficie y borde
-              // dejaba una costura justo donde empieza la columna del menú.
-              layout === "floating" ? "bg-ground" : "border-b border-border bg-surface",
-            )}
-          >
-            <button
-              type="button"
-              aria-label="Abrir el menú"
-              onClick={() => setMobileOpen(true)}
-              className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+        {framed ? (
+          // El marco: un paso de espaciado alrededor del panel, salvo por el
+          // lado del menú. El panel es quien se desplaza, no la ventana: así
+          // el marco no se mueve nunca y la barra queda pegada a su borde.
+          // En móvil no hay marco: el menú es un panel y la página lo ocupa todo.
+          <div className="flex min-w-0 flex-1 flex-col md:p-ui-sm md:pl-0">
+            <div
+              data-ui-shell-frame
+              className="flex min-w-0 flex-1 flex-col bg-ground text-foreground md:h-[calc(100vh_-_var(--space-sm)_*_2)] md:overflow-y-auto md:rounded-xl"
             >
-              <MenuIcon aria-hidden="true" className="size-5" />
-            </button>
-            {railOnly ? null : (
-              <button
-                type="button"
-                aria-label={collapsed ? "Desplegar el menú" : "Plegar el menú"}
-                aria-expanded={!collapsed}
-                onClick={() => setCollapsed(!collapsed)}
-                className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:grid"
-              >
-                <PanelLeft aria-hidden="true" className="size-5" />
-              </button>
-            )}
-            {topbarStart}
-            {topbarCenter ? (
-              <div className="mx-auto hidden min-w-0 flex-1 items-center justify-center px-ui-md md:flex">{topbarCenter}</div>
-            ) : null}
-            <div className={cn("flex items-center gap-ui-xs", !topbarCenter && "ml-auto")}>{topbar}</div>
-          </header>
-
-          <main className="min-w-0 flex-1">{children}</main>
-        </div>
+              {column}
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-w-0 flex-1 flex-col">{column}</div>
+        )}
 
         {/* Panel móvil: el mismo menú, con el mismo carácter. `surface={false}`
             deja que los tokens del menú pinten el fondo en vez de la

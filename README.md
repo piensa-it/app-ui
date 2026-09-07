@@ -178,7 +178,7 @@ beats layered CSS, an application's dark theme lost against the library's.
 ### App shell layouts
 
 `AppShell` keeps one structure — sidebar, top bar, content — and lets the
-application choose its shape: `layout="docked" | "floating" | "rail" | "rail-panel"`
+application choose its shape: `layout="docked" | "floating" | "rail" | "framed" | "rail-panel"`
 (two levels: modules in the rail via `rail`, the active module's tree in a
 side panel via `sidebar`),
 `sidebarTone="dark" | "light"` (light is the explicit exception to the

@@ -483,6 +483,40 @@ export const BuscadorCentrado: Story = {
 };
 
 /**
+ * `layout="framed"` (#118): el menú encierra el contenido. La raíz es del
+ * color del menú y la página va dentro como un panel redondeado con margen,
+ * que es quien se desplaza: el marco no se mueve nunca. En oscuro, con el
+ * estilo `deep` y la paleta cian, es la plantilla 2 de la evaluación. En
+ * móvil no hay marco.
+ */
+export const Enmarcado: Story = {
+  render: () => (
+    <AppShell
+      layout="framed"
+      storageKey="demo-enmarcado"
+      brand={<SidebarProfile name="Janice Chandler" description="Contadora" avatarColor="185 80% 35%" />}
+      sidebarFooter={<SidebarBrand name="Acme S.A." />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="La página dentro del marco del menú; el marco no se desplaza." />
+        {Array.from({ length: 6 }, (_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <CardTitle>Bloque {i + 1}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-ui-body-sm text-muted-foreground">Desplaza: la barra superior se queda pegada al borde del panel.</p>
+            </CardContent>
+          </Card>
+        ))}
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
  * `layout="rail-panel"` (#114): dos niveles. El riel lleva los módulos
  * (`rail`) y el panel de sección, el árbol del módulo activo (`sidebar`), con
  * los grupos plegables de siempre. Plegar oculta el panel; el riel nunca se

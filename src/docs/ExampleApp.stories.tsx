@@ -47,8 +47,8 @@ const meta = {
     defaultCollapsed: { control: "boolean" },
     layout: {
       control: "inline-radio",
-      options: ["docked", "floating", "rail", "rail-panel"],
-      description: "Forma del armazón: pegado al borde, flotante, riel, o riel con panel de sección.",
+      options: ["docked", "floating", "rail", "framed", "rail-panel"],
+      description: "Forma del armazón: pegado al borde, flotante, riel, enmarcado, o riel con panel de sección.",
     },
     sidebarTone: {
       control: "inline-radio",
@@ -122,4 +122,14 @@ export const AplicacionDeEjemplo3: Story = {
 export const AplicacionDeEjemplo4: Story = {
   name: "Aplicación de ejemplo 4 · riel con panel",
   args: { layout: "rail-panel", buscadorCentrado: true },
+};
+
+/**
+ * La misma aplicación enmarcada (#118): el menú encierra el contenido, con la
+ * persona arriba y la empresa abajo. En oscuro, con el estilo `deep` y la
+ * paleta cian del toolbar, es la plantilla 2 de la evaluación.
+ */
+export const AplicacionDeEjemplo5: Story = {
+  name: "Aplicación de ejemplo 5 · enmarcada",
+  args: { layout: "framed", perfilEnMenu: true },
 };

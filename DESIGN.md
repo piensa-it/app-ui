@@ -203,6 +203,7 @@ Para afinar una variante, redefine los tokens bajo tu propio selector:
 | `docked` | Menú fijo al borde, plegable a iconos. El de siempre. | Por defecto. |
 | `floating` | El menú es una tarjeta con radio, borde y sombra `raised`, separada de los bordes por un paso. | Productos con pocas secciones donde el menú convive con tarjetas. |
 | `rail` | Riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono. Sin botón de plegar. | Pocas secciones y páginas anchas (tablas). |
+| `framed` | El menú encierra el contenido: la raíz es del color del menú y la página va dentro como un panel redondeado con margen, que es quien se desplaza. En móvil no hay marco. | Productos que quieren leerse como una sola pieza, con el menú y el marco en el mismo plano. |
 | `rail-panel` | Dos niveles: el riel lleva los módulos (`rail`) y un panel de sección al lado, el árbol del módulo activo (`sidebar`). Plegar oculta el panel; el riel nunca se oculta. | Muchos módulos, cada uno con varias pantallas. Con un solo nivel, seis secciones y cuarenta enlaces se leen como una lista. |
 
 En dos niveles la aplicación decide qué módulo está activo y qué árbol
