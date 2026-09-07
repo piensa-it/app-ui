@@ -55,14 +55,12 @@ const meta = {
       options: ["dark", "light"],
       description: "Tono del menú: oscuro (la regla) o claro (sigue a la página).",
     },
-    buscadorCentrado: { control: "boolean", description: "El buscador centrado en la barra superior." },
   },
   args: {
     variant: "graphite",
     vistaInicial: "tablero",
     defaultCollapsed: false,
     layout: "docked",
-    buscadorCentrado: false,
   },
 } satisfies Meta<typeof ExampleApp>;
 
@@ -91,24 +89,23 @@ export const AplicacionDeEjemplo1: Story = {
 };
 
 /**
- * La misma aplicación con otra forma (#113): menú flotante y claro, y el
- * buscador centrado en la barra. Es la plantilla 1 de la evaluación montada
- * solo con props de `AppShell`; el estilo visual (`data-ui-look`) se elige
- * en el toolbar. La persona, como en todas, arriba a la derecha.
+ * La misma aplicación con otra forma (#113): menú flotante y claro. Es la
+ * plantilla 1 de la evaluación montada solo con props de `AppShell`; el
+ * estilo visual (`data-ui-look`) se elige en el toolbar. La barra superior,
+ * como en todas: notificaciones y persona.
  */
 export const AplicacionDeEjemplo2: Story = {
   name: "Aplicación de ejemplo 2 · flotante y clara",
-  args: { layout: "floating", sidebarTone: "light", buscadorCentrado: true },
+  args: { layout: "floating", sidebarTone: "light" },
 };
 
 /**
- * La misma aplicación en riel (#113): icono y etiqueta, sin desplegar, y el
- * buscador centrado. Es la forma de la plantilla 3 con un solo nivel; los dos
+ * La misma aplicación en riel (#113): icono y etiqueta, sin desplegar. Es la forma de la plantilla 3 con un solo nivel; los dos
  * niveles —riel más panel de sección— llegan con #114.
  */
 export const AplicacionDeEjemplo3: Story = {
   name: "Aplicación de ejemplo 3 · riel",
-  args: { layout: "rail", buscadorCentrado: true },
+  args: { layout: "rail" },
 };
 
 /**
@@ -118,7 +115,7 @@ export const AplicacionDeEjemplo3: Story = {
  */
 export const AplicacionDeEjemplo4: Story = {
   name: "Aplicación de ejemplo 4 · riel con panel",
-  args: { layout: "rail-panel", buscadorCentrado: true },
+  args: { layout: "rail-panel" },
 };
 
 /**

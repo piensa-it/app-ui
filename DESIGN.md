@@ -217,6 +217,15 @@ está en `variant`. `topbarCenter` centra el buscador en la barra superior.
 La persona va siempre arriba a la derecha, en `UserMenu`: el menú lateral
 es para la identidad de la aplicación y para navegar.
 
+### La barra superior es estándar
+
+A la derecha van dos cosas y siempre las mismas: las notificaciones
+(`NotificationsMenu`, la campana con el número de pendientes y su panel) y la
+persona (`UserMenu`). Lo que es de una pantalla —el periodo, un buscador, el
+botón de crear— va en la cabecera de esa pantalla (`PageHeader`), no en la
+barra: una acción que solo tiene sentido en Movimientos no puede estar a la
+vista en Conciliación.
+
 ### La identidad va en la cabecera del menú
 
 Qué sistema es, con qué compañía se trabaja —y en qué entorno de esa

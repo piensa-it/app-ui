@@ -103,10 +103,12 @@ export const SidebarIdentity = React.forwardRef<HTMLDivElement, SidebarIdentityP
       </span>
     );
 
+    // En línea con el nombre y de la altura de la línea: un distintivo en
+    // fila aparte hacía al segmento de compañía más alto que el de módulo.
     const badge = shown ? (
       <span
         className={cn(
-          "rounded-full px-2 py-0.5 text-ui-caption font-medium",
+          "shrink-0 rounded-full px-1.5 text-ui-caption font-medium leading-4",
           shown.uppercase && "uppercase tracking-wide",
           TONES[shown.tone ?? "neutral"],
         )}
@@ -164,10 +166,12 @@ function Segment({ segment, badge }: { segment: SidebarIdentitySegment; badge?: 
   const interactive = Boolean(segment.onSelect || (segment.options && segment.options.length > 0));
 
   const content = (
-    <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+    <span className="flex min-w-0 flex-1 flex-col items-start">
       <span className="text-ui-caption leading-tight text-sidebar-muted">{segment.caption}</span>
-      <span className="w-full truncate text-ui-body-sm font-medium text-sidebar-foreground">{text}</span>
-      {badge}
+      <span className="flex w-full min-w-0 items-center gap-ui-xs">
+        <span className="truncate text-ui-body-sm font-medium text-sidebar-foreground">{text}</span>
+        {badge}
+      </span>
     </span>
   );
 

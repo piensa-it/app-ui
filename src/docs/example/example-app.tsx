@@ -7,7 +7,6 @@ import {
   FilePlus2,
   HelpCircle,
   Landmark,
-  Search,
   Wallet,
   Receipt,
   ShoppingCart,
@@ -20,6 +19,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarIdentity } from "@/components/layout/sidebar-identity";
 import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "@/components/layout/sidebar-nav";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { UserMenu } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,7 @@ import {
   type Movimiento,
   flujoMensual,
   pendientes,
+  notificaciones,
 } from "./data";
 
 /* -------------------------------------------------------------------------- */
@@ -244,6 +245,9 @@ function VistaTablero({ onIr }: { onIr: (vista: VistaId) => void }) {
 }
 
 function VistaMovimientos() {
+  // El periodo es de esta pantalla, no de la aplicación: cada pantalla sabe
+  // qué contexto necesita y lo pone en su cabecera.
+  const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
   const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
   const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
   const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
@@ -257,6 +261,18 @@ function VistaMovimientos() {
         above={<Badge variant="secondary">Periodo abierto</Badge>}
         actions={
           <>
+            <Select
+              aria-label="Periodo contable"
+              size="sm"
+              options={[
+                { value: "2026-09", label: "Septiembre 2026" },
+                { value: "2026-08", label: "Agosto 2026" },
+                { value: "2026-07", label: "Julio 2026" },
+              ]}
+              value={periodo}
+              onChange={setPeriodo}
+              width="auto"
+            />
             <Button variant="outline">
               <Download aria-hidden="true" />
               Exportar
@@ -485,8 +501,6 @@ export interface ExampleAppProps {
   layout?: AppShellLayout;
   /** Tono del menú (#113). */
   sidebarTone?: SidebarTone;
-  /** El buscador centrado en la barra superior (`topbarCenter`), como en la plantilla 3. */
-  buscadorCentrado?: boolean;
 }
 
 /**
@@ -503,11 +517,9 @@ export function ExampleApp({
   layout = "docked",
   // Sin valor: manda el de la librería (oscuro; claro en el panel de dos niveles).
   sidebarTone,
-  buscadorCentrado = false,
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
-  const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
 
 
   const contenido =
@@ -582,36 +594,12 @@ export function ExampleApp({
         </SidebarNav>
       }
       sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
-      topbarCenter={
-        buscadorCentrado ? (
-          <div className="relative w-full max-w-xl">
-            <Search aria-hidden="true" className="pointer-events-none absolute left-ui-sm top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input aria-label="Buscar" placeholder="Buscar movimientos, terceros, cuentas…" className="pl-ui-xl" />
-          </div>
-        ) : undefined
-      }
       topbar={
+        // La barra superior es estándar: notificaciones y persona, siempre en
+        // el mismo sitio. Lo específico de cada pantalla —periodo, acciones—
+        // va en la pantalla, no aquí.
         <>
-          <Toolbar>
-            <Select
-              aria-label="Periodo contable"
-              size="sm"
-              options={[
-                { value: "2026-09", label: "Septiembre 2026" },
-                { value: "2026-08", label: "Agosto 2026" },
-                { value: "2026-07", label: "Julio 2026" },
-              ]}
-              value={periodo}
-              onChange={setPeriodo}
-              width="auto"
-            />
-          </Toolbar>
-          <Button size="sm" variant="outline" onClick={() => setVista("nuevo")}>
-            <FilePlus2 aria-hidden="true" />
-            Nuevo
-          </Button>
-          {/* La persona, siempre en el mismo sitio y con el mismo orden dentro:
-              perfil, configuración, lo propio de la aplicación, cerrar sesión. */}
+          <NotificationsMenu items={notificaciones} onSelect={() => setVista("conciliacion")} onViewAll={() => setVista("conciliacion")} onMarkAllRead={() => {}} />
           <UserMenu
             user={persona}
             onProfile={() => setVista("movimientos")}

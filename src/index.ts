@@ -175,6 +175,12 @@ export {
   type SidebarIdentitySystem,
 } from "./components/layout/sidebar-identity";
 export {
+  NotificationsMenu,
+  type NotificationsMenuProps,
+  type NotificationItem,
+  type NotificationsLabels,
+} from "./components/layout/notifications-menu";
+export {
   SidebarBrand,
   type SidebarBrandProps,
   type SidebarBrandGroup,

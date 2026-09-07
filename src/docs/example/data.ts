@@ -230,3 +230,10 @@ export const pendientes = [
   { id: "p3", titulo: "Registrar consignación de Carolina Ríos", detalle: "Venta de contado mostrador", vence: "Esta semana" },
   { id: "p4", titulo: "Renovar token del portal bancario", detalle: "Vence el 15 de septiembre", vence: "Esta semana" },
 ];
+
+/** Los avisos de la campana. De dónde salen y a dónde llevan lo decide la aplicación. */
+export const notificaciones = [
+  { id: "n1", title: "Conciliación pendiente", description: "Banco de Bogotá 4218 · 3 diferencias en agosto", time: "Hace 5 min", unread: true },
+  { id: "n2", title: "Pago aprobado", description: "Anticipo contrato mantenimiento · Andinos Ltda.", time: "Hace 2 h", unread: true },
+  { id: "n3", title: "Extracto descargado", description: "Septiembre, cuenta corriente 4218", time: "Ayer" },
+];
