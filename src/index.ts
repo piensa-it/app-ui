@@ -113,7 +113,7 @@ export { Tabs, TabPanel, type TabsProps, type TabPanelProps } from "./components
 export { Accordion, AccordionTab, type AccordionProps, type AccordionTabProps } from "./components/ui/accordion";
 export { Avatar, type AvatarProps } from "./components/ui/avatar";
 export { DEFAULT_AVATAR_COLORS } from "./lib/avatar-colors";
-export { BUNDLED_PALETTES, FONT_PRESETS } from "./lib/appearance-presets";
+export { BUNDLED_PALETTES, FONT_PRESETS, BUNDLED_LOOKS } from "./lib/appearance-presets";
 export {
   AppearanceSettings,
   type AppearanceSettingsProps,

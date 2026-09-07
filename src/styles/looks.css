@@ -1,0 +1,143 @@
+/**
+ * Estilos visuales. Se aplican con `data-ui-look` en cualquier ancestro, igual
+ * que `data-ui-palette`, y se combinan con cualquier paleta y tema (#109).
+ *
+ * Un estilo es el carácter visual de la interfaz —cuánto se separan los
+ * planos, si hay sombra, cuánto redondea, cómo se marca el activo del menú—
+ * sin tocar la estructura: ningún componente cambia de anatomía ni de props.
+ * Salió de evaluar tres plantillas de referencia: ninguna aportaba estructura
+ * que `AppShell` no tuviera, pero cada una tenía un carácter que no se podía
+ * elegir.
+ *
+ * Solo mueven tokens, y la lista es cerrada:
+ *
+ *   neutros   --ground, --surface, --surface-hover, --surface-border,
+ *             --raised, --raised-border, --border, --input, --muted,
+ *             --secondary, --accent
+ *   forma     --radius
+ *   sombra    --shadow-sm, --shadow-raised
+ *   menú      --sidebar-active, --sidebar-active-foreground, --sidebar-active-bar
+ *
+ * Nada de identidad: `--primary` y compañía son de la paleta. Los primeros
+ * planos (`--foreground`, `--muted-foreground`…) tampoco se mueven: son casi
+ * negro o casi blanco y conservan el contraste AA sobre cualquier neutro de
+ * aquí, que es lo que comprueba `design-tokens.test.ts` para cada estilo en
+ * los dos temas.
+ *
+ * `classic` es el estilo de fábrica y no redefine nada: sin atributo, todo
+ * sigue igual.
+ */
+
+/* ── soft ───────────────────────────────────────────────────────────────────
+   Neutros cálidos, tarjetas que se separan de la página solo por luz —sin
+   borde—, radio grande y el activo del menú con una barra de acento. */
+[data-ui-look="soft"] {
+  --ground: 40 14% 96%;
+  --surface: 40 20% 98%;
+  --surface-hover: 40 12% 95%;
+  --surface-border: 40 10% 87%;
+  --raised: 0 0% 100%;
+  /* El borde de una tarjeta es del color de la tarjeta: no se ve. */
+  --raised-border: 0 0% 100%;
+  --border: 40 10% 87%;
+  --input: 40 10% 84%;
+  --muted: 40 12% 92%;
+  --secondary: 40 12% 92%;
+  --accent: 40 10% 89%;
+  --radius: 0.875rem;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05);
+  --shadow-raised: 0 8px 24px hsl(var(--shadow-color) / 0.08);
+}
+
+/* Los tokens del menú se declaran sobre el propio `[data-sidebar]`, así que
+   un valor heredado desde el ancestro con el estilo nunca ganaría: hay que
+   apuntar al menú directamente. */
+:is([data-ui-look="soft"] [data-sidebar], [data-ui-look="soft"][data-sidebar]) {
+  --sidebar-active-bar: 3px;
+}
+
+:is(.dark [data-ui-look="soft"], .dark[data-ui-look="soft"]) {
+  --ground: 30 6% 8%;
+  --surface: 30 6% 11%;
+  --surface-hover: 30 6% 15%;
+  --surface-border: 30 5% 23%;
+  --raised: 30 6% 14%;
+  --raised-border: 30 6% 14%;
+  --border: 30 5% 23%;
+  --input: 30 5% 25%;
+  --muted: 30 5% 17%;
+  --secondary: 30 5% 18%;
+  --accent: 30 5% 21%;
+}
+
+/* ── deep ───────────────────────────────────────────────────────────────────
+   Más recorrido de luz entre planos, sin sombras y con bordes finos: la
+   jerarquía la hace la luminosidad sola. En oscuro la página baja al 4 %. */
+[data-ui-look="deep"] {
+  --ground: 0 0% 93%;
+  --surface: 0 0% 97%;
+  --surface-hover: 0 0% 94%;
+  --surface-border: 0 0% 85%;
+  --raised: 0 0% 100%;
+  --raised-border: 0 0% 88%;
+  --border: 0 0% 85%;
+  --input: 0 0% 82%;
+  --muted: 0 0% 89%;
+  --secondary: 0 0% 89%;
+  --accent: 0 0% 86%;
+  --shadow-sm: none;
+  --shadow-raised: none;
+}
+
+:is(.dark [data-ui-look="deep"], .dark[data-ui-look="deep"]) {
+  --ground: 0 0% 4%;
+  --surface: 0 0% 8%;
+  --surface-hover: 0 0% 12%;
+  --surface-border: 0 0% 18%;
+  --raised: 0 0% 12%;
+  --raised-border: 0 0% 20%;
+  --border: 0 0% 18%;
+  --input: 0 0% 20%;
+  --muted: 0 0% 14%;
+  --secondary: 0 0% 15%;
+  --accent: 0 0% 18%;
+}
+
+/* ── flat ───────────────────────────────────────────────────────────────────
+   Sin sombras, radio pequeño, poco recorrido entre planos y el activo del
+   menú relleno con el color de marca. */
+[data-ui-look="flat"] {
+  --ground: 0 0% 97%;
+  --surface: 0 0% 98.5%;
+  --surface-hover: 0 0% 95%;
+  --surface-border: 0 0% 89%;
+  --raised: 0 0% 100%;
+  --raised-border: 0 0% 90%;
+  --border: 0 0% 89%;
+  --input: 0 0% 84%;
+  --muted: 0 0% 93%;
+  --secondary: 0 0% 93%;
+  --accent: 0 0% 90%;
+  --radius: 0.375rem;
+  --shadow-sm: none;
+  --shadow-raised: none;
+}
+
+:is([data-ui-look="flat"] [data-sidebar], [data-ui-look="flat"][data-sidebar]) {
+  --sidebar-active: var(--primary);
+  --sidebar-active-foreground: var(--primary-foreground);
+}
+
+:is(.dark [data-ui-look="flat"], .dark[data-ui-look="flat"]) {
+  --ground: 0 0% 9%;
+  --surface: 0 0% 11%;
+  --surface-hover: 0 0% 15%;
+  --surface-border: 0 0% 22%;
+  --raised: 0 0% 13%;
+  --raised-border: 0 0% 24%;
+  --border: 0 0% 22%;
+  --input: 0 0% 24%;
+  --muted: 0 0% 16%;
+  --secondary: 0 0% 17%;
+  --accent: 0 0% 20%;
+}

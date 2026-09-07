@@ -318,7 +318,7 @@ function DataTable<TValue extends DataTableValue>({
   }[activeDensity];
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm", className)}>
+    <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
       {title || description || actions || searchable || configurableColumns ? (
         <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">

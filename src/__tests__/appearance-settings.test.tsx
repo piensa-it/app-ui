@@ -30,6 +30,25 @@ describe("AppearanceSettings · qué ofrece", () => {
     expect(within(grupo("Densidad")).getAllByRole("radio")).toHaveLength(3);
   });
 
+  it("el estilo visual se ofrece solo al pedirlo, con los cuatro estilos y su miniatura real", () => {
+    montar();
+    expect(screen.queryByRole("radiogroup", { name: "Estilo" })).not.toBeInTheDocument();
+
+    montar({ sections: ["look"], value: { ...base, look: "soft" } });
+    const estilos = within(grupo("Estilo")).getAllByRole("radio");
+    expect(estilos).toHaveLength(4);
+    expect(within(grupo("Estilo")).getByRole("radio", { name: /Suave/ })).toHaveAttribute("aria-checked", "true");
+    // La miniatura lleva el estilo puesto: es el estilo real, no una copia.
+    expect(within(grupo("Estilo")).getByRole("radio", { name: /Plano/ }).querySelector('[data-ui-look="flat"]')).not.toBeNull();
+    // `classic` es no tener atributo, también en la miniatura.
+    expect(within(grupo("Estilo")).getByRole("radio", { name: /Clásico/ }).querySelector("[data-ui-look]")).toBeNull();
+  });
+
+  it("sin `look` en el valor, el estilo marcado es el clásico", () => {
+    montar({ sections: ["look"] });
+    expect(within(grupo("Estilo")).getByRole("radio", { name: /Clásico/ })).toHaveAttribute("aria-checked", "true");
+  });
+
   it("`sections` deja fuera lo que no se quiere ofrecer", () => {
     montar({ sections: ["theme", "density"] });
     expect(screen.queryByRole("radiogroup", { name: "Color" })).not.toBeInTheDocument();

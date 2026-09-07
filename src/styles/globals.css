@@ -1,4 +1,5 @@
 @import "./palettes.css";
+@import "./looks.css";
 
 /* Tailwind 4: una sola importación en vez de las tres directivas. El preset
    sigue siendo el mismo archivo JS —v4 lo carga con `@config`— así que las
@@ -274,6 +275,10 @@
     --sidebar-alpha: 1;
     --sidebar-blur: 0px;
     --sidebar-ring: var(--primary);
+    /* Anchura de la barra de acento del enlace activo, pintada con
+       `--sidebar-ring`. Cero de fábrica: la ponen los estilos (`data-ui-look`)
+       o la aplicación, no una prop del enlace. */
+    --sidebar-active-bar: 0px;
   }
 
   /** Grafito: gris neutro frío. El predeterminado, no compite con la marca. */

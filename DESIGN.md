@@ -51,6 +51,16 @@ elige un color: elige un nivel.
 - `bg-background` y `bg-card` siguen funcionando como alias de `ground` y
   `raised`. Son compatibilidad, no la forma recomendada.
 
+### Los estilos mueven los neutros; la paleta, nunca
+
+El carácter visual —cuánto se separan los planos, si una tarjeta lleva borde o
+sombra, cuánto redondea— se elige con `data-ui-look` (`soft`, `deep`, `flat`;
+sin atributo es `classic`). Un estilo redefine los neutros de la escala, el
+radio, dos sombras y el activo del menú, y nada más: la lista está cerrada en
+`looks.css` y la prueba de tokens repite las comprobaciones de esta sección
+para cada estilo en claro y en oscuro. La paleta no toca ninguno de esos
+tokens, así que las dos elecciones se combinan sin pisarse.
+
 ### Lo que se rompe al mover el fondo
 
 Bajar la página a un gris deja sin contraste a lo que se dibuja **sobre** ella.

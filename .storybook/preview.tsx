@@ -29,7 +29,7 @@ function useResolvedDark(themeSetting: string): boolean {
 }
 
 
-type UiGlobals = { theme?: string; palette?: string; fontFamily?: string };
+type UiGlobals = { theme?: string; palette?: string; fontFamily?: string; look?: string };
 
 /**
  * Hereda los `globals` del toolbar cuando esta historia vive en un iframe
@@ -75,7 +75,7 @@ function useInheritedGlobals(own: UiGlobals): UiGlobals {
     // cambia cuando cambia el toolbar.
     const onUpdate = () => {
       const next = parent.store.get?.();
-      if (next) setInherited({ theme: next.theme, palette: next.palette, fontFamily: next.fontFamily });
+      if (next) setInherited({ theme: next.theme, palette: next.palette, fontFamily: next.fontFamily, look: next.look });
     };
     parent.channel.on("globalsUpdated", onUpdate);
     return () => parent.channel.off("globalsUpdated", onUpdate);
@@ -150,6 +150,20 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    look: {
+      description: "Estilo visual (data-ui-look)",
+      toolbar: {
+        title: "Estilo",
+        icon: "component",
+        items: [
+          { value: "classic", title: "Clásico" },
+          { value: "soft", title: "Suave" },
+          { value: "deep", title: "Profundo" },
+          { value: "flat", title: "Plano" },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   initialGlobals: {
     // "system" y no "light": la página de docs renderiza la aplicación de
@@ -159,6 +173,7 @@ const preview: Preview = {
     theme: "system",
     palette: "indigo",
     fontFamily: "geist",
+    look: "classic",
   },
   decorators: [
     (Story, context) => {
@@ -166,6 +181,9 @@ const preview: Preview = {
       const themeSetting = globals.theme ?? "system";
       const palette = globals.palette ?? "indigo";
       const fontFamily = globals.fontFamily ?? "geist";
+      // `classic` es no tener atributo: así la story ve exactamente lo que
+      // vería una aplicación que no eligió estilo.
+      const look = globals.look && globals.look !== "classic" ? globals.look : undefined;
       const isDark = useResolvedDark(themeSetting);
       const story = (
         <UiProvider>
@@ -179,6 +197,7 @@ const preview: Preview = {
             className={isDark ? "dark min-h-screen bg-background font-sans text-foreground" : "min-h-screen bg-background font-sans text-foreground"}
             data-ui-palette={palette}
             data-ui-font={fontFamily}
+            data-ui-look={look}
           >
             {story}
           </div>
@@ -186,7 +205,7 @@ const preview: Preview = {
       }
 
       return (
-        <div className={isDark ? "dark" : ""} data-ui-palette={palette} data-ui-font={fontFamily}>
+        <div className={isDark ? "dark" : ""} data-ui-palette={palette} data-ui-font={fontFamily} data-ui-look={look}>
           {/* Superficie exterior (bg-muted) para que la "card" de la demo
               tenga contraste y se sienta agrupada/presentada, en vez de
               flotar directamente sobre el fondo de la página. Sin flex: se

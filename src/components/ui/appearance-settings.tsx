@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { createPalette, type TokenColor } from "@/lib/palette";
 import type { UiDensity } from "@/components/providers/UiProvider";
 import { CheckIcon } from "@/icons";
-import { BUNDLED_PALETTES, FONT_PRESETS } from "@/lib/appearance-presets";
+import { BUNDLED_LOOKS, BUNDLED_PALETTES, FONT_PRESETS } from "@/lib/appearance-presets";
 
 export type AppearanceTheme = "light" | "dark" | "system";
 
@@ -15,6 +15,11 @@ export interface AppearanceValue {
   /** `geist`, `inter`, `dm-sans` o `system`. */
   font: string;
   density: UiDensity;
+  /**
+   * `classic`, `soft`, `deep` o `flat` (`data-ui-look`). Opcional: un panel
+   * que no ofrece la sección `look` no tiene por qué saber de estilos.
+   */
+  look?: string;
 }
 
 /** Una paleta propia: la marca, cuando no es ninguna de las seis incluidas. */
@@ -25,7 +30,7 @@ export interface AppearancePalette {
   primary: TokenColor;
 }
 
-export type AppearanceSection = "theme" | "palette" | "font" | "density";
+export type AppearanceSection = "theme" | "palette" | "font" | "density" | "look";
 
 export interface AppearanceLabels {
   theme?: string;
@@ -38,6 +43,11 @@ export interface AppearanceLabels {
   compact?: string;
   default?: string;
   comfortable?: string;
+  look?: string;
+  classic?: string;
+  soft?: string;
+  deep?: string;
+  flat?: string;
 }
 
 export interface AppearanceSettingsProps {
@@ -49,7 +59,12 @@ export interface AppearanceSettingsProps {
    * de las incluidas y paletas propias (`{ id, label, primary }`).
    */
   palettes?: (string | AppearancePalette)[];
-  /** @default ["theme", "palette", "font", "density"] */
+  /**
+   * Qué secciones se ofrecen. `look` (el estilo visual, `data-ui-look`) no
+   * entra por defecto: un panel ya desplegado no gana una sección nueva al
+   * actualizar; se pide a propósito.
+   * @default ["theme", "palette", "font", "density"]
+   */
   sections?: AppearanceSection[];
   labels?: AppearanceLabels;
   className?: string;
@@ -66,13 +81,18 @@ const DEFAULT_LABELS: Required<AppearanceLabels> = {
   compact: "Compacta",
   default: "Normal",
   comfortable: "Cómoda",
+  look: "Estilo",
+  classic: "Clásico",
+  soft: "Suave",
+  deep: "Profundo",
+  flat: "Plano",
 };
 
 const ALL_SECTIONS: AppearanceSection[] = ["theme", "palette", "font", "density"];
 
 /**
- * El panel de apariencia estándar: tema, paleta, tipografía y densidad, cada
- * opción con su vista previa.
+ * El panel de apariencia estándar: tema, paleta, tipografía y densidad —y,
+ * si se pide, el estilo visual—, cada opción con su vista previa.
  *
  * Lo que una aplicación puede elegir del sistema de diseño ya estaba definido
  * —`.dark`, `data-ui-palette`, `data-ui-font`, `<UiProvider density>`—, pero
@@ -159,6 +179,21 @@ export const AppearanceSettings = React.forwardRef<HTMLDivElement, AppearanceSet
             ))}
           </Section>
         ) : null}
+
+        {sections.includes("look") ? (
+          <Section title={text.look}>
+            {BUNDLED_LOOKS.map((look) => (
+              <Option
+                key={look.id}
+                label={text[look.id as "classic" | "soft" | "deep" | "flat"] ?? look.label}
+                selected={(value.look ?? "classic") === look.id}
+                onSelect={() => set("look", look.id)}
+              >
+                <LookThumbnail look={look.id} />
+              </Option>
+            ))}
+          </Section>
+        ) : null}
       </div>
     );
   },
@@ -226,6 +261,28 @@ function ThemeThumbnail({ theme }: { theme: AppearanceTheme }) {
           {half(true)}
         </>
       )}
+    </span>
+  );
+}
+
+/**
+ * Miniatura de una página con el estilo puesto: menú con su activo, página,
+ * y una tarjeta con el borde, la sombra y el radio de ese estilo. Lleva
+ * `data-ui-look`, así que es el estilo real, no una copia.
+ */
+function LookThumbnail({ look }: { look: string }) {
+  return (
+    <span
+      data-ui-look={look === "classic" ? undefined : look}
+      className="flex h-10 w-full overflow-hidden rounded-md border border-border bg-ground"
+    >
+      <span data-sidebar="graphite" className="flex w-1/4 flex-col gap-px bg-sidebar p-1">
+        <span className="h-1.5 w-full rounded-sm bg-sidebar-active inset-shadow-[var(--sidebar-active-bar)_0_0_0_hsl(var(--sidebar-ring))]" />
+        <span className="h-1.5 w-full rounded-sm bg-sidebar-hover" />
+      </span>
+      <span className="flex flex-1 flex-col justify-end p-1">
+        <span className="h-5 w-3/4 rounded-[calc(var(--radius)/2)] border border-raised-border bg-raised shadow-sm" />
+      </span>
     </span>
   );
 }

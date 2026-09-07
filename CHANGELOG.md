@@ -6,6 +6,15 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **Estilo visual elegible: `data-ui-look`, el quinto conmutador** (#109). Tema, paleta, tipografía y densidad ya se elegían; el carácter visual —cuánto se separan los planos, si las tarjetas llevan borde o sombra, cuánto redondea, cómo se marca el activo del menú— no, y conseguirlo era redefinir una docena de tokens a mano sin garantía de que la escala de superficies y el contraste AA siguieran cumpliéndose. Salió de evaluar tres plantillas de referencia: ninguna aportaba estructura que `AppShell` no tuviera, pero cada una tenía un carácter que no se podía elegir. Tres estilos además del de fábrica: `soft` (neutros cálidos, tarjetas sin borde, radio grande, barra de acento en el activo), `deep` (más recorrido de luz entre planos, sin sombras, página al 4 % en oscuro) y `flat` (sin sombras, radio pequeño, activo relleno con el color de marca). Solo mueven tokens de una lista cerrada —neutros, `--radius`, `--shadow-sm`, `--shadow-raised` y el activo del menú—, nunca identidad, así que paleta y estilo se combinan sin pisarse; la prueba de tokens comprueba escala, separación y pares AA para cada estilo en los dos temas. `AppearanceSettings` lo ofrece con `sections={[..., "look"]}` (no entra por defecto: un panel desplegado no gana secciones al actualizar), `BUNDLED_LOOKS` lista los cuatro, y Storybook tiene el conmutador «Estilo» en el toolbar, que la aplicación de ejemplo hereda.
+- **`--sidebar-active-bar`**: anchura de la barra de acento a la izquierda del enlace activo del menú, pintada con `--sidebar-ring`. Cero de fábrica; el estilo `soft` la pone en 3 px y una aplicación puede ponerla bajo su propio `[data-sidebar]`.
+
+### Changed
+
+- **`Card` y `DataTable` usan `--raised-border`**, el borde que DESIGN.md asigna al nivel raised y que hasta ahora no usaban (`--border`). Es lo que permite que un estilo quite el borde de las tarjetas sin quitárselo a los campos. En el estilo de fábrica pasa del 87 % al 91 % de luminosidad en claro (22 % → 24 % en oscuro): un pelo más claro, nada que hacer.
+
 ## [0.8.0] - 2026-09-06
 
 El estándar de usuario: menú, perfil y apariencia. Sale de lo que MiDivisa construyó a mano en `Layout.tsx` y `Profile.tsx`, y de lo que CoreLink y Lynx repetirían.

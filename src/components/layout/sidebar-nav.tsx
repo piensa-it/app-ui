@@ -182,8 +182,12 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
           className={cn(
             "flex w-full items-center gap-ui-sm rounded-md px-ui-sm py-ui-xs text-ui-body-sm transition-colors duration-normal",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+            // La barra de acento a la izquierda mide `--sidebar-active-bar`,
+            // que de fábrica es 0: la ponen los estilos (`data-ui-look="soft"`)
+            // o la aplicación. Va como sombra interior para no ocupar sitio
+            // ni pelearse con el anillo de foco, que también es una sombra.
             active
-              ? "bg-sidebar-active font-medium text-sidebar-active-foreground"
+              ? "bg-sidebar-active font-medium text-sidebar-active-foreground inset-shadow-[var(--sidebar-active-bar)_0_0_0_hsl(var(--sidebar-ring))]"
               : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",
             collapsed && "justify-center px-0",
             // Con `asChild` el contenido es del consumidor y no se puede

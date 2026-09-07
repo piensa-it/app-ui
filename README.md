@@ -124,6 +124,34 @@ Apply a bundled palette to an application or an individual section:
 Available palettes are `indigo`, `ocean`, `violet`, `emerald`, `ruby`, and
 `amber`. Available font presets are `geist`, `inter`, `dm-sans`, and `system`.
 
+### Looks
+
+A palette is the identity; a **look** is the visual character — how far the
+surface levels sit apart, whether cards carry a border or a shadow, how much
+things round, how the active menu link is marked. It is the fifth switch, next
+to theme, palette, font and density, and it is orthogonal to structure: no
+component changes anatomy or props.
+
+```tsx
+<html data-ui-palette="ocean" data-ui-look="soft">
+```
+
+| Look | Neutrals | Level separation | Radius | Active menu link |
+|---|---|---|---|---|
+| `classic` (default, no attribute) | neutral greys | border + light shadow | 10 px | grey fill |
+| `soft` | warm | light only, borderless cards | 14 px | accent bar + fill |
+| `deep` | neutral, wider range | thin border, no shadow | 10 px | grey fill |
+| `flat` | neutral, narrow range | thin border, no shadow | 6 px | brand-colour fill |
+
+A look may move only a closed list of tokens: the neutrals (`--ground`,
+`--surface*`, `--raised*`, `--border`, `--input`, `--muted`, `--secondary`,
+`--accent`), `--radius`, `--shadow-sm`, `--shadow-raised`, and three sidebar
+tokens (`--sidebar-active`, `--sidebar-active-foreground`,
+`--sidebar-active-bar`). Identity and foreground tokens stay put, so every
+look keeps the surface scale direction and the AA contrast pairs in both
+themes — the token test checks each combination. `AppearanceSettings` offers
+the choice with `sections={[..., "look"]}`; `BUNDLED_LOOKS` lists the four.
+
 Products can define their own identity by overriding semantic tokens after the
 library stylesheet:
 
@@ -148,8 +176,8 @@ unreadable grey text inside.
 | **Identity** | **yes** | `--primary`, `--primary-foreground`, `--ring`, `--subtle`, `--subtle-hover`, `--subtle-foreground`, `--chart-1` |
 | Universal meaning | no | `--destructive`, `--success`, `--warning`, `--overlay`, `--shadow-color` |
 | Interaction state | no | `--accent`, `--muted`, `--secondary` (and their foregrounds) |
-| Structure | no | `--ground`, `--surface`, `--raised`, `--border`, `--input`, `--card`, `--popover` |
-| Sidebar | no | `--sidebar-*` — its own plane, picked with `AppShell`'s `variant` |
+| Structure | no | `--ground`, `--surface`, `--raised`, `--border`, `--input`, `--card`, `--popover` — a **look** (`data-ui-look`) moves the neutrals among these, but a palette never does |
+| Sidebar | no | `--sidebar-*` — its own plane, picked with `AppShell`'s `variant`; a look may move only the active-link tokens |
 
 Seven tokens. Everything else belongs to the system, not to the brand. Do not
 forget `--ring`: leave it out and the focus ring stays the factory colour, the

@@ -152,6 +152,22 @@ test.describe("Tokens", () => {
   }
 });
 
+test.describe("Estilos visuales", () => {
+  // Un estilo (`data-ui-look`) mueve solo neutros, radio, sombra y el activo
+  // del menú. La prueba de tokens comprueba los números; esta captura fija
+  // cómo se ven los cuatro, uno al lado del otro, en los dos temas (#109).
+  for (const theme of ["light", "dark"] as const) {
+    test(`los cuatro estilos se mantienen estables en tema ${theme}`, async ({ page }) => {
+      await page.goto(storyUrl("tokens-superficies--estilos", `theme:${theme};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`looks-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+});
+
 test.describe("Armazón", () => {
   // Los fallos de tipografía y de `asChild` de la 0.4.0 eran de bulto y se
   // veían a simple vista, pero ninguna prueba de tipos los detecta. Estas
