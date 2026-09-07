@@ -213,8 +213,9 @@ router. El panel es claro por defecto; el riel, siempre oscuro.
 `sidebarTone="light"` es la **excepción explícita** a la regla de arriba: el
 menú toma los tokens de la página (`raised`, `subtle` para el activo) y sigue
 al tema. Es una decisión de la aplicación, no una variante más, y por eso no
-está en `variant`. `SidebarProfile` pone a la persona arriba del menú, en el
-hueco `brand`, y `topbarCenter` centra el buscador en la barra superior.
+está en `variant`. `topbarCenter` centra el buscador en la barra superior.
+La persona va siempre arriba a la derecha, en `UserMenu`: el menú lateral
+es para la identidad de la aplicación y para navegar.
 
 ### Un control por fila
 
