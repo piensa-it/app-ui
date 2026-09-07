@@ -45,11 +45,16 @@ const meta = {
       description: "Vista con la que arranca el ejemplo.",
     },
     defaultCollapsed: { control: "boolean" },
+    staggerGap: {
+      control: { type: "range", min: 0, max: 200, step: 10 },
+      description: "Milisegundos entre la entrada de un bloque y el siguiente. Cambia de vista para verla otra vez.",
+    },
   },
   args: {
     variant: "graphite",
     vistaInicial: "movimientos",
     defaultCollapsed: false,
+    staggerGap: 60,
   },
 } satisfies Meta<typeof ExampleApp>;
 

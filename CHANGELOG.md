@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Docs
+
+- **Laboratorio de movimiento** (#110), en Guías. Los cuatro mecanismos del sistema —`Stagger` (la entrada de página que `PageContainer` aplica por defecto), `Motion` (cinco verbos), `AnimatedNumber` (cifras que cuentan) y `Reveal` (aparición al desplazar)— sobre una página de ejemplo real, con los controles dentro del lienzo y el fragmento de código que reproduce lo elegido. Cada mecanismo tenía su story aislada, pero no había forma de ver una página entera entrando con un `gap` de 40 ms frente a uno de 120, ni de decidir si una cifra cuenta en 600 ms o en 1200, sin editar código. Con `prefers-reduced-motion` la página lo dice arriba y nada se anima. La aplicación de ejemplo expone `staggerGap` como control de su story para probar la entrada sobre la app completa.
+
 ## [0.8.0] - 2026-09-06
 
 El estándar de usuario: menú, perfil y apariencia. Sale de lo que MiDivisa construyó a mano en `Layout.tsx` y `Profile.tsx`, y de lo que CoreLink y Lynx repetirían.
