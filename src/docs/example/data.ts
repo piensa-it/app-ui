@@ -207,3 +207,21 @@ export const metodosDePago = [
   { value: "tarjeta", label: "Tarjeta corporativa" },
   { value: "cheque", label: "Cheque", disabled: true },
 ];
+
+/** Flujo de caja de los últimos seis meses, para la gráfica del tablero. */
+export const flujoMensual = [
+  { mes: "Abr", entradas: 52_300_000, salidas: 48_900_000 },
+  { mes: "May", entradas: 58_100_000, salidas: 61_400_000 },
+  { mes: "Jun", entradas: 63_700_000, salidas: 55_200_000 },
+  { mes: "Jul", entradas: 49_800_000, salidas: 57_600_000 },
+  { mes: "Ago", entradas: 71_200_000, salidas: 64_300_000 },
+  { mes: "Sep", entradas: 60_938_100, salidas: 79_615_800 },
+];
+
+/** Lo que espera una acción de tesorería, para la tarjeta de pendientes del tablero. */
+export const pendientes = [
+  { id: "p1", titulo: "Conciliar extracto de agosto", detalle: "Banco de Bogotá 4218 · 3 diferencias", vence: "Hoy" },
+  { id: "p2", titulo: "Aprobar pago a Servicios Andinos", detalle: "Anticipo contrato mantenimiento", vence: "Mañana" },
+  { id: "p3", titulo: "Registrar consignación de Carolina Ríos", detalle: "Venta de contado mostrador", vence: "Esta semana" },
+  { id: "p4", titulo: "Renovar token del portal bancario", detalle: "Vence el 15 de septiembre", vence: "Esta semana" },
+];

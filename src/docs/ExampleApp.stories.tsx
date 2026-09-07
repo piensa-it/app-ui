@@ -41,7 +41,7 @@ const meta = {
     },
     vistaInicial: {
       control: "inline-radio",
-      options: ["movimientos", "nuevo", "conciliacion", "reportes", "cuentas"],
+      options: ["tablero", "movimientos", "nuevo", "conciliacion", "reportes", "cuentas"],
       description: "Vista con la que arranca el ejemplo.",
     },
     defaultCollapsed: { control: "boolean" },
@@ -59,7 +59,7 @@ const meta = {
   },
   args: {
     variant: "graphite",
-    vistaInicial: "movimientos",
+    vistaInicial: "tablero",
     defaultCollapsed: false,
     layout: "docked",
     buscadorCentrado: false,
@@ -70,25 +70,24 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * La aplicación clásica: menú fijo y oscuro, plegable a iconos, la empresa
- * arriba del menú y la persona en la barra superior. Arranca en la vista de
- * captura: `Field` conectando etiqueta, ayuda y error de cada control, con
- * `Input` y `Select` sobre una rejilla de dos columnas. Pulsa "Guardar
- * movimiento" con el concepto vacío para ver los estados de error
- * (`aria-invalid` y `role="alert"` los pone `Field`, no la aplicación).
+ * La aplicación clásica: menú fijo y oscuro, plegable a iconos, la identidad
+ * arriba del menú y la persona en la barra superior. Arranca en el tablero:
+ * cuatro cifras con icono y tono, la gráfica de flujo de caja y dos tarjetas
+ * con lo pendiente y lo reciente, todo con datos de ejemplo.
  *
  * Desde el menú se llega a la vista de datos —`PageContainer` en ancho
  * `wide`, `PageHeader` con acciones, tres cifras y una `DataTable` con
- * búsqueda, orden, paginación y configurador de columnas—, a elegir empresa
- * en `SidebarIdentity`, a plegar el menú y a ver la versión en el pie.
+ * búsqueda, orden, paginación y configurador de columnas—, a la de captura
+ * —`Field` conectando etiqueta, ayuda y error de cada control; pulsa "Guardar
+ * movimiento" con el concepto vacío para ver los estados de error—, a elegir
+ * empresa en `SidebarIdentity`, a plegar el menú y a ver la versión en el pie.
  *
- * Los cuatro ejemplos son la misma aplicación con otra forma del armazón;
+ * Los cinco ejemplos son la misma aplicación con otra forma del armazón;
  * cambia entre ellos para compararlas. Los estados sueltos del armazón viven
  * en `Layout/AppShell`.
  */
 export const AplicacionDeEjemplo1: Story = {
   name: "Aplicación de ejemplo 1 · clásica",
-  args: { vistaInicial: "nuevo" },
 };
 
 /**

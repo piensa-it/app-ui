@@ -11,6 +11,7 @@ import {
   Wallet,
   Receipt,
   ShoppingCart,
+  LayoutDashboard,
 } from "lucide-react";
 
 import { AppShell, type AppShellLayout, type SidebarTone, type SidebarVariant } from "@/components/layout/app-shell";
@@ -20,12 +21,15 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SidebarIdentity } from "@/components/layout/sidebar-identity";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Chart } from "@/components/ui/chart";
 import { Column, DataTable } from "@/components/ui/data-table";
 import { FormGrid } from "@/components/ui/form-grid";
 import { Stat, StatGroup } from "@/components/ui/stat";
+import { ArrowDownLeftIcon, ArrowUpRightIcon, BankIcon, ClockIcon } from "@/icons";
 import { Toolbar } from "@/components/layout/toolbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
@@ -40,13 +44,15 @@ import {
   metodosDePago,
   movimientos,
   type Movimiento,
+  flujoMensual,
+  pendientes,
 } from "./data";
 
 /* -------------------------------------------------------------------------- */
 /* Navegación                                                                  */
 /* -------------------------------------------------------------------------- */
 
-type VistaId = "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
+type VistaId = "tablero" | "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
 
 interface EnlaceNav {
   id: VistaId;
@@ -62,6 +68,7 @@ const MODULOS = [
 ] as const;
 
 const ENLACES: EnlaceNav[] = [
+  { id: "tablero", label: "Tablero", icon: LayoutDashboard },
   { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
   { id: "nuevo", label: "Nuevo movimiento", icon: FilePlus2 },
   { id: "conciliacion", label: "Conciliación", icon: Landmark },
@@ -112,6 +119,110 @@ const TONO_ESTADO: Record<Movimiento["estado"], { variante: "success" | "warning
   anulado: { variante: "outline", label: "Anulado" },
 };
 
+function VistaTablero({ onIr }: { onIr: (vista: VistaId) => void }) {
+  const activos = movimientos.filter((m) => m.estado !== "anulado");
+  const entradas = activos.filter((m) => m.valor > 0);
+  const salidas = activos.filter((m) => m.valor < 0);
+  const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
+  const saldo = total(entradas) + total(salidas);
+  const porConciliar = movimientos.filter((m) => m.estado === "pendiente");
+  const recientes = [...movimientos].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 5);
+
+  return (
+    <PageContainer width="wide">
+      <PageHeader
+        title="Tablero de tesorería"
+        description="Cómo va el mes, qué espera una acción y los últimos movimientos."
+        actions={<Button onClick={() => onIr("nuevo")}>Registrar movimiento</Button>}
+      />
+
+      {/* Cada cifra con su icono y su tono: el icono dice de qué es la cifra
+          de un vistazo; el tono, qué clase de noticia es. */}
+      <StatGroup label="Resumen del mes" columns={4}>
+        <Stat label="Entradas" icon={<ArrowDownLeftIcon />} tone="positive" value={formatoPesos(total(entradas))} description={`${entradas.length} movimientos recaudados`} />
+        <Stat label="Salidas" icon={<ArrowUpRightIcon />} value={formatoPesos(total(salidas))} description={`${salidas.length} pagos ejecutados`} />
+        <Stat
+          label="Saldo del periodo"
+          icon={<BankIcon />}
+          tone={saldo < 0 ? "warning" : "default"}
+          value={formatoPesos(saldo)}
+          description="Antes de conciliación bancaria"
+          trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
+        />
+        <Stat
+          label="Por conciliar"
+          icon={<ClockIcon />}
+          tone={porConciliar.length > 3 ? "negative" : "warning"}
+          value={String(porConciliar.length)}
+          description={`${formatoPesos(total(porConciliar))} en movimientos pendientes`}
+        />
+      </StatGroup>
+
+      <Chart
+        type="bar"
+        title="Flujo de caja"
+        description="Entradas y salidas de los últimos seis meses."
+        data={flujoMensual}
+        categoryKey="mes"
+        series={[
+          { key: "entradas", label: "Entradas" },
+          { key: "salidas", label: "Salidas" },
+        ]}
+        height={260}
+        valueFormatter={formatoPesos}
+        axisFormatter={(v) => `${Math.round(v / 1_000_000)} M`}
+      />
+
+      <div className="grid gap-stack lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pendientes de tesorería</CardTitle>
+            <CardDescription>Lo que espera una acción, por vencimiento.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border">
+              {pendientes.map((p) => (
+                <li key={p.id} className="flex items-start justify-between gap-ui-md py-ui-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate text-ui-body-sm font-medium">{p.titulo}</span>
+                    <span className="block truncate text-ui-caption text-muted-foreground">{p.detalle}</span>
+                  </span>
+                  <Badge variant={p.vence === "Hoy" ? "warning" : "secondary"} size="sm">
+                    {p.vence}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Últimos movimientos</CardTitle>
+            <CardDescription>Los cinco más recientes; el detalle completo está en Movimientos.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-ui-sm">
+            <ul className="divide-y divide-border">
+              {recientes.map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-ui-md py-ui-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate text-ui-body-sm font-medium">{m.concepto}</span>
+                    <span className="block truncate text-ui-caption text-muted-foreground">{m.tercero}</span>
+                  </span>
+                  <span className={cn("shrink-0 text-ui-body-sm tabular-nums", m.valor < 0 && "text-destructive")}>{formatoPesos(m.valor)}</span>
+                </li>
+              ))}
+            </ul>
+            <Button variant="outline" size="sm" className="self-start" onClick={() => onIr("movimientos")}>
+              Ver todos los movimientos
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </PageContainer>
+  );
+}
+
 function VistaMovimientos() {
   const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
   const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
@@ -138,16 +249,21 @@ function VistaMovimientos() {
       <StatGroup label="Resumen del periodo">
         <Stat
           label="Entradas"
+          icon={<ArrowDownLeftIcon />}
+          tone="positive"
           value={formatoPesos(total(entradas))}
           description={`${entradas.length} movimientos recaudados`}
         />
         <Stat
           label="Salidas"
+          icon={<ArrowUpRightIcon />}
           value={formatoPesos(total(salidas))}
           description={`${salidas.length} pagos ejecutados`}
         />
         <Stat
           label="Saldo del periodo"
+          icon={<BankIcon />}
+          tone={saldo < 0 ? "warning" : "default"}
           value={formatoPesos(saldo)}
           description="Antes de conciliación bancaria"
           trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
@@ -362,7 +478,7 @@ export interface ExampleAppProps {
  */
 export function ExampleApp({
   variant = "graphite",
-  vistaInicial = "movimientos",
+  vistaInicial = "tablero",
   defaultCollapsed = false,
   layout = "docked",
   // Sin valor: manda el de la librería (oscuro; claro en el panel de dos niveles).
@@ -377,7 +493,9 @@ export function ExampleApp({
 
 
   const contenido =
-    vista === "movimientos" ? (
+    vista === "tablero" ? (
+      <VistaTablero onIr={setVista} />
+    ) : vista === "movimientos" ? (
       <VistaMovimientos />
     ) : vista === "nuevo" ? (
       <VistaNuevoMovimiento onCancelar={() => setVista("movimientos")} />
