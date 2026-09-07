@@ -346,3 +346,19 @@ test.describe("AvatarPicker", () => {
     });
   });
 });
+
+test.describe("AppearanceSettings", () => {
+  // Cada opción se ve como lo que es: miniatura de tema, color real de la
+  // paleta, tipografía escrita en sí misma. Las capturas lo fijan en los dos temas.
+  for (const tema of ["light", "dark"] as const) {
+    test(`el panel en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+      await page.goto(storyUrl("ui-appearancesettings--completo", `theme:${tema};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await expect(page.getByRole("radiogroup", { name: "Color" })).toBeVisible();
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`appearance-settings-${tema}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+});
