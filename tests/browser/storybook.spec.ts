@@ -168,6 +168,23 @@ test.describe("Estilos visuales", () => {
   }
 });
 
+test.describe("Laboratorio de movimiento", () => {
+  // Con menos movimiento el laboratorio tiene que anunciarlo: los controles
+  // siguen, nada se anima y la página lo dice arriba (#110). Se emula aquí
+  // igual que en las pruebas de Motion: la preferencia del proyecto no llega
+  // a `matchMedia`.
+  test("con menos movimiento lo avisa y las cuatro secciones siguen ahí", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(storyUrl("guías-laboratorio-de-movimiento--laboratorio"));
+    await stabilize(page);
+    await expect(page.getByText("Tu sistema pide menos movimiento")).toBeVisible();
+    for (const nombre of ["Entrada de página", "Énfasis", "Cifras", "Aparición al desplazar"]) {
+      await expect(page.getByRole("region", { name: nombre })).toBeVisible();
+    }
+    await expect(page.getByText(/staggerGap=\{60\}/)).toBeVisible();
+  });
+});
+
 test.describe("Armazón", () => {
   // Los fallos de tipografía y de `asChild` de la 0.4.0 eran de bulto y se
   // veían a simple vista, pero ninguna prueba de tipos los detecta. Estas

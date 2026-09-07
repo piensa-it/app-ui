@@ -104,14 +104,14 @@ const TONO_ESTADO: Record<Movimiento["estado"], { variante: "success" | "warning
   anulado: { variante: "outline", label: "Anulado" },
 };
 
-function VistaMovimientos() {
+function VistaMovimientos({ staggerGap }: { staggerGap?: number }) {
   const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
   const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
   const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
   const saldo = total(entradas) + total(salidas);
 
   return (
-    <PageContainer width="wide">
+    <PageContainer width="wide" staggerGap={staggerGap}>
       <PageHeader
         title="Movimientos de caja"
         description="Septiembre de 2026 · cuenta corriente Banco de Bogotá 4218."
@@ -208,7 +208,7 @@ function VistaMovimientos() {
   );
 }
 
-function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
+function VistaNuevoMovimiento({ onCancelar, staggerGap }: { onCancelar: () => void; staggerGap?: number }) {
   const [concepto, setConcepto] = React.useState("");
   const [tercero, setTercero] = React.useState("Ferretería La Ceiba S.A.S.");
   const [valor, setValor] = React.useState("");
@@ -220,7 +220,7 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
   const errorValor = enviado && Number(valor) <= 0 ? "El valor debe ser mayor que cero." : undefined;
 
   return (
-    <PageContainer>
+    <PageContainer staggerGap={staggerGap}>
       <PageHeader
         as="h1"
         title="Nuevo movimiento"
@@ -308,13 +308,13 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
   );
 }
 
-function VistaPendiente({ titulo, descripcion }: { titulo: string; descripcion: string }) {
+function VistaPendiente({ titulo, descripcion, staggerGap }: { titulo: string; descripcion: string; staggerGap?: number }) {
   return (
     // `animateKey` porque estas tres vistas comparten componente: React lo
     // reutiliza al cambiar de una a otra y, sin volver a montarlo, la entrada
     // no se dispararía. Unas pantallas entrarían animadas y otras no.
     // Las otras dos vistas son componentes distintos y ya se montan solas.
-    <PageContainer animateKey={titulo}>
+    <PageContainer animateKey={titulo} staggerGap={staggerGap}>
       <PageHeader title={titulo} description={descripcion} />
       <EmptyState
         icon={<HelpCircle aria-hidden="true" className="size-5" />}
@@ -337,6 +337,8 @@ export interface ExampleAppProps {
   vistaInicial?: VistaId;
   /** Menú plegado de entrada, para ver los enlaces en su forma corta. */
   defaultCollapsed?: boolean;
+  /** Retraso entre bloques de la entrada de página, para probarla sobre la app completa (#110). */
+  staggerGap?: number;
 }
 
 /**
@@ -350,6 +352,7 @@ export function ExampleApp({
   variant = "graphite",
   vistaInicial = "movimientos",
   defaultCollapsed = false,
+  staggerGap,
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
@@ -360,18 +363,23 @@ export function ExampleApp({
 
   const contenido =
     vista === "movimientos" ? (
-      <VistaMovimientos />
+      <VistaMovimientos staggerGap={staggerGap} />
     ) : vista === "nuevo" ? (
-      <VistaNuevoMovimiento onCancelar={() => setVista("movimientos")} />
+      <VistaNuevoMovimiento onCancelar={() => setVista("movimientos")} staggerGap={staggerGap} />
     ) : vista === "conciliacion" ? (
       <VistaPendiente
         titulo="Conciliación bancaria"
         descripcion="Cruce del extracto contra los movimientos registrados."
+        staggerGap={staggerGap}
       />
     ) : vista === "reportes" ? (
-      <VistaPendiente titulo="Reportes" descripcion="Flujo de caja, cartera y ejecución por centro de costo." />
+      <VistaPendiente
+        titulo="Reportes"
+        descripcion="Flujo de caja, cartera y ejecución por centro de costo."
+        staggerGap={staggerGap}
+      />
     ) : (
-      <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." />
+      <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." staggerGap={staggerGap} />
     );
 
   return (

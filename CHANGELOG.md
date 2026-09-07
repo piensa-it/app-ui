@@ -16,6 +16,9 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 ### Changed
 
 - **`Card` y `DataTable` usan `--raised-border`**, el borde que DESIGN.md asigna al nivel raised y que hasta ahora no usaban (`--border`). Es lo que permite que un estilo quite el borde de las tarjetas sin quitárselo a los campos. En el estilo de fábrica pasa del 87 % al 91 % de luminosidad en claro (22 % → 24 % en oscuro): un pelo más claro, nada que hacer.
+### Docs
+
+- **Laboratorio de movimiento** (#110), en Guías. Los cuatro mecanismos del sistema —`Stagger` (la entrada de página que `PageContainer` aplica por defecto), `Motion` (cinco verbos), `AnimatedNumber` (cifras que cuentan) y `Reveal` (aparición al desplazar)— sobre una página de ejemplo real, con los controles dentro del lienzo y el fragmento de código que reproduce lo elegido. Cada mecanismo tenía su story aislada, pero no había forma de ver una página entera entrando con un `gap` de 40 ms frente a uno de 120, ni de decidir si una cifra cuenta en 600 ms o en 1200, sin editar código. Con `prefers-reduced-motion` la página lo dice arriba y nada se anima. La aplicación de ejemplo expone `staggerGap` como control de su story para probar la entrada sobre la app completa.
 
 ## [0.8.0] - 2026-09-06
 
