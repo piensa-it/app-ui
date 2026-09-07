@@ -191,9 +191,9 @@ export function formatoFecha(iso: string): string {
  * la opción, y así la identidad lo muestra junto a la compañía elegida.
  */
 export const empresas = [
-  { value: "poblado", label: "GrupoDO.com", description: "NIT 900.412.331-4", badge: { label: "UAT", tone: "warning" as const } },
-  { value: "andinos", label: "Andinos Ltda.", description: "NIT 830.118.902-7" },
-  { value: "cafeteros", label: "Cafeteros S.A.S.", description: "NIT 901.554.208-1", badge: { label: "Pruebas", tone: "neutral" as const } },
+  { value: "poblado", label: "GrupoDO.com", description: "Entras como Administrador", details: [{ label: "NIT", value: "900.412.331-4" }], badge: { label: "UAT", tone: "warning" as const } },
+  { value: "andinos", label: "Andinos Ltda.", description: "Entras como Tesorero", details: [{ label: "NIT", value: "830.118.902-7" }] },
+  { value: "cafeteros", label: "Cafeteros S.A.S.", description: "Entras como Consulta", details: [{ label: "NIT", value: "901.554.208-1" }], badge: { label: "Pruebas", tone: "neutral" as const } },
 ];
 
 export const entornos = [

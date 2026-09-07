@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`SidebarIdentity` abre un diálogo para cambiar de compañía o de módulo** (`dialog` en el segmento): el `AppSwitcher` montado desde las opciones, con buscador, fichas con icono, descripción, distintivo y detalles (NIT, rol con el que se entra), «aquí estás», «donde estabas» y una pista al pie (dónde pedir un permiso, o que Ctrl K busca pantallas). Con muchas compañías o muchos módulos, el menú corto no alcanzaba; el menú corto sigue para pocas opciones. Las opciones admiten `icon`, `details` y `group`. Los ejemplos lo usan.
+
 ## [0.9.0] - 2026-09-07
 
 El armazón estándar y la forma elegible: salió de evaluar tres plantillas de referencia y de lo que CoreLink, Lynx y MiDivisa terminaban resolviendo cada una a su manera.

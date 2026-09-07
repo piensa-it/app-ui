@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SidebarIdentity } from "../components/layout/sidebar-identity";
@@ -52,6 +52,35 @@ describe("SidebarIdentity", () => {
     expect(screen.getByRole("menuitemradio", { name: /Acme/ })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByText("Sucursal norte")).toBeInTheDocument();
     await user.click(globex);
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith("globex"));
+  });
+
+  it("con `dialog` el segmento abre el diálogo con buscador, fichas con detalles y «aquí estás»", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <SidebarIdentity
+        system={{ name: "MiDivisa" }}
+        company={{
+          caption: "Compañía",
+          value: "acme",
+          onChange,
+          options: [
+            { value: "acme", label: "Acme S.A.", description: "Entras como Administrador", details: [{ label: "NIT", value: "900.123.456" }] },
+            { value: "globex", label: "Globex Ltda.", description: "Entras como Consulta", details: [{ label: "NIT", value: "800.987.654" }] },
+          ],
+          dialog: { title: "Compañías que puedes operar", hint: "¿Te falta un permiso? Pídelo." },
+        }}
+      />,
+    );
+    const boton = screen.getByRole("button", { name: /Compañía/ });
+    expect(boton).toHaveAttribute("aria-haspopup", "dialog");
+    await user.click(boton);
+    const dialogo = await screen.findByRole("dialog", { name: "Compañías que puedes operar" });
+    expect(within(dialogo).getByRole("combobox", { name: "Buscar" })).toBeInTheDocument();
+    expect(within(dialogo).getByText("900.123.456")).toBeInTheDocument();
+    expect(within(dialogo).getByText("¿Te falta un permiso? Pídelo.")).toBeInTheDocument();
+    await user.click(within(dialogo).getByRole("option", { name: /Globex/ }));
     await waitFor(() => expect(onChange).toHaveBeenCalledWith("globex"));
   });
 

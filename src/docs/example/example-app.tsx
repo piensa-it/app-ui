@@ -62,10 +62,10 @@ interface EnlaceNav {
 }
 
 const MODULOS = [
-  { id: "tesoreria", label: "Tesorería", icon: Wallet },
-  { id: "cartera", label: "Cartera", icon: Receipt },
-  { id: "compras", label: "Compras", icon: ShoppingCart },
-  { id: "informes", label: "Informes", icon: BarChart3 },
+  { id: "tesoreria", label: "Tesorería", icon: Wallet, group: "Finanzas", description: "Caja, bancos, conciliación y flujo de caja." },
+  { id: "cartera", label: "Cartera", icon: Receipt, group: "Finanzas", description: "Facturas, recaudos y cobranza." },
+  { id: "compras", label: "Compras", icon: ShoppingCart, group: "Operación", description: "Órdenes de compra, proveedores y recepción de mercancía." },
+  { id: "informes", label: "Informes", icon: BarChart3, group: "Operación", description: "Estado de resultados, balance y auxiliares." },
 ] as const;
 
 /**
@@ -568,11 +568,42 @@ export function ExampleApp({
       // marca de Piensa IT. El entorno va con la compañía, que es donde se
       // paraleliza.
       system={{ name: "Sistema", logo: <img src="/piensait.png" alt="" className="size-full object-cover" /> }}
-      company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
+      // Compañía y módulo abren un diálogo, no un menú corto: con muchas
+      // compañías o muchos módulos hace falta buscar, ver el rol con el que
+      // se entra y «dónde estabas».
+      company={{
+        caption: "Compañía",
+        value: empresa,
+        options: empresas.map((e) => ({ ...e, icon: Building2 })),
+        onChange: setEmpresa,
+        dialog: {
+          title: "Compañías que puedes operar",
+          description: "Entras a cada una con el rol que te dieron allí, y ese rol decide qué puedes hacer.",
+          searchPlaceholder: "Buscar una compañía por nombre o NIT…",
+          hint: "¿Te falta un permiso? Lo da quien administre esa compañía, desde Configuración → Usuarios y accesos.",
+        },
+      }}
       module={
         layout === "rail-panel"
           ? undefined
-          : { caption: "Módulo", value: "tesoreria", options: MODULOS.map((m) => ({ value: m.id, label: m.label })), onChange: () => {} }
+          : {
+              caption: "Módulo",
+              value: "tesoreria",
+              options: MODULOS.map((m) => ({ value: m.id, label: m.label, description: m.description, icon: m.icon, group: m.group })),
+              onChange: () => {},
+              dialog: {
+                title: "Cambiar de módulo",
+                description: "Cada módulo trae su propio menú y su propio tablero.",
+                searchPlaceholder: "Buscar un módulo por nombre o por lo que hace…",
+                recent: ["cartera"],
+                hint: (
+                  <>
+                    ¿Buscas una pantalla y no un módulo? <kbd className="rounded border border-border bg-muted px-1 font-mono text-ui-caption">Ctrl</kbd>{" "}
+                    <kbd className="rounded border border-border bg-muted px-1 font-mono text-ui-caption">K</kbd>
+                  </>
+                ),
+              },
+            }
       }
     />
   );
