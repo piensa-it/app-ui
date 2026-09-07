@@ -123,11 +123,11 @@ export const AplicacionDeEjemplo4: Story = {
 };
 
 /**
- * La misma aplicación enmarcada (#118): el menú encierra el contenido, con la
- * persona arriba y la empresa abajo. En oscuro, con el estilo `deep` y la
- * paleta cian del toolbar, es la plantilla 2 de la evaluación.
+ * La misma aplicación enmarcada (#118): el menú encierra el contenido. En
+ * oscuro, con el estilo `deep` y la paleta cian del toolbar, es la plantilla
+ * 2 de la evaluación.
  */
 export const AplicacionDeEjemplo5: Story = {
   name: "Aplicación de ejemplo 5 · enmarcada",
-  args: { layout: "framed", perfilEnMenu: true },
+  args: { layout: "framed" },
 };

@@ -466,8 +466,8 @@ export const Enmarcado: Story = {
     <AppShell
       layout="framed"
       storageKey="demo-enmarcado"
-      brand={<SidebarProfile name="Janice Chandler" description="Contadora" avatarColor="185 80% 35%" />}
-      sidebarFooter={<SidebarBrand name="Acme S.A." />}
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" />}
       sidebar={<Navegacion />}
       topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
     >
