@@ -183,8 +183,9 @@ application choose its shape: `layout="docked" | "floating" | "rail" | "framed" 
 side panel via `sidebar`),
 `sidebarTone="dark" | "light"` (light is the explicit exception to the
 "sidebar is dark in both themes" rule: it takes the page tokens and follows the
-theme), and `topbarCenter` for a centered search box. The person always sits top
-right, in `UserMenu`. Without those props nothing changes.
+theme), and `topbarCenter` for a centered search box. `SidebarIdentity` in the
+`brand` slot shows system · company · module (module optional). The person
+always sits top right, in `UserMenu`. Without those props nothing changes.
 
 ### Spacing scale
 

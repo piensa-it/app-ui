@@ -217,15 +217,18 @@ está en `variant`. `topbarCenter` centra el buscador en la barra superior.
 La persona va siempre arriba a la derecha, en `UserMenu`: el menú lateral
 es para la identidad de la aplicación y para navegar.
 
-### La identidad va en la barra superior
+### La identidad va en la cabecera del menú
 
 Qué sistema es, con qué empresa se trabaja y en qué módulo, en el mismo sitio
-para una aplicación grande y una pequeña: `TopbarIdentity` en `topbarStart`.
-La pequeña omite el módulo y no queda hueco. Cada segmento es un control —o
-una etiqueta, si no hay nada que elegir— y **la empresa se cambia en un solo
-sitio**: con esto puesto, `SidebarBrand` va sin el grupo de empresa (queda el
-entorno, o nada). En dos niveles el módulo ya está en el riel; el segmento es
-para las formas de un nivel.
+para una aplicación grande y una pequeña: `SidebarIdentity` en el hueco
+`brand`. La pequeña omite el módulo y no queda hueco. Cada segmento es un
+control —o una etiqueta, si no hay nada que elegir— y **la empresa se cambia en
+un solo sitio**. En dos niveles el módulo ya está en el riel; el segmento es
+para las formas de un nivel. La persona no va en el menú: vive arriba a la
+derecha, en `UserMenu`, en todas las formas del armazón.
+
+`SidebarBrand` sigue existiendo para quien solo tenga una organización y
+grupos de opciones propios (entorno, sucursal, periodo).
 
 ### Un control por fila
 

@@ -2,31 +2,31 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AppShell } from "./app-shell";
-import { SidebarBrand } from "./sidebar-brand";
+import { SidebarIdentity } from "./sidebar-identity";
 import { SidebarNav, SidebarNavItem } from "./sidebar-nav";
+import { AppVersion } from "./app-version";
 import { PageContainer } from "./page-container";
 import { PageHeader } from "./page-header";
-import { TopbarIdentity } from "./topbar-identity";
 import { AppSwitcher } from "@/components/ui/app-switcher";
 import { Button } from "@/components/ui/button";
 import { DashboardIcon, ReceiptIcon } from "@/icons";
 
 const meta = {
-  title: "Layout/TopbarIdentity",
-  component: TopbarIdentity,
+  title: "Layout/SidebarIdentity",
+  component: SidebarIdentity,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
     docs: {
-      story: { height: "360px", inline: false },
+      story: { height: "420px", inline: false },
       description: {
         component:
-          "Sistema · empresa · módulo en la barra superior, en el hueco `topbarStart` de `AppShell`. Una aplicación grande y una pequeña muestran lo mismo en el mismo sitio; la pequeña omite el módulo. Cada segmento es un control, o una etiqueta si no hay nada que elegir, y la empresa se cambia en un solo sitio: con esto puesto, `SidebarBrand` va sin el grupo de empresa.",
+          "Sistema, empresa y módulo en la cabecera del menú lateral, en el hueco `brand` de `AppShell`. Una aplicación grande y una pequeña muestran lo mismo en el mismo sitio; la pequeña omite el módulo. Cada segmento es un control, o una etiqueta si no hay nada que elegir. La persona no va aquí: vive arriba a la derecha, en `UserMenu`.",
       },
     },
   },
   args: { system: { name: "MiDivisa" } },
-} satisfies Meta<typeof TopbarIdentity>;
+} satisfies Meta<typeof SidebarIdentity>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -42,10 +42,12 @@ const modulos = [
   { value: "compras", label: "Compras" },
 ];
 
-function Armazon({ children, topbarStart }: { children?: React.ReactNode; topbarStart: React.ReactNode }) {
+function Armazon({ brand, defaultCollapsed = false }: { brand: React.ReactNode; defaultCollapsed?: boolean }) {
   return (
     <AppShell
-      brand={<SidebarBrand name="Acme S.A." />}
+      defaultCollapsed={defaultCollapsed}
+      brand={brand}
+      sidebarFooter={<AppVersion version="1.4.2" />}
       sidebar={
         <SidebarNav>
           <SidebarNavItem icon={<DashboardIcon />} active>
@@ -54,10 +56,11 @@ function Armazon({ children, topbarStart }: { children?: React.ReactNode; topbar
           <SidebarNavItem icon={<ReceiptIcon />}>Movimientos</SidebarNavItem>
         </SidebarNav>
       }
-      topbarStart={topbarStart}
       topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
     >
-      <PageContainer>{children ?? <PageHeader title="Inicio" description="La identidad vive arriba; el menú, solo navega." />}</PageContainer>
+      <PageContainer>
+        <PageHeader title="Inicio" description="La identidad vive en la cabecera del menú; la persona, arriba a la derecha." />
+      </PageContainer>
     </AppShell>
   );
 }
@@ -66,12 +69,12 @@ function Armazon({ children, topbarStart }: { children?: React.ReactNode; topbar
 export const Completo: Story = {
   render: (args) => {
     const Demo = () => {
-      const [empresa, setEmpresa] = useState("acme");
+      const [empresa, setEmpresa] = useState("globex");
       const [modulo, setModulo] = useState("tesoreria");
       return (
         <Armazon
-          topbarStart={
-            <TopbarIdentity
+          brand={
+            <SidebarIdentity
               {...args}
               company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
               module={{ caption: "Módulo", value: modulo, options: modulos, onChange: setModulo }}
@@ -90,7 +93,29 @@ export const SinModulo: Story = {
   render: (args) => {
     const Demo = () => {
       const [empresa, setEmpresa] = useState("acme");
-      return <Armazon topbarStart={<TopbarIdentity {...args} company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }} />} />;
+      return <Armazon brand={<SidebarIdentity {...args} company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }} />} />;
+    };
+    return <Demo />;
+  },
+};
+
+/** Plegado queda la marca, con sistema y empresa en el nombre accesible; sigue abriendo el menú de empresa. */
+export const Plegado: Story = {
+  render: (args) => {
+    const Demo = () => {
+      const [empresa, setEmpresa] = useState("acme");
+      return (
+        <Armazon
+          defaultCollapsed
+          brand={
+            <SidebarIdentity
+              {...args}
+              company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+              module={{ caption: "Módulo", value: "tesoreria", label: "Tesorería" }}
+            />
+          }
+        />
+      );
     };
     return <Demo />;
   },
@@ -110,8 +135,8 @@ export const ConAppSwitcher: Story = {
       return (
         <>
           <Armazon
-            topbarStart={
-              <TopbarIdentity
+            brand={
+              <SidebarIdentity
                 {...args}
                 company={{ caption: "Empresa", value: "acme", label: "Acme S.A." }}
                 module={{ caption: "Módulo", value: modulo, options: modulos, onSelect: () => setAbierto(true) }}

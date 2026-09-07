@@ -80,7 +80,7 @@ type Story = StoryObj<typeof meta>;
  * Desde el menú se llega a la vista de datos —`PageContainer` en ancho
  * `wide`, `PageHeader` con acciones, tres cifras y una `DataTable` con
  * búsqueda, orden, paginación y configurador de columnas—, a elegir empresa
- * y entorno en `SidebarBrand`, a plegar el menú y a ver la versión en el pie.
+ * en `SidebarIdentity`, a plegar el menú y a ver la versión en el pie.
  *
  * Los cuatro ejemplos son la misma aplicación con otra forma del armazón;
  * cambia entre ellos para compararlas. Los estados sueltos del armazón viven

@@ -7,8 +7,6 @@ import {
   FilePlus2,
   HelpCircle,
   Landmark,
-  LogOut,
-  Settings,
   Search,
   Wallet,
   Receipt,
@@ -19,7 +17,7 @@ import { AppShell, type AppShellLayout, type SidebarTone, type SidebarVariant } 
 import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { SidebarBrand } from "@/components/layout/sidebar-brand";
+import { SidebarIdentity } from "@/components/layout/sidebar-identity";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +30,6 @@ import { Toolbar } from "@/components/layout/toolbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { MenuItem } from "@/components/ui/menu";
 import { Select } from "@/components/ui/select";
 import {
   centrosDeCosto,
@@ -358,7 +355,7 @@ export interface ExampleAppProps {
 
 /**
  * Aplicación mínima pero completa montada solo con piezas de la librería:
- * `AppShell` + `SidebarBrand` + `AppVersion` para el armazón, `PageContainer`
+ * `AppShell` + `SidebarIdentity` + `AppVersion` para el armazón, `PageContainer`
  * y `PageHeader` para cada pantalla, y `DataTable` / `Field` para el
  * contenido. La navegación, el enrutamiento y los datos los pone la
  * aplicación, que es exactamente el reparto que propone la librería.
@@ -374,10 +371,10 @@ export function ExampleApp({
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
-  const [entorno, setEntorno] = React.useState(entornos[1].value);
+  // El entorno lo fija el despliegue, no la persona: aquí es UAT para que se vea el distintivo.
+  const entorno = entornos[1].value;
   const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
 
-  const nombreEmpresa = empresas.find((opcion) => opcion.value === empresa)?.label ?? "";
 
   const contenido =
     vista === "movimientos" ? (
@@ -409,34 +406,18 @@ export function ExampleApp({
 
   const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
 
+  // La identidad vive en la cabecera del menú: sistema, empresa y —salvo en
+  // dos niveles, donde el módulo ya está en el riel— módulo. La empresa se
+  // cambia aquí y en ningún otro sitio; el entorno se ve como distintivo.
   const marca = (
-    <SidebarBrand
-      name={nombreEmpresa}
-      groups={[
-        {
-          id: "empresa",
-          label: "Empresa",
-          value: empresa,
-          options: empresas,
-          onChange: setEmpresa,
-        },
-        {
-          id: "entorno",
-          label: "Entorno",
-          value: entorno,
-          options: entornos,
-          onChange: setEntorno,
-        },
-      ]}
-      footer={
-        <>
-          <MenuItem value="preferencias" icon={<Settings aria-hidden="true" />}>
-            Preferencias
-          </MenuItem>
-          <MenuItem value="salir" icon={<LogOut aria-hidden="true" />}>
-            Cerrar sesión
-          </MenuItem>
-        </>
+    <SidebarIdentity
+      system={{ name: "Tesorería" }}
+      environment={entornos.find((opcion) => opcion.value === entorno)?.badge}
+      company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+      module={
+        layout === "rail-panel"
+          ? undefined
+          : { caption: "Módulo", value: "tesoreria", options: MODULOS.map((m) => ({ value: m.id, label: m.label })), onChange: () => {} }
       }
     />
   );
@@ -466,11 +447,6 @@ export function ExampleApp({
             <Input aria-label="Buscar" placeholder="Buscar movimientos, terceros, cuentas…" className="pl-ui-xl" />
           </div>
         ) : undefined
-      }
-      topbarStart={
-        <span className="hidden text-ui-body-sm text-muted-foreground sm:inline">
-          Tesorería · {nombreEmpresa}
-        </span>
       }
       topbar={
         <>

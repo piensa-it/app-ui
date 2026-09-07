@@ -169,11 +169,11 @@ export {
   type SidebarTone,
 } from "./components/layout/app-shell";
 export {
-  TopbarIdentity,
-  type TopbarIdentityProps,
-  type TopbarIdentitySegment,
-  type TopbarIdentitySystem,
-} from "./components/layout/topbar-identity";
+  SidebarIdentity,
+  type SidebarIdentityProps,
+  type SidebarIdentitySegment,
+  type SidebarIdentitySystem,
+} from "./components/layout/sidebar-identity";
 export {
   SidebarBrand,
   type SidebarBrandProps,
