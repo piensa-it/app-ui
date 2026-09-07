@@ -156,6 +156,16 @@ export const movimientos: Movimiento[] = [
     estado: "conciliado",
     valor: 8_060_000,
   },
+  {
+    id: "MC-2055",
+    fecha: "2026-09-04",
+    concepto: "Recaudo contrato corporativo",
+    tercero: "GrupoDO.com",
+    centro: "Comercial",
+    metodo: "Transferencia",
+    estado: "conciliado",
+    valor: 46_500_000,
+  },
 ];
 
 /** Pesos colombianos sin decimales, que es como se leen en un arqueo. */
@@ -220,7 +230,7 @@ export const flujoMensual = [
   { mes: "Jun", entradas: 63_700_000, salidas: 55_200_000 },
   { mes: "Jul", entradas: 49_800_000, salidas: 57_600_000 },
   { mes: "Ago", entradas: 71_200_000, salidas: 64_300_000 },
-  { mes: "Sep", entradas: 60_938_100, salidas: 79_615_800 },
+  { mes: "Sep", entradas: 107_438_100, salidas: 79_615_800 },
 ];
 
 /** Lo que espera una acción de tesorería, para la tarjeta de pendientes del tablero. */

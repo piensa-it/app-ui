@@ -180,6 +180,8 @@ export {
   type NotificationItem,
   type NotificationsLabels,
 } from "./components/layout/notifications-menu";
+export { SidebarSearch, type SidebarSearchProps } from "./components/layout/sidebar-search";
+export { normalizeSearch } from "./lib/search";
 export {
   SidebarBrand,
   type SidebarBrandProps,
