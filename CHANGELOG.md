@@ -14,8 +14,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ### Docs
 
-- **Aplicación de ejemplo 4 · riel con panel**: la plantilla 3 completa, con módulos en el riel y el menú de tesorería en el panel.
-- **Aplicación de ejemplo 2 y 3.** La misma aplicación de tesorería montada con otra forma, para comparar sin cambiar de página: la 2 con menú flotante y claro, la persona arriba del menú y el buscador centrado (la plantilla 1 de la evaluación, solo con props de `AppShell`); la 3 en riel con el buscador centrado (la plantilla 3 con un solo nivel). El estilo visual se elige en el toolbar y se combina con cualquiera de las tres.
+- **Cuatro aplicaciones de ejemplo, una por forma del armazón.** Las stories «Aplicación completa», «Vista de tabla» y «Vista de formulario» se funden en «Aplicación de ejemplo 1 · clásica», que arranca en el formulario y tiene la tabla a un clic. La 2 es flotante y clara, con la persona arriba del menú y el buscador centrado (la plantilla 1 de la evaluación, solo con props de `AppShell`); la 3, en riel (la plantilla 3 con un solo nivel); la 4, riel con panel de sección (la plantilla 3 completa). El estilo visual se elige en el toolbar y se combina con las cuatro.
 
 ## [0.8.0] - 2026-09-06
 
