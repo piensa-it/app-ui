@@ -168,7 +168,6 @@ export {
   type AppShellLayout,
   type SidebarTone,
 } from "./components/layout/app-shell";
-export { SidebarProfile, type SidebarProfileProps } from "./components/layout/sidebar-profile";
 export {
   TopbarIdentity,
   type TopbarIdentityProps,

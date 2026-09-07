@@ -55,7 +55,6 @@ const meta = {
       options: ["dark", "light"],
       description: "Tono del menú: oscuro (la regla) o claro (sigue a la página).",
     },
-    perfilEnMenu: { control: "boolean", description: "La persona arriba del menú y la empresa abajo." },
     buscadorCentrado: { control: "boolean", description: "El buscador centrado en la barra superior." },
   },
   args: {
@@ -63,7 +62,6 @@ const meta = {
     vistaInicial: "movimientos",
     defaultCollapsed: false,
     layout: "docked",
-    perfilEnMenu: false,
     buscadorCentrado: false,
   },
 } satisfies Meta<typeof ExampleApp>;
@@ -94,14 +92,14 @@ export const AplicacionDeEjemplo1: Story = {
 };
 
 /**
- * La misma aplicación con otra forma (#113): menú flotante y claro, la
- * persona arriba del menú con la empresa abajo, y el buscador centrado en la
- * barra. Es la plantilla 1 de la evaluación montada solo con props de
- * `AppShell`; el estilo visual (`data-ui-look`) se elige en el toolbar.
+ * La misma aplicación con otra forma (#113): menú flotante y claro, y el
+ * buscador centrado en la barra. Es la plantilla 1 de la evaluación montada
+ * solo con props de `AppShell`; el estilo visual (`data-ui-look`) se elige
+ * en el toolbar. La persona, como en todas, arriba a la derecha.
  */
 export const AplicacionDeEjemplo2: Story = {
   name: "Aplicación de ejemplo 2 · flotante y clara",
-  args: { layout: "floating", sidebarTone: "light", perfilEnMenu: true, buscadorCentrado: true },
+  args: { layout: "floating", sidebarTone: "light", buscadorCentrado: true },
 };
 
 /**
@@ -125,11 +123,11 @@ export const AplicacionDeEjemplo4: Story = {
 };
 
 /**
- * La misma aplicación enmarcada (#118): el menú encierra el contenido, con la
- * persona arriba y la empresa abajo. En oscuro, con el estilo `deep` y la
- * paleta cian del toolbar, es la plantilla 2 de la evaluación.
+ * La misma aplicación enmarcada (#118): el menú encierra el contenido. En
+ * oscuro, con el estilo `deep` y la paleta cian del toolbar, es la plantilla
+ * 2 de la evaluación.
  */
 export const AplicacionDeEjemplo5: Story = {
   name: "Aplicación de ejemplo 5 · enmarcada",
-  args: { layout: "framed", perfilEnMenu: true },
+  args: { layout: "framed" },
 };

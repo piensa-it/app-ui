@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AppShell } from "./app-shell";
 import { SidebarBrand } from "./sidebar-brand";
-import { SidebarProfile } from "./sidebar-profile";
 import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "./sidebar-nav";
 import { MemoryRouter, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { AppVersion } from "./app-version";
@@ -433,33 +432,6 @@ export const MenuClaro: Story = {
   ),
 };
 
-/**
- * `SidebarProfile` en el hueco `brand`: la persona arriba del menú, con avatar
- * grande, nombre y una línea de contexto. Es identidad; las acciones siguen en
- * `UserMenu`. Con `onClick` abre el perfil. Plegado deja el avatar.
- */
-export const PerfilEnElMenu: Story = {
-  name: "Perfil en el menú",
-  render: () => {
-    const Demo = () => {
-      const [abierto, setAbierto] = useState(false);
-      return (
-        <AppShell
-          storageKey="demo-perfil"
-          brand={<SidebarProfile name="Janice Chandler" description="Contadora · Acme S.A." avatarColor="200 60% 40%" onClick={() => setAbierto(true)} />}
-          sidebarFooter={<SidebarBrand name="Acme S.A." />}
-          sidebar={<Navegacion />}
-        >
-          <PageContainer>
-            <PageHeader title="Mi perfil" description={abierto ? "La aplicación abriría aquí el perfil." : "Pulsa el bloque de la persona, arriba en el menú."} />
-          </PageContainer>
-        </AppShell>
-      );
-    };
-    return <Demo />;
-  },
-};
-
 /** `topbarCenter`: el buscador centrado en la barra superior, entre el inicio y las acciones. */
 export const BuscadorCentrado: Story = {
   name: "Buscador centrado",
@@ -494,8 +466,8 @@ export const Enmarcado: Story = {
     <AppShell
       layout="framed"
       storageKey="demo-enmarcado"
-      brand={<SidebarProfile name="Janice Chandler" description="Contadora" avatarColor="185 80% 35%" />}
-      sidebarFooter={<SidebarBrand name="Acme S.A." />}
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" />}
       sidebar={<Navegacion />}
       topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
     >
