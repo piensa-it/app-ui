@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **Layout del armazón elegible** (#113). Del menú de las plantillas de referencia salieron cosas de forma que `AppShell` no permitía elegir sin reescribirlo. Ahora, todo opcional y sin cambiar lo de siempre: `layout="floating"` (el menú es una tarjeta con radio, borde y sombra `raised`, separada de los bordes), `layout="rail"` (riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono y sin botón de plegar; en móvil se abre como el menú normal), `sidebarTone="light"` (la excepción explícita a «el menú es oscuro en ambos temas»: el menú toma los tokens de la página y sigue al tema), `SidebarProfile` (la persona arriba del menú, con avatar grande, nombre y descripción; con `onClick` abre el perfil; plegado deja el avatar con el nombre accesible) y `topbarCenter` (el buscador centrado en la barra superior). `useSidebar()` expone `rail` para el contenido que quiera saberlo. Stories en Layout/AppShell y controles en la aplicación de ejemplo; capturas de navegador para flotante, riel y claro.
+
+### Docs
+
+- **Aplicación de ejemplo 2 y 3.** La misma aplicación de tesorería montada con otra forma, para comparar sin cambiar de página: la 2 con menú flotante y claro, la persona arriba del menú y el buscador centrado (la plantilla 1 de la evaluación, solo con props de `AppShell`); la 3 en riel con el buscador centrado (la plantilla 3 con un solo nivel). El estilo visual se elige en el toolbar y se combina con cualquiera de las tres.
+
 ## [0.8.0] - 2026-09-06
 
 El estándar de usuario: menú, perfil y apariencia. Sale de lo que MiDivisa construyó a mano en `Layout.tsx` y `Profile.tsx`, y de lo que CoreLink y Lynx repetirían.

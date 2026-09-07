@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AppShell } from "./app-shell";
 import { SidebarBrand } from "./sidebar-brand";
+import { SidebarProfile } from "./sidebar-profile";
 import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "./sidebar-nav";
 import { MemoryRouter, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { AppVersion } from "./app-version";
@@ -9,7 +10,8 @@ import { PageContainer } from "./page-container";
 import { PageHeader } from "./page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardIcon, ReceiptIcon, SettingsIcon, UsersIcon } from "@/icons";
+import { Input } from "@/components/ui/input";
+import { DashboardIcon, ReceiptIcon, SearchIcon, SettingsIcon, UsersIcon } from "@/icons";
 
 const meta = {
   title: "Layout/AppShell",
@@ -346,4 +348,136 @@ export const MenuLargo: Story = {
       </AppShell>
     );
   },
+};
+
+/**
+ * La forma del armazón se elige con `layout` (#113). `floating`: el menú es
+ * una tarjeta con radio, borde y sombra `raised`, separada de los bordes por
+ * un paso de espaciado. Se combina con cualquier variante y tono.
+ */
+export const MenuFlotante: Story = {
+  name: "Menú flotante",
+  render: () => (
+    <AppShell
+      layout="floating"
+      storageKey="demo-flotante"
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="El menú flota como una tarjeta más; se pliega igual." />
+        <Card>
+          <CardContent>
+            <p className="pt-inset text-ui-body-sm text-muted-foreground">
+              Cambia `layout` a `docked` para verlo pegado al borde, que es el de siempre.
+            </p>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `layout="rail"`: riel de 5 rem, siempre plegado, con la etiqueta bajo el
+ * icono. No hay botón de plegar. Para aplicaciones de pocas secciones donde
+ * el ancho de página importa más que el nombre largo del enlace.
+ */
+export const Riel: Story = {
+  render: () => (
+    <AppShell
+      layout="rail"
+      brand={<SidebarBrand name="Acme S.A." />}
+      sidebarFooter={<AppVersion version="1.4.2" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Movimientos" description="Icono y etiqueta, sin desplegar nunca." />
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `sidebarTone="light"` es la excepción explícita a «el menú es oscuro en
+ * ambos temas»: el menú toma los tokens de la página y sigue al tema. Es una
+ * decisión de la aplicación, no una variante más; se combina con `layout`.
+ */
+export const MenuClaro: Story = {
+  name: "Menú claro",
+  render: () => (
+    <AppShell
+      layout="floating"
+      sidebarTone="light"
+      storageKey="demo-claro"
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="Menú claro y flotante: al mismo plano que las tarjetas." />
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-ui-body-sm text-muted-foreground">Cambia el tema en el toolbar: el menú lo sigue.</p>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `SidebarProfile` en el hueco `brand`: la persona arriba del menú, con avatar
+ * grande, nombre y una línea de contexto. Es identidad; las acciones siguen en
+ * `UserMenu`. Con `onClick` abre el perfil. Plegado deja el avatar.
+ */
+export const PerfilEnElMenu: Story = {
+  name: "Perfil en el menú",
+  render: () => {
+    const Demo = () => {
+      const [abierto, setAbierto] = useState(false);
+      return (
+        <AppShell
+          storageKey="demo-perfil"
+          brand={<SidebarProfile name="Janice Chandler" description="Contadora · Acme S.A." avatarColor="200 60% 40%" onClick={() => setAbierto(true)} />}
+          sidebarFooter={<SidebarBrand name="Acme S.A." />}
+          sidebar={<Navegacion />}
+        >
+          <PageContainer>
+            <PageHeader title="Mi perfil" description={abierto ? "La aplicación abriría aquí el perfil." : "Pulsa el bloque de la persona, arriba en el menú."} />
+          </PageContainer>
+        </AppShell>
+      );
+    };
+    return <Demo />;
+  },
+};
+
+/** `topbarCenter`: el buscador centrado en la barra superior, entre el inicio y las acciones. */
+export const BuscadorCentrado: Story = {
+  name: "Buscador centrado",
+  render: () => (
+    <AppShell
+      brand={<SidebarBrand name="Acme S.A." />}
+      sidebar={<Navegacion />}
+      topbarCenter={
+        <div className="relative w-full max-w-xl">
+          <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-ui-sm top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input aria-label="Buscar" placeholder="Buscar en toda la aplicación…" className="pl-ui-xl" />
+        </div>
+      }
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Inicio" description="El buscador ocupa el centro; las acciones siguen a la derecha." />
+      </PageContainer>
+    </AppShell>
+  ),
 };

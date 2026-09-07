@@ -161,7 +161,14 @@ export { contrastRatio, relativeLuminance, parseHsl, type Rgb } from "./lib/colo
 
 // --- Layout ---
 // Armazón de aplicación: lo que antes escribía cada producto por su cuenta.
-export { AppShell, type AppShellProps, type SidebarVariant } from "./components/layout/app-shell";
+export {
+  AppShell,
+  type AppShellProps,
+  type SidebarVariant,
+  type AppShellLayout,
+  type SidebarTone,
+} from "./components/layout/app-shell";
+export { SidebarProfile, type SidebarProfileProps } from "./components/layout/sidebar-profile";
 export {
   SidebarBrand,
   type SidebarBrandProps,

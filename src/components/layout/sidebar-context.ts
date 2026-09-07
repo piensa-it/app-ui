@@ -3,6 +3,11 @@ import * as React from "react";
 export interface SidebarState {
   /** El menú está plegado a solo iconos. */
   collapsed: boolean;
+  /**
+   * El menú es un riel (`layout="rail"`): siempre plegado, con la etiqueta
+   * bajo el icono en vez de oculta.
+   */
+  rail: boolean;
   /** Cierra el panel móvil. Sin efecto en el menú fijo de escritorio. */
   closeMobile: () => void;
   /** El menú se está mostrando dentro del panel móvil. */
@@ -31,6 +36,7 @@ export function useSidebar(): SidebarState {
   return (
     React.useContext(SidebarContext) ?? {
       collapsed: false,
+      rail: false,
       closeMobile: () => {},
       inMobilePanel: false,
       closedGroups: [],

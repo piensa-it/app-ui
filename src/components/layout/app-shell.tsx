@@ -8,6 +8,23 @@ import { SidebarProvider, type SidebarState } from "./sidebar-context";
 /** Carácter cromático del menú lateral. Ver `[data-sidebar]` en globals.css. */
 export type SidebarVariant = "graphite" | "ink" | "smoke";
 
+/**
+ * Forma del armazón (#113).
+ *
+ * - `docked`: menú fijo al borde, plegable a iconos. El de siempre.
+ * - `floating`: el menú es una tarjeta con radio, borde y sombra, separada
+ *   de los bordes por un paso de espaciado.
+ * - `rail`: riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono.
+ */
+export type AppShellLayout = "docked" | "floating" | "rail";
+
+/**
+ * Tono del menú. `dark` es la regla: el menú es un plano distinto y no cambia
+ * con el tema. `light` es la excepción explícita: el menú toma los tokens de
+ * la página y la sigue. Ver DESIGN.md > "Armazón".
+ */
+export type SidebarTone = "dark" | "light";
+
 export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Navegación principal: los enlaces del menú lateral. */
   sidebar: React.ReactNode;
@@ -21,6 +38,12 @@ export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
   topbarStart?: React.ReactNode;
   /** @default "graphite" */
   variant?: SidebarVariant;
+  /** Forma del armazón. @default "docked" */
+  layout?: AppShellLayout;
+  /** Tono del menú. @default "dark" */
+  sidebarTone?: SidebarTone;
+  /** Contenido centrado en la barra superior, entre `topbarStart` y `topbar`: el buscador. */
+  topbarCenter?: React.ReactNode;
   /**
    * Clave para recordar el plegado en este dispositivo. Ponla distinta por
    * aplicación: dos productos en el mismo navegador no deben pisarse la
@@ -34,6 +57,14 @@ export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
   onCollapsedChange?: (collapsed: boolean) => void;
   children: React.ReactNode;
 }
+
+/** Ancho de la columna del menú por forma y estado. Flotante suma su margen. */
+const WIDTHS: Record<AppShellLayout, { expanded: string; collapsed: string }> = {
+  docked: { expanded: "w-64", collapsed: "w-[4.5rem]" },
+  floating: { expanded: "w-[calc(16rem_+_var(--space-sm))]", collapsed: "w-[calc(4.5rem_+_var(--space-sm))]" },
+  // Medio rem más que el plegado: las etiquetas en español no caben en 5 rem.
+  rail: { expanded: "w-22", collapsed: "w-22" },
+};
 
 const storageKeyFor = (key: string) => `ui-shell:${key}:collapsed`;
 const groupsKeyFor = (key: string) => `ui-shell:${key}:groups`;
@@ -94,7 +125,10 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       sidebarFooter,
       topbar,
       topbarStart,
+      topbarCenter,
       variant = "graphite",
+      layout = "docked",
+      sidebarTone = "dark",
       storageKey,
       defaultCollapsed = false,
       collapsed: controlledCollapsed,
@@ -109,7 +143,10 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       readStoredCollapsed(storageKey, defaultCollapsed),
     );
     const [mobileOpen, setMobileOpen] = React.useState(false);
-    const collapsed = controlledCollapsed ?? internalCollapsed;
+    // El riel es un menú siempre plegado: ni preferencia ni botón.
+    const rail = layout === "rail";
+    const collapsed = rail ? true : (controlledCollapsed ?? internalCollapsed);
+    const tone = sidebarTone === "light" ? "light" : undefined;
 
     // Las secciones cerradas se recuerdan junto al plegado del menú: es la
     // misma preferencia de este dispositivo sobre esta aplicación.
@@ -164,13 +201,17 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     // levantar `collapsed`, que es lo que dejaría `storageKey` sin efecto.
     const desktopState: SidebarState = {
       collapsed,
+      rail,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: false,
       closedGroups,
       toggleGroup,
     };
+    // En el panel móvil hay sitio: el riel se abre como el menú normal, con
+    // la etiqueta al lado del icono.
     const mobileState: SidebarState = {
       collapsed: false,
+      rail: false,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: true,
       closedGroups,
@@ -178,32 +219,50 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     };
 
     return (
-      <div ref={ref} className={cn("flex min-h-screen w-full bg-ground", className)} {...props}>
+      <div ref={ref} data-layout={layout} className={cn("flex min-h-screen w-full bg-ground", className)} {...props}>
         {/* Menú fijo. Oculto en pantallas estrechas: allí se abre como panel. */}
         <aside
           data-sidebar={variant}
+          data-sidebar-tone={tone}
           data-state={collapsed ? "collapsed" : "expanded"}
           style={{ backdropFilter: "blur(var(--sidebar-blur))" }}
           className={cn(
             // La columna se estira con el contenido: así la franja oscura llega
             // hasta abajo por muy larga que sea la página. Lo que se queda a la
             // vista es su contenido, no la columna.
-            "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex",
+            "hidden shrink-0 flex-col text-sidebar-foreground md:flex",
+            // Flotante, la columna es transparente y la tarjeta de dentro
+            // lleva el fondo: así el borde y la sombra rodean al menú entero.
+            layout === "floating" ? "p-ui-sm pr-0" : "border-r border-sidebar-border bg-sidebar",
             // La animación de ancho vive aquí y no en cada aplicación.
             "transition-[width] duration-normal ease-standard motion-reduce:transition-none",
-            collapsed ? "w-[4.5rem]" : "w-64",
+            WIDTHS[layout][collapsed ? "collapsed" : "expanded"],
           )}
         >
           {/* Pegado arriba y del alto de la ventana: sin esto el menú se sube
               con el desplazamiento y el pie con la versión queda fuera de
               vista. El desplazamiento interno lo tiene el <nav>. */}
-          <div className="sticky top-0 flex h-screen flex-col py-ui-sm">
+          <div
+            className={cn(
+              "sticky flex flex-col py-ui-sm",
+              layout === "floating"
+                ? "top-ui-sm h-[calc(100vh_-_var(--space-sm)_*_2)] overflow-hidden rounded-xl border border-sidebar-border bg-sidebar shadow-raised"
+                : "top-0 h-screen",
+            )}
+          >
             <SidebarProvider value={desktopState}>{navigation("Navegación principal")}</SidebarProvider>
           </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-ui-sm border-b border-border bg-surface px-ui-md">
+          <header
+            className={cn(
+              "sticky top-0 z-40 flex h-16 shrink-0 items-center gap-ui-sm px-ui-md",
+              // Flotante, la barra es la propia página: con superficie y borde
+              // dejaba una costura justo donde empieza la columna del menú.
+              layout === "floating" ? "bg-ground" : "border-b border-border bg-surface",
+            )}
+          >
             <button
               type="button"
               aria-label="Abrir el menú"
@@ -212,17 +271,22 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
             >
               <MenuIcon aria-hidden="true" className="size-5" />
             </button>
-            <button
-              type="button"
-              aria-label={collapsed ? "Desplegar el menú" : "Plegar el menú"}
-              aria-expanded={!collapsed}
-              onClick={() => setCollapsed(!collapsed)}
-              className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:grid"
-            >
-              <PanelLeft aria-hidden="true" className="size-5" />
-            </button>
+            {rail ? null : (
+              <button
+                type="button"
+                aria-label={collapsed ? "Desplegar el menú" : "Plegar el menú"}
+                aria-expanded={!collapsed}
+                onClick={() => setCollapsed(!collapsed)}
+                className="hidden size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring md:grid"
+              >
+                <PanelLeft aria-hidden="true" className="size-5" />
+              </button>
+            )}
             {topbarStart}
-            <div className="ml-auto flex items-center gap-ui-xs">{topbar}</div>
+            {topbarCenter ? (
+              <div className="mx-auto hidden min-w-0 flex-1 items-center justify-center px-ui-md md:flex">{topbarCenter}</div>
+            ) : null}
+            <div className={cn("flex items-center gap-ui-xs", !topbarCenter && "ml-auto")}>{topbar}</div>
           </header>
 
           <main className="min-w-0 flex-1">{children}</main>
@@ -237,6 +301,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
           position="left"
           surface={false}
           data-sidebar={variant}
+          data-sidebar-tone={tone}
           style={{ backdropFilter: "blur(var(--sidebar-blur))" }}
           className="w-72 border-r border-sidebar-border bg-sidebar p-ui-sm text-sidebar-foreground"
         >

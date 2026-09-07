@@ -194,6 +194,22 @@ Para afinar una variante, redefine los tokens bajo tu propio selector:
 }
 ```
 
+### La forma del armazón se elige; la estructura no
+
+`layout` decide la forma sin cambiar qué hay (#113):
+
+| Forma | Qué es | Cuándo |
+|---|---|---|
+| `docked` | Menú fijo al borde, plegable a iconos. El de siempre. | Por defecto. |
+| `floating` | El menú es una tarjeta con radio, borde y sombra `raised`, separada de los bordes por un paso. | Productos con pocas secciones donde el menú convive con tarjetas. |
+| `rail` | Riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono. Sin botón de plegar. | Pocas secciones y páginas anchas (tablas). |
+
+`sidebarTone="light"` es la **excepción explícita** a la regla de arriba: el
+menú toma los tokens de la página (`raised`, `subtle` para el activo) y sigue
+al tema. Es una decisión de la aplicación, no una variante más, y por eso no
+está en `variant`. `SidebarProfile` pone a la persona arriba del menú, en el
+hueco `brand`, y `topbarCenter` centra el buscador en la barra superior.
+
 ### Un control por fila
 
 En la cabecera del menú va **un solo control**. Es un aprendizaje caro: teníamos

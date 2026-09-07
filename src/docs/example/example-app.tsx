@@ -9,13 +9,15 @@ import {
   Landmark,
   LogOut,
   Settings,
+  Search,
 } from "lucide-react";
 
-import { AppShell, type SidebarVariant } from "@/components/layout/app-shell";
+import { AppShell, type AppShellLayout, type SidebarTone, type SidebarVariant } from "@/components/layout/app-shell";
 import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
+import { SidebarProfile } from "@/components/layout/sidebar-profile";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Badge } from "@/components/ui/badge";
@@ -337,6 +339,14 @@ export interface ExampleAppProps {
   vistaInicial?: VistaId;
   /** Menú plegado de entrada, para ver los enlaces en su forma corta. */
   defaultCollapsed?: boolean;
+  /** Forma del armazón (#113). */
+  layout?: AppShellLayout;
+  /** Tono del menú (#113). */
+  sidebarTone?: SidebarTone;
+  /** La persona arriba del menú (`SidebarProfile`) y la empresa abajo, como en la plantilla 2. */
+  perfilEnMenu?: boolean;
+  /** El buscador centrado en la barra superior (`topbarCenter`), como en la plantilla 3. */
+  buscadorCentrado?: boolean;
 }
 
 /**
@@ -350,6 +360,10 @@ export function ExampleApp({
   variant = "graphite",
   vistaInicial = "movimientos",
   defaultCollapsed = false,
+  layout = "docked",
+  sidebarTone = "dark",
+  perfilEnMenu = false,
+  buscadorCentrado = false,
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
@@ -374,41 +388,53 @@ export function ExampleApp({
       <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." />
     );
 
+  const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
+
+  const marca = (
+    <SidebarBrand
+      name={nombreEmpresa}
+      groups={[
+        {
+          id: "empresa",
+          label: "Empresa",
+          value: empresa,
+          options: empresas,
+          onChange: setEmpresa,
+        },
+        {
+          id: "entorno",
+          label: "Entorno",
+          value: entorno,
+          options: entornos,
+          onChange: setEntorno,
+        },
+      ]}
+      footer={
+        <>
+          <MenuItem value="preferencias" icon={<Settings aria-hidden="true" />}>
+            Preferencias
+          </MenuItem>
+          <MenuItem value="salir" icon={<LogOut aria-hidden="true" />}>
+            Cerrar sesión
+          </MenuItem>
+        </>
+      }
+    />
+  );
+
   return (
     <AppShell
       variant={variant}
+      layout={layout}
+      sidebarTone={sidebarTone}
       storageKey="ejemplo-tesoreria"
       defaultCollapsed={defaultCollapsed}
       brand={
-        <SidebarBrand
-          name={nombreEmpresa}
-          groups={[
-            {
-              id: "empresa",
-              label: "Empresa",
-              value: empresa,
-              options: empresas,
-              onChange: setEmpresa,
-            },
-            {
-              id: "entorno",
-              label: "Entorno",
-              value: entorno,
-              options: entornos,
-              onChange: setEntorno,
-            },
-          ]}
-          footer={
-            <>
-              <MenuItem value="preferencias" icon={<Settings aria-hidden="true" />}>
-                Preferencias
-              </MenuItem>
-              <MenuItem value="salir" icon={<LogOut aria-hidden="true" />}>
-                Cerrar sesión
-              </MenuItem>
-            </>
-          }
-        />
+        perfilEnMenu ? (
+          <SidebarProfile name={persona.name} description={persona.role} avatarColor={persona.avatarColor} onClick={() => setVista("movimientos")} />
+        ) : (
+          marca
+        )
       }
       sidebar={
         <SidebarNav>
@@ -417,7 +443,24 @@ export function ExampleApp({
           ))}
         </SidebarNav>
       }
-      sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
+      sidebarFooter={
+        perfilEnMenu ? (
+          <>
+            {marca}
+            <AppVersion version="4.2.0" buildDate="2026-09-03" />
+          </>
+        ) : (
+          <AppVersion version="4.2.0" buildDate="2026-09-03" />
+        )
+      }
+      topbarCenter={
+        buscadorCentrado ? (
+          <div className="relative w-full max-w-xl">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-ui-sm top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input aria-label="Buscar" placeholder="Buscar movimientos, terceros, cuentas…" className="pl-ui-xl" />
+          </div>
+        ) : undefined
+      }
       topbarStart={
         <span className="hidden text-ui-body-sm text-muted-foreground sm:inline">
           Tesorería · {nombreEmpresa}
@@ -446,7 +489,7 @@ export function ExampleApp({
           {/* La persona, siempre en el mismo sitio y con el mismo orden dentro:
               perfil, configuración, lo propio de la aplicación, cerrar sesión. */}
           <UserMenu
-            user={{ name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" }}
+            user={persona}
             onProfile={() => setVista("movimientos")}
             onSettings={() => setVista("movimientos")}
             onSignOut={() => setVista("movimientos")}

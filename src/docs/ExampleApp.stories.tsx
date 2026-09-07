@@ -45,11 +45,27 @@ const meta = {
       description: "Vista con la que arranca el ejemplo.",
     },
     defaultCollapsed: { control: "boolean" },
+    layout: {
+      control: "inline-radio",
+      options: ["docked", "floating", "rail"],
+      description: "Forma del armazón: pegado al borde, flotante o riel.",
+    },
+    sidebarTone: {
+      control: "inline-radio",
+      options: ["dark", "light"],
+      description: "Tono del menú: oscuro (la regla) o claro (sigue a la página).",
+    },
+    perfilEnMenu: { control: "boolean", description: "La persona arriba del menú y la empresa abajo." },
+    buscadorCentrado: { control: "boolean", description: "El buscador centrado en la barra superior." },
   },
   args: {
     variant: "graphite",
     vistaInicial: "movimientos",
     defaultCollapsed: false,
+    layout: "docked",
+    sidebarTone: "dark",
+    perfilEnMenu: false,
+    buscadorCentrado: false,
   },
 } satisfies Meta<typeof ExampleApp>;
 
@@ -95,4 +111,25 @@ export const VistaDeTabla: Story = {
 export const VistaDeFormulario: Story = {
   name: "Vista de formulario",
   args: { vistaInicial: "nuevo" },
+};
+
+/**
+ * La misma aplicación con otra forma (#113): menú flotante y claro, la
+ * persona arriba del menú con la empresa abajo, y el buscador centrado en la
+ * barra. Es la plantilla 1 de la evaluación montada solo con props de
+ * `AppShell`; el estilo visual (`data-ui-look`) se elige en el toolbar.
+ */
+export const AplicacionDeEjemplo2: Story = {
+  name: "Aplicación de ejemplo 2 · flotante y clara",
+  args: { layout: "floating", sidebarTone: "light", perfilEnMenu: true, buscadorCentrado: true },
+};
+
+/**
+ * La misma aplicación en riel (#113): icono y etiqueta, sin desplegar, y el
+ * buscador centrado. Es la forma de la plantilla 3 con un solo nivel; los dos
+ * niveles —riel más panel de sección— llegan con #114.
+ */
+export const AplicacionDeEjemplo3: Story = {
+  name: "Aplicación de ejemplo 3 · riel",
+  args: { layout: "rail", buscadorCentrado: true },
 };
