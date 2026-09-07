@@ -13,13 +13,28 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.8.0";
+export const UI_LIBRARY_VERSION = "0.9.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar el armazón estándar.",
+      "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",
+      "Cabecera del menú: sustituí `SidebarBrand` por `SidebarIdentity` en `brand`: `system` (nombre y logo), `company` con caption «Compañía», tus opciones y el `badge` de entorno por compañía, y `module` solo si tenés módulos. La empresa se cambia ahí y en ningún otro sitio; la persona vive en `UserMenu`.",
+      "Menú: agrupá los enlaces en `SidebarNavGroup` con `collapsible` y `groupId`, y pasá `storageKey` al `AppShell` para que se recuerde.",
+      "Forma y color: elegí `layout` en `AppShell` (docked, floating, rail, framed o rail-panel), `sidebarTone` si querés el menú claro, y `data-ui-look` (classic, soft, deep, flat) y `data-ui-palette` (ocho, con cyan y sun) en tu raíz. Si ya tenés `AppearanceSettings`, añadí `look` a `sections`.",
+      "Indicadores: dale a cada `Stat` un `icon` del catálogo y un `tone` solo cuando la cifra sea noticia. No pongas botón de ocultar: si una pantalla los muestra lo decide tu configuración técnica.",
+      "Tablas: usá la `DataTable` de la librería sin envolverla en `Card` ni en un `div` con borde; columnas numéricas con `align=\"right\"`; badges de estado con las variantes de `Badge`, sin grises crudos.",
+      "Paletas: Océano, Esmeralda y Ámbar se oscurecen 4–5 puntos en claro para cumplir AA; si usás una de las tres, tus botones salen un pelo más oscuros. Nada que hacer.",
+    ],
+  },
+  {
+    version: "0.8.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-06",
     migration: [
       "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés retirar de tu aplicación.",
       "Menú de usuario: sustituí tu desplegable de la barra superior por `UserMenu` con `onProfile`, `onSettings`, `onSignOut` y, si querés confirmación, `confirmSignOut`. Va en el `topbar` de `AppShell`.",
