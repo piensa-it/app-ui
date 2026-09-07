@@ -13,13 +13,21 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.7.2";
+export const UI_LIBRARY_VERSION = "0.7.3";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Tema oscuro: el menú lateral baja al nivel `surface` y el grafito pierde el tinte azul. Nada que hacer, salvo que redefinas `--sidebar-*` bajo tu propio `[data-sidebar]`: entonces añade también la versión `.dark`, o heredarás la nuestra.",
+    ],
+  },
+  {
+    version: "0.7.2",
+    channel: "maintenance",
+    publishedAt: "2026-09-06",
     migration: [
       "Iconos: los once que faltaban ya están en el catálogo (`EuroIcon`, `PoundSterlingIcon`, `HotelIcon`, `UserCogIcon`, `ArrowLeftRightIcon`, `ArrowDownLeftIcon`, `FlagIcon`, `PlugIcon`, `ScrollTextIcon`, `ToggleLeftIcon`, `ToggleRightIcon`). Retirá los sustitutos marcados `TODO(app-ui#90)` e importalos de la librería.",
       "`PageContainer`/`Stagger`: un bloque que no pinta nada ya no deja hueco. Retirá la regla `[data-ui-stagger] > [data-ui-stagger-item]:empty { display: none }` marcada `TODO(app-ui#91)` de tu CSS: la trae la librería.",

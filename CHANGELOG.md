@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-09-06
+
 ### Fixed
 
 - **El menú lateral no casaba con el tema oscuro.** Sus tokens estaban fijados iguales para los dos temas, con la idea correcta de que el menú es un plano distinto y no debe cambiar de identidad al alternar. Pero en oscuro el resultado era un gris azulado al 13% junto a una página neutra al 7%: más claro que la página y que la barra superior, y de otro tono. Se leía como un panel tintado, no como un plano. Ahora cada variante conserva su carácter y baja en `.dark` al nivel `surface` (10%), el mismo de la barra superior, para que menú y barra enmarquen la página juntos; el grafito además pierde el tinte azul, que solo contrasta bien contra claro. Dos capturas comparadas nuevas fijan las tres variantes en oscuro. Si redefinías `--sidebar-*` bajo tu `[data-sidebar]`, añade la versión `.dark` o heredarás la nuestra.
@@ -315,6 +317,7 @@ consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.
 
 - Migración a TanStack Table v9 y Vite 8; primitivas de motion (stagger, reveal, animated-number, presets de skeleton).
 
+[0.7.3]: https://github.com/piensa-it/app-ui/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/piensa-it/app-ui/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/piensa-it/app-ui/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/piensa-it/app-ui/compare/v0.6.0...v0.7.0
