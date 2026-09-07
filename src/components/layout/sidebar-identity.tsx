@@ -41,8 +41,10 @@ export interface SidebarIdentityProps extends React.HTMLAttributes<HTMLDivElemen
   /** En qué módulo. Opcional: una aplicación pequeña lo omite y no queda hueco. */
   module?: SidebarIdentitySegment;
   /**
-   * Distintivo junto al nombre del sistema: «UAT», «Pruebas», «Local». Si se
-   * omite, se deriva del `badge` de la opción de empresa elegida.
+   * Distintivo de entorno junto a la compañía: «UAT», «Pruebas», «Local». El
+   * sistema es el mismo para todas; el entorno se paraleliza por compañía,
+   * por eso va ahí y no junto al nombre del sistema. Si se omite, se deriva
+   * del `badge` de la opción de compañía elegida.
    */
   environment?: { label: React.ReactNode; tone?: "neutral" | "warning" | "danger"; uppercase?: boolean };
   /** Muestra solo la marca. Dentro de `AppShell` se toma del estado del menú. */
@@ -57,24 +59,25 @@ const TONES = {
 
 /**
  * La identidad de la aplicación en la cabecera del menú lateral (#119): qué
- * sistema es, con qué empresa se trabaja y en qué módulo, y cambiar los dos
- * últimos desde ahí. Va en el hueco `brand` de `AppShell`.
+ * sistema es, con qué compañía se trabaja —y en qué entorno de esa compañía—
+ * y en qué módulo, y cambiar los dos últimos desde ahí. Va en el hueco `brand`
+ * de `AppShell`.
  *
  * Una aplicación grande y una pequeña muestran lo mismo en el mismo sitio;
  * la pequeña omite el módulo y no queda hueco. Cada segmento es un control
- * —o una etiqueta, si no hay nada que elegir— y la empresa se cambia en un
+ * —o una etiqueta, si no hay nada que elegir— y la compañía se cambia en un
  * solo sitio: con esto puesto, `SidebarBrand` ya no hace falta. La persona
  * no va aquí: vive arriba a la derecha, en `UserMenu`.
  *
- * Plegado deja la marca, con el sistema y la empresa en el nombre accesible;
- * si la empresa se puede cambiar, la marca sigue siendo su disparador.
+ * Plegado deja la marca, con el sistema y la compañía en el nombre accesible;
+ * si la compañía se puede cambiar, la marca sigue siendo su disparador.
  *
  * @example
  * ```tsx
  * <AppShell brand={
  *   <SidebarIdentity
  *     system={{ name: "MiDivisa" }}
- *     company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+ *     company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
  *     module={{ caption: "Módulo", value: modulo, onSelect: abrirCambioDeModulo }}
  *   />
  * } … />
@@ -113,8 +116,8 @@ export const SidebarIdentity = React.forwardRef<HTMLDivElement, SidebarIdentityP
     ) : null;
 
     if (collapsed) {
-      // Plegado, el sistema y la empresa siguen en el nombre accesible; si la
-      // empresa se cambia desde aquí, la marca sigue siendo su disparador.
+      // Plegado, el sistema y la compañía siguen en el nombre accesible; si la
+      // compañía se cambia desde aquí, la marca sigue siendo su disparador.
       const name = [system.name, segmentText(company), segmentText(module)].filter(Boolean).join(" · ");
       const interactive = company && Boolean(company.onSelect || company.options?.length);
       return (
@@ -134,12 +137,9 @@ export const SidebarIdentity = React.forwardRef<HTMLDivElement, SidebarIdentityP
       <div ref={ref} className={cn("flex flex-col gap-ui-2xs px-ui-2xs py-ui-xs", className)} {...props}>
         <div className="flex items-center gap-ui-sm p-ui-2xs">
           {mark}
-          <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-            <span className="w-full truncate text-ui-body-sm font-semibold text-sidebar-foreground">{system.name}</span>
-            {badge}
-          </span>
+          <span className="w-full min-w-0 truncate text-ui-body-sm font-semibold text-sidebar-foreground">{system.name}</span>
         </div>
-        {company ? <Segment segment={company} /> : null}
+        {company ? <Segment segment={company} badge={badge} /> : null}
         {module ? <Segment segment={module} /> : null}
       </div>
     );
@@ -154,16 +154,17 @@ function segmentText(segment?: SidebarIdentitySegment): string | undefined {
   return typeof text === "string" ? text : undefined;
 }
 
-/** Un segmento desplegado: rótulo arriba, valor abajo; control si hay algo que elegir. */
-function Segment({ segment }: { segment: SidebarIdentitySegment }) {
+/** Un segmento desplegado: rótulo arriba, valor abajo —y su distintivo—; control si hay algo que elegir. */
+function Segment({ segment, badge }: { segment: SidebarIdentitySegment; badge?: React.ReactNode }) {
   const current = segment.options?.find((option) => option.value === segment.value);
   const text = current?.label ?? segment.label ?? segment.value ?? "";
   const interactive = Boolean(segment.onSelect || (segment.options && segment.options.length > 0));
 
   const content = (
-    <span className="flex min-w-0 flex-1 flex-col items-start">
+    <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
       <span className="text-ui-caption leading-tight text-sidebar-muted">{segment.caption}</span>
       <span className="w-full truncate text-ui-body-sm font-medium text-sidebar-foreground">{text}</span>
+      {badge}
     </span>
   );
 

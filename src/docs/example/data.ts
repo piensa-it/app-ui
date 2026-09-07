@@ -175,10 +175,15 @@ export function formatoFecha(iso: string): string {
   });
 }
 
+/**
+ * El entorno es de cada compañía, no del sistema: el sistema es el mismo y
+ * los ambientes se paralelizan por compañía. Por eso el distintivo lo declara
+ * la opción, y así la identidad lo muestra junto a la compañía elegida.
+ */
 export const empresas = [
-  { value: "poblado", label: "Distribuidora El Poblado S.A.S.", description: "NIT 900.412.331-4" },
+  { value: "poblado", label: "Distribuidora El Poblado S.A.S.", description: "NIT 900.412.331-4", badge: { label: "UAT", tone: "warning" as const } },
   { value: "andinos", label: "Servicios Andinos Ltda.", description: "NIT 830.118.902-7" },
-  { value: "cafeteros", label: "Transportes Cafeteros S.A.S.", description: "NIT 901.554.208-1" },
+  { value: "cafeteros", label: "Transportes Cafeteros S.A.S.", description: "NIT 901.554.208-1", badge: { label: "Pruebas", tone: "neutral" as const } },
 ];
 
 export const entornos = [

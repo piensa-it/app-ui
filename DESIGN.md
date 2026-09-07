@@ -219,11 +219,13 @@ es para la identidad de la aplicación y para navegar.
 
 ### La identidad va en la cabecera del menú
 
-Qué sistema es, con qué empresa se trabaja y en qué módulo, en el mismo sitio
-para una aplicación grande y una pequeña: `SidebarIdentity` en el hueco
-`brand`. La pequeña omite el módulo y no queda hueco. Cada segmento es un
-control —o una etiqueta, si no hay nada que elegir— y **la empresa se cambia en
-un solo sitio**. En dos niveles el módulo ya está en el riel; el segmento es
+Qué sistema es, con qué compañía se trabaja —y en qué entorno de esa
+compañía— y en qué módulo, en el mismo sitio para una aplicación grande y una
+pequeña: `SidebarIdentity` en el hueco `brand`. La pequeña omite el módulo y no
+queda hueco. Cada segmento es un control —o una etiqueta, si no hay nada que
+elegir— y **la compañía se cambia en un solo sitio**. El distintivo de entorno
+(UAT, Pruebas) va junto a la compañía, no junto al sistema: el sistema es el
+mismo para todas y los ambientes se paralelizan por compañía. En dos niveles el módulo ya está en el riel; el segmento es
 para las formas de un nivel. La persona no va en el menú: vive arriba a la
 derecha, en `UserMenu`, en todas las formas del armazón.
 

@@ -10,42 +10,44 @@ const empresas = [
 ];
 
 /**
- * Sistema, empresa y módulo en la cabecera del menú (#119). Lo que se fija:
+ * Sistema, compañía y módulo en la cabecera del menú (#119). Lo que se fija:
  * los tres, con el rótulo en el nombre del control; el módulo opcional sin
  * hueco; el cambio que notifica con el valor; el desvío por `onSelect` sin
  * montar menú; y que plegado la marca conserva el nombre y el disparador.
  */
 describe("SidebarIdentity", () => {
-  it("muestra sistema, empresa y módulo; el rótulo forma parte del nombre del control", () => {
+  it("muestra sistema, compañía y módulo; el rótulo forma parte del nombre del control", () => {
     render(
       <SidebarIdentity
         system={{ name: "MiDivisa" }}
-        company={{ caption: "Empresa", value: "acme", options: empresas, onChange: () => {} }}
+        company={{ caption: "Compañía", value: "acme", options: empresas, onChange: () => {} }}
         module={{ caption: "Módulo", value: "tesoreria", label: "Tesorería" }}
       />,
     );
     expect(screen.getByText("MiDivisa")).toBeInTheDocument();
     expect(screen.getByText("MI")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Empresa.*Acme S\.A\./ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Compañía.*Acme S\.A\./ })).toBeInTheDocument();
     // Sin opciones ni desvío, el módulo es una etiqueta, no un control.
     expect(screen.getByText("Tesorería")).toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(1);
-    // El distintivo sale de la opción elegida.
-    expect(screen.getByText("UAT")).toBeInTheDocument();
+    // El distintivo sale de la opción elegida y va con la compañía, no con el
+    // sistema: el sistema es el mismo; el entorno se paraleliza por compañía.
+    const uat = screen.getByText("UAT");
+    expect(screen.getByRole("button", { name: /Compañía/ }).contains(uat)).toBe(true);
   });
 
   it("el módulo es opcional y `environment` explícito manda sobre el derivado", () => {
-    render(<SidebarIdentity system={{ name: "Lynx" }} environment={{ label: "LOCAL" }} company={{ caption: "Empresa", value: "acme", options: empresas }} />);
+    render(<SidebarIdentity system={{ name: "Lynx" }} environment={{ label: "LOCAL" }} company={{ caption: "Compañía", value: "acme", options: empresas }} />);
     expect(screen.queryByText(/Módulo/)).not.toBeInTheDocument();
     expect(screen.getByText("LOCAL")).toBeInTheDocument();
     expect(screen.queryByText("UAT")).not.toBeInTheDocument();
   });
 
-  it("cambiar de empresa abre el menú con las opciones y notifica con el valor", async () => {
+  it("cambiar de compañía abre el menú con las opciones y notifica con el valor", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(<SidebarIdentity system={{ name: "MiDivisa" }} company={{ caption: "Empresa", value: "acme", options: empresas, onChange }} />);
-    await user.click(screen.getByRole("button", { name: /Empresa/ }));
+    render(<SidebarIdentity system={{ name: "MiDivisa" }} company={{ caption: "Compañía", value: "acme", options: empresas, onChange }} />);
+    await user.click(screen.getByRole("button", { name: /Compañía/ }));
     const globex = await screen.findByRole("menuitemradio", { name: /Globex/ });
     expect(screen.getByRole("menuitemradio", { name: /Acme/ })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByText("Sucursal norte")).toBeInTheDocument();
@@ -64,13 +66,13 @@ describe("SidebarIdentity", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
-  it("plegado deja la marca con sistema y empresa en el nombre, y sigue abriendo el menú de empresa", async () => {
+  it("plegado deja la marca con sistema y compañía en el nombre, y sigue abriendo el menú de compañía", async () => {
     const user = userEvent.setup();
     render(
       <SidebarIdentity
         collapsed
         system={{ name: "MiDivisa" }}
-        company={{ caption: "Empresa", value: "acme", options: empresas, onChange: () => {} }}
+        company={{ caption: "Compañía", value: "acme", options: empresas, onChange: () => {} }}
         module={{ caption: "Módulo", value: "tesoreria", label: "Tesorería" }}
       />,
     );
@@ -81,7 +83,7 @@ describe("SidebarIdentity", () => {
   });
 
   it("plegado sin nada que elegir, la marca es solo una imagen con nombre", () => {
-    render(<SidebarIdentity collapsed system={{ name: "Lynx" }} company={{ caption: "Empresa", value: "acme", label: "Acme S.A." }} />);
+    render(<SidebarIdentity collapsed system={{ name: "Lynx" }} company={{ caption: "Compañía", value: "acme", label: "Acme S.A." }} />);
     expect(screen.getByRole("img", { name: "Lynx · Acme S.A." })).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });

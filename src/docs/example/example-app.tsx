@@ -38,7 +38,6 @@ import { Select } from "@/components/ui/select";
 import {
   centrosDeCosto,
   empresas,
-  entornos,
   formatoFecha,
   formatoPesos,
   metodosDePago,
@@ -487,8 +486,6 @@ export function ExampleApp({
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
-  // El entorno lo fija el despliegue, no la persona: aquí es UAT para que se vea el distintivo.
-  const entorno = entornos[1].value;
   const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
 
 
@@ -524,14 +521,16 @@ export function ExampleApp({
 
   const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
 
-  // La identidad vive en la cabecera del menú: sistema, empresa y —salvo en
-  // dos niveles, donde el módulo ya está en el riel— módulo. La empresa se
-  // cambia aquí y en ningún otro sitio; el entorno se ve como distintivo.
+  // La identidad vive en la cabecera del menú: sistema, compañía y —salvo en
+  // dos niveles, donde el módulo ya está en el riel— módulo. La compañía se
+  // cambia aquí y en ningún otro sitio; su entorno se ve como distintivo.
   const marca = (
     <SidebarIdentity
-      system={{ name: "Tesorería" }}
-      environment={entornos.find((opcion) => opcion.value === entorno)?.badge}
-      company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+      // El sistema es el mismo para todas las compañías: nombre genérico y la
+      // marca de Piensa IT. El entorno va con la compañía, que es donde se
+      // paraleliza.
+      system={{ name: "Sistema", logo: <img src="/favicon.png" alt="" className="size-full object-cover" /> }}
+      company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
       module={
         layout === "rail-panel"
           ? undefined

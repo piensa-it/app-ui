@@ -21,7 +21,7 @@ const meta = {
       story: { height: "420px", inline: false },
       description: {
         component:
-          "Sistema, empresa y módulo en la cabecera del menú lateral, en el hueco `brand` de `AppShell`. Una aplicación grande y una pequeña muestran lo mismo en el mismo sitio; la pequeña omite el módulo. Cada segmento es un control, o una etiqueta si no hay nada que elegir. La persona no va aquí: vive arriba a la derecha, en `UserMenu`.",
+          "Sistema, compañía —con su entorno— y módulo en la cabecera del menú lateral, en el hueco `brand` de `AppShell`. Una aplicación grande y una pequeña muestran lo mismo en el mismo sitio; la pequeña omite el módulo. Cada segmento es un control, o una etiqueta si no hay nada que elegir. La persona no va aquí: vive arriba a la derecha, en `UserMenu`.",
       },
     },
   },
@@ -65,7 +65,7 @@ function Armazon({ brand, defaultCollapsed = false }: { brand: React.ReactNode; 
   );
 }
 
-/** Los tres segmentos: la empresa y el módulo se cambian desde su menú. */
+/** Los tres segmentos: la compañía (con su entorno) y el módulo se cambian desde su menú. */
 export const Completo: Story = {
   render: (args) => {
     const Demo = () => {
@@ -76,7 +76,7 @@ export const Completo: Story = {
           brand={
             <SidebarIdentity
               {...args}
-              company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+              company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
               module={{ caption: "Módulo", value: modulo, options: modulos, onChange: setModulo }}
             />
           }
@@ -87,19 +87,19 @@ export const Completo: Story = {
   },
 };
 
-/** Una aplicación pequeña: sistema y empresa; el módulo se omite y no queda hueco. */
+/** Una aplicación pequeña: sistema y compañía; el módulo se omite y no queda hueco. */
 export const SinModulo: Story = {
   name: "Sin módulo",
   render: (args) => {
     const Demo = () => {
       const [empresa, setEmpresa] = useState("acme");
-      return <Armazon brand={<SidebarIdentity {...args} company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }} />} />;
+      return <Armazon brand={<SidebarIdentity {...args} company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }} />} />;
     };
     return <Demo />;
   },
 };
 
-/** Plegado queda la marca, con sistema y empresa en el nombre accesible; sigue abriendo el menú de empresa. */
+/** Plegado queda la marca, con sistema y compañía en el nombre accesible; sigue abriendo el menú de compañía. */
 export const Plegado: Story = {
   render: (args) => {
     const Demo = () => {
@@ -110,7 +110,7 @@ export const Plegado: Story = {
           brand={
             <SidebarIdentity
               {...args}
-              company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+              company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
               module={{ caption: "Módulo", value: "tesoreria", label: "Tesorería" }}
             />
           }
@@ -124,7 +124,7 @@ export const Plegado: Story = {
 /**
  * Cambiar de módulo no siempre es cambiar de pestaña: con `onSelect`, el
  * segmento abre lo que la aplicación quiera, aquí un `AppSwitcher` con
- * buscador. La empresa, sin opciones, es solo una etiqueta.
+ * buscador. La compañía, sin opciones, es solo una etiqueta.
  */
 export const ConAppSwitcher: Story = {
   name: "Módulo que abre un AppSwitcher",
@@ -138,7 +138,7 @@ export const ConAppSwitcher: Story = {
             brand={
               <SidebarIdentity
                 {...args}
-                company={{ caption: "Empresa", value: "acme", label: "Acme S.A." }}
+                company={{ caption: "Compañía", value: "acme", label: "Acme S.A." }}
                 module={{ caption: "Módulo", value: modulo, options: modulos, onSelect: () => setAbierto(true) }}
               />
             }
