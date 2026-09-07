@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-06
+
+El estándar de usuario: menú, perfil y apariencia. Sale de lo que MiDivisa construyó a mano en `Layout.tsx` y `Profile.tsx`, y de lo que CoreLink y Lynx repetirían.
+
 ### Added
 
 - **`AppearanceSettings`: el panel de apariencia estándar** (#98). Tema, paleta, tipografía y densidad, cada opción con su vista previa: el tema con una miniatura de página, la paleta con su color real —la muestra lleva `data-ui-palette` puesto, no una copia del color—, la tipografía escrita en sí misma y la densidad con sus propias medidas. Los cuatro conmutadores ya existían en el sistema de diseño; el panel donde la persona los elige lo construía cada aplicación a mano. Controlado y sin persistencia: la aplicación guarda la elección y aplica los atributos en su raíz; el panel no toca el DOM (hay prueba). Solo ofrece lo tematizable —no hay control para `--accent` ni para nada fuera de los siete tokens de identidad (#76)—; una marca propia entra en `palettes` como `{ id, label, primary }` y se construye con `createPalette`. Idioma queda fuera: la librería no tiene i18n; los textos del panel se sustituyen con `labels`.
@@ -325,6 +329,7 @@ consumidor: un parche sobre `node_modules`, reglas CSS correctivas o adapters.
 
 - Migración a TanStack Table v9 y Vite 8; primitivas de motion (stagger, reveal, animated-number, presets de skeleton).
 
+[0.8.0]: https://github.com/piensa-it/app-ui/compare/v0.7.3...v0.8.0
 [0.7.3]: https://github.com/piensa-it/app-ui/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/piensa-it/app-ui/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/piensa-it/app-ui/compare/v0.7.0...v0.7.1

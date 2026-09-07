@@ -13,13 +13,24 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.7.3";
+export const UI_LIBRARY_VERSION = "0.8.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés retirar de tu aplicación.",
+      "Menú de usuario: sustituí tu desplegable de la barra superior por `UserMenu` con `onProfile`, `onSettings`, `onSignOut` y, si querés confirmación, `confirmSignOut`. Va en el `topbar` de `AppShell`.",
+      "Perfil: sustituí tu selector de color del avatar por `AvatarPicker`; entrega la foto como `File` y el color en `H S% L%`. Nombre, correo y contraseña siguen siendo tuyos, con `Field`, `Input` y `FormGrid`.",
+      "Apariencia: sustituí tu tarjeta de apariencia por `AppearanceSettings`; guardá el objeto que entrega y aplicá `.dark`, `data-ui-palette`, `data-ui-font` y `<UiProvider density>` en tu raíz. Si tu paleta era propia, pasala en `palettes` como `{ id, label, primary }`.",
+    ],
+  },
+  {
+    version: "0.7.3",
+    channel: "maintenance",
+    publishedAt: "2026-09-06",
     migration: [
       "Tema oscuro: el menú lateral baja al nivel `surface` y el grafito pierde el tinte azul. Nada que hacer, salvo que redefinas `--sidebar-*` bajo tu propio `[data-sidebar]`: entonces añade también la versión `.dark`, o heredarás la nuestra.",
     ],
