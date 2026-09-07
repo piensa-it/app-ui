@@ -230,4 +230,8 @@ export {
   ToggleLeft as ToggleLeftIcon,
   ToggleRight as ToggleRightIcon,
   UserCog as UserCogIcon,
+
+  // Anular, para las acciones por fila de una tabla. Ver, editar, imprimir,
+  // descargar y eliminar ya estaban.
+  Ban as CancelIcon,
 } from "lucide-react";

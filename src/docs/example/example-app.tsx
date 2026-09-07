@@ -18,6 +18,9 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import { SearchInput } from "@/components/ui/search-input";
+import { Tooltip } from "@/components/ui/tooltip";
+import { BanknoteIcon, CancelIcon, EditIcon, ReceiptIcon, ViewIcon, WalletIcon } from "@/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,21 +130,29 @@ function VistaMovimientos() {
         }
       />
 
-      <StatGroup label="Resumen del periodo">
+      {/* Los indicadores son opcionales por persona: quien captura prefiere
+          las filas, quien supervisa prefiere el resumen. Se recuerda en el
+          dispositivo, con la misma clave que usaría la aplicación. */}
+      <StatGroup label="Resumen del periodo" collapsible storageKey="ejemplo:movimientos">
         <Stat
           label="Entradas"
           value={formatoPesos(total(entradas))}
           description={`${entradas.length} movimientos recaudados`}
+          icon={<BanknoteIcon />}
+          tone="positive"
         />
         <Stat
           label="Salidas"
           value={formatoPesos(total(salidas))}
           description={`${salidas.length} pagos ejecutados`}
+          icon={<ReceiptIcon />}
         />
         <Stat
           label="Saldo del periodo"
           value={formatoPesos(saldo)}
           description="Antes de conciliación bancaria"
+          icon={<WalletIcon />}
+          tone={saldo < 0 ? "warning" : "default"}
           trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
         />
       </StatGroup>
@@ -202,6 +213,38 @@ function VistaMovimientos() {
               filas.filter((fila) => fila.estado !== "anulado").reduce((suma, fila) => suma + fila.valor, 0),
             )
           }
+        />
+              {/* Acciones por fila: iconos con su nombre en el tooltip y en el nombre
+            accesible. Anular es destructivo y va en último lugar. */}
+        <Column<Movimiento>
+          id="acciones"
+          header=""
+          align="right"
+          body={(fila) => (
+            <span className="flex justify-end gap-ui-2xs">
+              <Tooltip content="Ver detalle">
+                <Button size="xs" variant="ghost" aria-label={`Ver ${fila.id}`}>
+                  <ViewIcon aria-hidden="true" />
+                </Button>
+              </Tooltip>
+              <Tooltip content="Editar">
+                <Button size="xs" variant="ghost" aria-label={`Editar ${fila.id}`}>
+                  <EditIcon aria-hidden="true" />
+                </Button>
+              </Tooltip>
+              <Tooltip content="Anular">
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  aria-label={`Anular ${fila.id}`}
+                  className="text-destructive hover:text-destructive"
+                  disabled={fila.estado === "anulado"}
+                >
+                  <CancelIcon aria-hidden="true" />
+                </Button>
+              </Tooltip>
+            </span>
+          )}
         />
       </DataTable>
     </PageContainer>
@@ -355,6 +398,7 @@ export function ExampleApp({
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
   const [entorno, setEntorno] = React.useState(entornos[1].value);
   const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
+  const [busqueda, setBusqueda] = React.useState("");
 
   const nombreEmpresa = empresas.find((opcion) => opcion.value === empresa)?.label ?? "";
 
@@ -419,9 +463,21 @@ export function ExampleApp({
       }
       sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
       topbarStart={
-        <span className="hidden text-ui-body-sm text-muted-foreground sm:inline">
-          Tesorería · {nombreEmpresa}
-        </span>
+        <>
+          <span className="hidden text-ui-body-sm text-muted-foreground lg:inline">
+            Tesorería · {nombreEmpresa}
+          </span>
+          {/* El buscador es opcional por aplicación: la barra tiene el hueco
+              y cada producto decide si lo pone. */}
+          <SearchInput
+            value={busqueda}
+            onChange={setBusqueda}
+            size="sm"
+            placeholder="Buscar movimientos…"
+            shortcut="Ctrl K"
+            className="hidden w-64 md:flex"
+          />
+        </>
       }
       topbar={
         <>

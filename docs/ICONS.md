@@ -3,7 +3,7 @@
 ## Por qué existe este documento
 
 `@piensa-it/ui-library` declara `lucide-react@^1.35.0` como dependencia directa
-(`package.json`) y re-exporta un catálogo curado de 219 iconos desde
+(`package.json`) y re-exporta un catálogo curado de 220 iconos desde
 `src/icons.ts`, disponible en el barrel público (`src/index.ts`). Las apps
 consumidoras (MiDivisa, Corelink) declaran además su propia dependencia de
 `lucide-react@^0.462.0`. Como los rangos no son compatibles, npm instala **dos
@@ -36,7 +36,7 @@ válido. Solo cambia el nombre y el origen del import.
 
 ## Tabla de equivalencias
 
-Los 219 iconos del catálogo, ordenados alfabéticamente por su nombre en
+Los 220 iconos del catálogo, ordenados alfabéticamente por su nombre en
 lucide-react. Generada leyendo `src/icons.ts`.
 
 Los marcados con † usan un nombre que en lucide 1.35.0 es un **alias** de otro
@@ -284,6 +284,15 @@ sustitutos provisionales marcados `TODO(app-ui#90)`.
 | `ToggleLeft` | `ToggleLeftIcon` | `import { ToggleLeftIcon } from "@piensa-it/ui-library";` |
 | `ToggleRight` | `ToggleRightIcon` | `import { ToggleRightIcon } from "@piensa-it/ui-library";` |
 | `UserCog` | `UserCogIcon` | `import { UserCogIcon } from "@piensa-it/ui-library";` |
+
+### Añadidos en 0.8.1 (acciones por fila)
+
+El que faltaba para una columna de acciones en una tabla: anular. Ver
+(`ViewIcon`), editar (`EditIcon`), imprimir, descargar y eliminar ya estaban.
+
+| Nombre en lucide-react | Export de la librería | Import nuevo |
+| --- | --- | --- |
+| `Ban` | `CancelIcon` | `import { CancelIcon } from "@piensa-it/ui-library";` |
 
 ## Iconos que no están en el catálogo
 

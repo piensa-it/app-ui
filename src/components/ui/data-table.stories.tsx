@@ -3,6 +3,8 @@ import { DataTable, Column } from "./data-table";
 import { Badge } from "./badge";
 import { Button } from "./button";
 import { Download, Plus } from "lucide-react";
+import { Tooltip } from "./tooltip";
+import { CancelIcon, EditIcon, ViewIcon } from "@/icons";
 
 const meta = {
   title: "UI/DataTable",
@@ -242,6 +244,50 @@ export const PaginadorForzado: Story = {
     <DataTable value={usuarios} paginator>
       <Column field="nombre" header="Nombre" sortable />
       <Column field="correo" header="Correo" />
+    </DataTable>
+  ),
+};
+
+/**
+ * Acciones por fila como iconos: ver, editar y anular, cada uno con su nombre
+ * en el tooltip y en el nombre accesible. La columna no tiene título ni
+ * ordenación —no es un dato—, va a la derecha y la destructiva al final.
+ */
+export const ConAcciones: Story = {
+  name: "Con acciones por fila",
+  render: () => (
+    <DataTable value={usuarios.slice(0, 5)}>
+      <Column<Usuario> field="nombre" header="Nombre" sortable />
+      <Column<Usuario> field="correo" header="Correo" />
+      <Column<Usuario>
+        field="estado"
+        header="Estado"
+        body={(fila) => <Badge variant={fila.estado === "activo" ? "success" : "secondary"}>{fila.estado}</Badge>}
+      />
+      <Column<Usuario>
+        id="acciones"
+        header=""
+        align="right"
+        body={(fila) => (
+          <span className="flex justify-end gap-ui-2xs">
+            <Tooltip content="Ver">
+              <Button size="xs" variant="ghost" aria-label={`Ver ${fila.nombre}`}>
+                <ViewIcon aria-hidden="true" />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Editar">
+              <Button size="xs" variant="ghost" aria-label={`Editar ${fila.nombre}`}>
+                <EditIcon aria-hidden="true" />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Desactivar">
+              <Button size="xs" variant="ghost" aria-label={`Desactivar ${fila.nombre}`} className="text-destructive hover:text-destructive" disabled={fila.estado === "inactivo"}>
+                <CancelIcon aria-hidden="true" />
+              </Button>
+            </Tooltip>
+          </span>
+        )}
+      />
     </DataTable>
   ),
 };

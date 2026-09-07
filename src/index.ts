@@ -25,6 +25,7 @@ export { Button, buttonVariants, type ButtonProps } from "./components/ui/button
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./components/ui/card";
 export { Badge, badgeVariants, type BadgeProps } from "./components/ui/badge";
 export { Input, inputVariants, type InputProps } from "./components/ui/input";
+export { SearchInput, type SearchInputProps } from "./components/ui/search-input";
 export { Textarea, textareaVariants, type TextareaProps } from "./components/ui/textarea";
 export { Label } from "./components/ui/label";
 export { Separator } from "./components/ui/separator";

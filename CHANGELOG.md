@@ -6,6 +6,16 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`StatGroup` plegable.** Con `collapsible`, los indicadores de una pantalla se pueden ocultar y volver a mostrar; con `storageKey` se recuerda en el dispositivo, con el mismo mecanismo que el plegado del menú de `AppShell`. Una pantalla de tabla no siempre quiere las cifras arriba: quien captura prefiere las filas y quien supervisa prefiere el resumen; ahora lo decide cada persona y no la pantalla por todos.
+- **`SearchInput`**, el patrón que faltaba de #60: lupa, texto, botón de limpiar en cuanto hay algo escrito, Escape limpia, Enter confirma (`onSearch`) y pista del atajo (`shortcut`). Es opcional por aplicación: `AppShell` ya tenía el hueco (`topbarStart`) y cada producto decide si lo pone.
+- Un icono más para las acciones por fila: `CancelIcon` (`Ban`). Ver, editar, imprimir, descargar y eliminar ya estaban. El catálogo pasa a 220.
+
+### Docs
+
+- La aplicación de ejemplo enseña ahora los indicadores con icono y tono, plegables y recordados; una columna de acciones por fila con iconos (ver, editar, anular) con su nombre en el tooltip y en el nombre accesible; y el buscador en la barra superior. `DataTable` tiene la story «Con acciones por fila».
+
 ## [0.8.0] - 2026-09-06
 
 El estándar de usuario: menú, perfil y apariencia. Sale de lo que MiDivisa construyó a mano en `Layout.tsx` y `Profile.tsx`, y de lo que CoreLink y Lynx repetirían.
