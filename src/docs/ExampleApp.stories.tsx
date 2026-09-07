@@ -41,7 +41,7 @@ const meta = {
     },
     vistaInicial: {
       control: "inline-radio",
-      options: ["movimientos", "nuevo", "conciliacion", "reportes", "cuentas"],
+      options: ["tablero", "movimientos", "nuevo", "conciliacion", "reportes", "cuentas"],
       description: "Vista con la que arranca el ejemplo.",
     },
     defaultCollapsed: { control: "boolean" },
@@ -49,12 +49,23 @@ const meta = {
       control: { type: "range", min: 0, max: 200, step: 10 },
       description: "Milisegundos entre la entrada de un bloque y el siguiente. Cambia de vista para verla otra vez.",
     },
+    layout: {
+      control: "inline-radio",
+      options: ["docked", "floating", "rail", "framed", "rail-panel"],
+      description: "Forma del armazón: pegado al borde, flotante, riel, enmarcado, o riel con panel de sección.",
+    },
+    sidebarTone: {
+      control: "inline-radio",
+      options: ["dark", "light"],
+      description: "Tono del menú: oscuro (la regla) o claro (sigue a la página).",
+    },
   },
   args: {
     variant: "graphite",
-    vistaInicial: "movimientos",
+    vistaInicial: "tablero",
     defaultCollapsed: false,
     staggerGap: 60,
+    layout: "docked",
   },
 } satisfies Meta<typeof ExampleApp>;
 
@@ -62,42 +73,62 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * La aplicación entera, navegable. Demuestra el recorrido completo: elegir
- * empresa y entorno en `SidebarBrand`, cambiar de sección en el menú (con el
- * activo marcado por `aria-current`), plegar el menú desde la barra superior y
- * ver la versión del compilado en el pie.
+ * La aplicación clásica: menú fijo y oscuro, plegable a iconos, la identidad
+ * arriba del menú y la persona en la barra superior. Arranca en el tablero:
+ * cuatro cifras con icono y tono, la gráfica de flujo de caja y dos tarjetas
+ * con lo pendiente y lo reciente, todo con datos de ejemplo.
  *
- * Usa el control `variant` de esta página para probar las tres variantes de
- * menú sin salir de la story.
+ * Desde el menú se llega a la vista de datos —`PageContainer` en ancho
+ * `wide`, `PageHeader` con acciones, tres cifras y una `DataTable` con
+ * búsqueda, orden, paginación y configurador de columnas—, a la de captura
+ * —`Field` conectando etiqueta, ayuda y error de cada control; pulsa "Guardar
+ * movimiento" con el concepto vacío para ver los estados de error—, a elegir
+ * empresa en `SidebarIdentity`, a plegar el menú y a ver la versión en el pie.
  *
- * Esta página muestra **cómo se componen** las piezas. Los estados sueltos del
- * armazón —menú plegado, las tres variantes una al lado de otra, secciones
- * plegables, integración con React Router— viven en `Layout/AppShell`, que es
- * donde se documenta ese componente.
+ * Los cinco ejemplos son la misma aplicación con otra forma del armazón;
+ * cambia entre ellos para compararlas. Los estados sueltos del armazón viven
+ * en `Layout/AppShell`.
  */
-export const AplicacionCompleta: Story = {
-  name: "Aplicación completa",
+export const AplicacionDeEjemplo1: Story = {
+  name: "Aplicación de ejemplo 1 · clásica",
 };
 
 /**
- * La vista de datos: `PageContainer` en ancho `wide`, `PageHeader` con
- * acciones, tres cifras de resumen y una `DataTable` con búsqueda, orden,
- * paginación y configurador de columnas. La columna de valor va alineada a la
- * derecha con `tabular-nums` —único modo de comparar magnitudes de un
- * vistazo— y el signo se refuerza con color, no solo con el menos.
+ * La misma aplicación con otra forma (#113): menú flotante y claro. Es la
+ * plantilla 1 de la evaluación montada solo con props de `AppShell`; el
+ * estilo visual (`data-ui-look`) se elige en el toolbar. La barra superior,
+ * como en todas: notificaciones y persona.
  */
-export const VistaDeTabla: Story = {
-  name: "Vista de tabla",
-  args: { vistaInicial: "movimientos" },
+export const AplicacionDeEjemplo2: Story = {
+  name: "Aplicación de ejemplo 2 · flotante y clara",
+  args: { layout: "floating", sidebarTone: "light" },
 };
 
 /**
- * La vista de captura: `Field` conectando etiqueta, ayuda y error de cada
- * control, con `Input` y `Select` sobre una rejilla de dos columnas. Pulsa
- * "Guardar movimiento" con el concepto vacío para ver los estados de error
- * (`aria-invalid` y `role="alert"` los pone `Field`, no la aplicación).
+ * La misma aplicación en riel (#113): icono y etiqueta, sin desplegar. Es la forma de la plantilla 3 con un solo nivel; los dos
+ * niveles —riel más panel de sección— llegan con #114.
  */
-export const VistaDeFormulario: Story = {
-  name: "Vista de formulario",
-  args: { vistaInicial: "nuevo" },
+export const AplicacionDeEjemplo3: Story = {
+  name: "Aplicación de ejemplo 3 · riel",
+  args: { layout: "rail" },
+};
+
+/**
+ * La misma aplicación en dos niveles (#114): el riel lleva los módulos y el
+ * panel de sección, el árbol del módulo activo. Es la plantilla 3 completa.
+ * Plegar oculta el panel; el riel se queda.
+ */
+export const AplicacionDeEjemplo4: Story = {
+  name: "Aplicación de ejemplo 4 · riel con panel",
+  args: { layout: "rail-panel" },
+};
+
+/**
+ * La misma aplicación enmarcada (#118): el menú encierra el contenido. En
+ * oscuro, con el estilo `deep` y la paleta cian del toolbar, es la plantilla
+ * 2 de la evaluación.
+ */
+export const AplicacionDeEjemplo5: Story = {
+  name: "Aplicación de ejemplo 5 · enmarcada",
+  args: { layout: "framed" },
 };

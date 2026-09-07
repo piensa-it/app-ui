@@ -7,45 +7,53 @@ import {
   FilePlus2,
   HelpCircle,
   Landmark,
-  LogOut,
-  Settings,
+  Wallet,
+  Receipt,
+  ShoppingCart,
+  LayoutDashboard,
 } from "lucide-react";
 
-import { AppShell, type SidebarVariant } from "@/components/layout/app-shell";
+import { AppShell, type AppShellLayout, type SidebarTone, type SidebarVariant } from "@/components/layout/app-shell";
 import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { SidebarBrand } from "@/components/layout/sidebar-brand";
-import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
+import { SidebarIdentity } from "@/components/layout/sidebar-identity";
+import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "@/components/layout/sidebar-nav";
+import { ScreenSearch } from "@/components/layout/screen-search";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { UserMenu } from "@/components/layout/user-menu";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Chart } from "@/components/ui/chart";
 import { Column, DataTable } from "@/components/ui/data-table";
 import { FormGrid } from "@/components/ui/form-grid";
 import { Stat, StatGroup } from "@/components/ui/stat";
+import { ArrowDownLeftIcon, ArrowUpRightIcon, BankIcon, ClockIcon } from "@/icons";
 import { Toolbar } from "@/components/layout/toolbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { MenuItem } from "@/components/ui/menu";
 import { Select } from "@/components/ui/select";
 import {
   centrosDeCosto,
   empresas,
-  entornos,
   formatoFecha,
   formatoPesos,
   metodosDePago,
   movimientos,
   type Movimiento,
+  flujoMensual,
+  pendientes,
+  notificaciones,
 } from "./data";
 
 /* -------------------------------------------------------------------------- */
 /* Navegación                                                                  */
 /* -------------------------------------------------------------------------- */
 
-type VistaId = "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
+type VistaId = "tablero" | "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
 
 interface EnlaceNav {
   id: VistaId;
@@ -53,12 +61,41 @@ interface EnlaceNav {
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 }
 
-const ENLACES: EnlaceNav[] = [
-  { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
-  { id: "nuevo", label: "Nuevo movimiento", icon: FilePlus2 },
-  { id: "conciliacion", label: "Conciliación", icon: Landmark },
-  { id: "reportes", label: "Reportes", icon: BarChart3 },
-  { id: "cuentas", label: "Cuentas bancarias", icon: Building2 },
+const MODULOS = [
+  { id: "tesoreria", label: "Tesorería", icon: Wallet },
+  { id: "cartera", label: "Cartera", icon: Receipt },
+  { id: "compras", label: "Compras", icon: ShoppingCart },
+  { id: "informes", label: "Informes", icon: BarChart3 },
+] as const;
+
+/**
+ * Los enlaces van en secciones plegables: es lo que se ve cuando una
+ * aplicación crece, y con el chevrón cada persona cierra lo que no usa. Las
+ * secciones cerradas se recuerdan con `storageKey`, junto al plegado.
+ */
+const SECCIONES: { id: string; label: string; enlaces: EnlaceNav[] }[] = [
+  {
+    id: "operacion",
+    label: "Operación",
+    enlaces: [
+      { id: "tablero", label: "Tablero", icon: LayoutDashboard },
+      { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
+      { id: "nuevo", label: "Nuevo movimiento", icon: FilePlus2 },
+    ],
+  },
+  {
+    id: "control",
+    label: "Control",
+    enlaces: [
+      { id: "conciliacion", label: "Conciliación", icon: Landmark },
+      { id: "reportes", label: "Reportes", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "maestros",
+    label: "Maestros",
+    enlaces: [{ id: "cuentas", label: "Cuentas bancarias", icon: Building2 }],
+  },
 ];
 
 /**
@@ -104,7 +141,114 @@ const TONO_ESTADO: Record<Movimiento["estado"], { variante: "success" | "warning
   anulado: { variante: "outline", label: "Anulado" },
 };
 
+function VistaTablero({ onIr, staggerGap }: { onIr: (vista: VistaId) => void; staggerGap?: number }) {
+  const activos = movimientos.filter((m) => m.estado !== "anulado");
+  const entradas = activos.filter((m) => m.valor > 0);
+  const salidas = activos.filter((m) => m.valor < 0);
+  const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
+  const saldo = total(entradas) + total(salidas);
+  const porConciliar = movimientos.filter((m) => m.estado === "pendiente");
+  const recientes = [...movimientos].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 5);
+
+  return (
+    <PageContainer width="wide" staggerGap={staggerGap}>
+      <PageHeader
+        title="Tablero de tesorería"
+        description="Cómo va el mes, qué espera una acción y los últimos movimientos."
+        actions={<Button onClick={() => onIr("nuevo")}>Registrar movimiento</Button>}
+      />
+
+      {/* Cada cifra con su icono y su tono: el icono dice de qué es la cifra
+          de un vistazo; el tono, qué clase de noticia es. */}
+      <StatGroup label="Resumen del mes" columns={4}>
+        <Stat label="Entradas" icon={<ArrowDownLeftIcon />} tone="positive" value={formatoPesos(total(entradas))} description={`${entradas.length} movimientos recaudados`} />
+        <Stat label="Salidas" icon={<ArrowUpRightIcon />} value={formatoPesos(total(salidas))} description={`${salidas.length} pagos ejecutados`} />
+        <Stat
+          label="Saldo del periodo"
+          icon={<BankIcon />}
+          tone={saldo < 0 ? "warning" : "positive"}
+          value={formatoPesos(saldo)}
+          description="Antes de conciliación bancaria"
+          trend={{ value: "+12,4% vs. agosto", direction: "up", goodWhenUp: true }}
+        />
+        <Stat
+          label="Por conciliar"
+          icon={<ClockIcon />}
+          tone={porConciliar.length > 3 ? "negative" : "warning"}
+          value={String(porConciliar.length)}
+          description={`${formatoPesos(total(porConciliar))} en movimientos pendientes`}
+        />
+      </StatGroup>
+
+      <Chart
+        type="bar"
+        title="Flujo de caja"
+        description="Entradas y salidas de los últimos seis meses."
+        data={flujoMensual}
+        categoryKey="mes"
+        series={[
+          { key: "entradas", label: "Entradas" },
+          { key: "salidas", label: "Salidas" },
+        ]}
+        height={260}
+        valueFormatter={formatoPesos}
+        axisFormatter={(v) => `${Math.round(v / 1_000_000)} M`}
+      />
+
+      <div className="grid gap-stack lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pendientes de tesorería</CardTitle>
+            <CardDescription>Lo que espera una acción, por vencimiento.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border">
+              {pendientes.map((p) => (
+                <li key={p.id} className="flex items-start justify-between gap-ui-md py-ui-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate text-ui-body-sm font-medium">{p.titulo}</span>
+                    <span className="block truncate text-ui-caption text-muted-foreground">{p.detalle}</span>
+                  </span>
+                  <Badge variant={p.vence === "Hoy" ? "warning" : "secondary"} size="sm">
+                    {p.vence}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Últimos movimientos</CardTitle>
+            <CardDescription>Los cinco más recientes; el detalle completo está en Movimientos.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-ui-sm">
+            <ul className="divide-y divide-border">
+              {recientes.map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-ui-md py-ui-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate text-ui-body-sm font-medium">{m.concepto}</span>
+                    <span className="block truncate text-ui-caption text-muted-foreground">{m.tercero}</span>
+                  </span>
+                  <span className={cn("shrink-0 text-ui-body-sm tabular-nums", m.valor < 0 && "text-destructive")}>{formatoPesos(m.valor)}</span>
+                </li>
+              ))}
+            </ul>
+            <Button variant="outline" size="sm" className="self-start" onClick={() => onIr("movimientos")}>
+              Ver todos los movimientos
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </PageContainer>
+  );
+}
+
 function VistaMovimientos({ staggerGap }: { staggerGap?: number }) {
+  // El periodo es de esta pantalla, no de la aplicación: cada pantalla sabe
+  // qué contexto necesita y lo pone en su cabecera.
+  const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
   const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
   const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
   const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
@@ -118,6 +262,18 @@ function VistaMovimientos({ staggerGap }: { staggerGap?: number }) {
         above={<Badge variant="secondary">Periodo abierto</Badge>}
         actions={
           <>
+            <Select
+              aria-label="Periodo contable"
+              size="sm"
+              options={[
+                { value: "2026-09", label: "Septiembre 2026" },
+                { value: "2026-08", label: "Agosto 2026" },
+                { value: "2026-07", label: "Julio 2026" },
+              ]}
+              value={periodo}
+              onChange={setPeriodo}
+              width="auto"
+            />
             <Button variant="outline">
               <Download aria-hidden="true" />
               Exportar
@@ -130,19 +286,24 @@ function VistaMovimientos({ staggerGap }: { staggerGap?: number }) {
       <StatGroup label="Resumen del periodo">
         <Stat
           label="Entradas"
+          icon={<ArrowDownLeftIcon />}
+          tone="positive"
           value={formatoPesos(total(entradas))}
           description={`${entradas.length} movimientos recaudados`}
         />
         <Stat
           label="Salidas"
+          icon={<ArrowUpRightIcon />}
           value={formatoPesos(total(salidas))}
           description={`${salidas.length} pagos ejecutados`}
         />
         <Stat
           label="Saldo del periodo"
+          icon={<BankIcon />}
+          tone={saldo < 0 ? "warning" : "positive"}
           value={formatoPesos(saldo)}
           description="Antes de conciliación bancaria"
-          trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
+          trend={{ value: "+12,4% vs. agosto", direction: "up", goodWhenUp: true }}
         />
       </StatGroup>
 
@@ -339,30 +500,36 @@ export interface ExampleAppProps {
   defaultCollapsed?: boolean;
   /** Retraso entre bloques de la entrada de página, para probarla sobre la app completa (#110). */
   staggerGap?: number;
+  /** Forma del armazón (#113). */
+  layout?: AppShellLayout;
+  /** Tono del menú (#113). */
+  sidebarTone?: SidebarTone;
 }
 
 /**
  * Aplicación mínima pero completa montada solo con piezas de la librería:
- * `AppShell` + `SidebarBrand` + `AppVersion` para el armazón, `PageContainer`
+ * `AppShell` + `SidebarIdentity` + `AppVersion` para el armazón, `PageContainer`
  * y `PageHeader` para cada pantalla, y `DataTable` / `Field` para el
  * contenido. La navegación, el enrutamiento y los datos los pone la
  * aplicación, que es exactamente el reparto que propone la librería.
  */
 export function ExampleApp({
   variant = "graphite",
-  vistaInicial = "movimientos",
+  vistaInicial = "tablero",
   defaultCollapsed = false,
   staggerGap,
+  layout = "docked",
+  // Sin valor: manda el de la librería (oscuro; claro en el panel de dos niveles).
+  sidebarTone,
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
-  const [entorno, setEntorno] = React.useState(entornos[1].value);
-  const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
 
-  const nombreEmpresa = empresas.find((opcion) => opcion.value === empresa)?.label ?? "";
 
   const contenido =
-    vista === "movimientos" ? (
+    vista === "tablero" ? (
+      <VistaTablero onIr={setVista} staggerGap={staggerGap} />
+    ) : vista === "movimientos" ? (
       <VistaMovimientos staggerGap={staggerGap} />
     ) : vista === "nuevo" ? (
       <VistaNuevoMovimiento onCancelar={() => setVista("movimientos")} staggerGap={staggerGap} />
@@ -373,88 +540,82 @@ export function ExampleApp({
         staggerGap={staggerGap}
       />
     ) : vista === "reportes" ? (
-      <VistaPendiente
-        titulo="Reportes"
-        descripcion="Flujo de caja, cartera y ejecución por centro de costo."
-        staggerGap={staggerGap}
-      />
+      <VistaPendiente titulo="Reportes" descripcion="Flujo de caja, cartera y ejecución por centro de costo." staggerGap={staggerGap} />
     ) : (
       <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." staggerGap={staggerGap} />
     );
 
+  // Los módulos del riel en dos niveles (#114). Tesorería es el activo: su
+  // árbol es el menú de siempre. Los demás son de muestra.
+  const modulos = (
+    <SidebarNav>
+      {MODULOS.map((modulo) => (
+        <SidebarNavItem key={modulo.id} icon={<modulo.icon aria-hidden="true" />} active={modulo.id === "tesoreria"} onClick={(e) => e.preventDefault()}>
+          {modulo.label}
+        </SidebarNavItem>
+      ))}
+    </SidebarNav>
+  );
+
+  const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
+
+  // La identidad vive en la cabecera del menú: sistema, compañía y —salvo en
+  // dos niveles, donde el módulo ya está en el riel— módulo. La compañía se
+  // cambia aquí y en ningún otro sitio; su entorno se ve como distintivo.
+  const marca = (
+    <SidebarIdentity
+      // El sistema es el mismo para todas las compañías: nombre genérico y la
+      // marca de Piensa IT. El entorno va con la compañía, que es donde se
+      // paraleliza.
+      system={{ name: "Sistema", logo: <img src="/piensait.png" alt="" className="size-full object-cover" /> }}
+      company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
+      module={
+        layout === "rail-panel"
+          ? undefined
+          : { caption: "Módulo", value: "tesoreria", options: MODULOS.map((m) => ({ value: m.id, label: m.label })), onChange: () => {} }
+      }
+    />
+  );
+
   return (
     <AppShell
       variant={variant}
+      layout={layout}
+      sidebarTone={sidebarTone}
+      rail={layout === "rail-panel" ? modulos : undefined}
+      panelTitle={layout === "rail-panel" ? "Tesorería" : undefined}
       storageKey="ejemplo-tesoreria"
       defaultCollapsed={defaultCollapsed}
-      brand={
-        <SidebarBrand
-          name={nombreEmpresa}
-          groups={[
-            {
-              id: "empresa",
-              label: "Empresa",
-              value: empresa,
-              options: empresas,
-              onChange: setEmpresa,
-            },
-            {
-              id: "entorno",
-              label: "Entorno",
-              value: entorno,
-              options: entornos,
-              onChange: setEntorno,
-            },
-          ]}
-          footer={
-            <>
-              <MenuItem value="preferencias" icon={<Settings aria-hidden="true" />}>
-                Preferencias
-              </MenuItem>
-              <MenuItem value="salir" icon={<LogOut aria-hidden="true" />}>
-                Cerrar sesión
-              </MenuItem>
-            </>
-          }
-        />
-      }
+      brand={marca}
       sidebar={
         <SidebarNav>
-          {ENLACES.map((enlace) => (
-            <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+          {SECCIONES.map((seccion) => (
+            <SidebarNavGroup key={seccion.id} label={seccion.label} collapsible groupId={seccion.id}>
+              {seccion.enlaces.map((enlace) => (
+                <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+              ))}
+            </SidebarNavGroup>
           ))}
         </SidebarNav>
       }
       sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
+      // El buscador de pantallas, a la izquierda: estándar en todas las
+      // aplicaciones, con Ctrl K desde cualquier sitio.
       topbarStart={
-        <span className="hidden text-ui-body-sm text-muted-foreground sm:inline">
-          Tesorería · {nombreEmpresa}
-        </span>
+        <ScreenSearch
+          groups={SECCIONES.map((s) => ({ id: s.id, label: s.label, items: s.enlaces.map((e) => ({ id: e.id, label: e.label })) }))}
+          activeId={vista}
+          onSelect={(id) => setVista(id as VistaId)}
+        />
       }
       topbar={
+        // A la derecha, lo estándar: notificaciones y persona, siempre en el
+        // mismo sitio. Lo específico de cada pantalla —periodo, acciones— va
+        // en la pantalla, no aquí.
         <>
-          <Toolbar>
-            <Select
-              aria-label="Periodo contable"
-              size="sm"
-              options={[
-                { value: "2026-09", label: "Septiembre 2026" },
-                { value: "2026-08", label: "Agosto 2026" },
-                { value: "2026-07", label: "Julio 2026" },
-              ]}
-              value={periodo}
-              onChange={setPeriodo}
-              width="auto"
-            />
-          </Toolbar>
-          <Button size="sm" variant="outline" onClick={() => setVista("nuevo")}>
-            <FilePlus2 aria-hidden="true" />
-            Nuevo
-          </Button>
-          {/* La persona, siempre en el mismo sitio y con el mismo orden dentro:
-              perfil, configuración, lo propio de la aplicación, cerrar sesión. */}
+          <NotificationsMenu items={notificaciones} onSelect={() => setVista("conciliacion")} onViewAll={() => setVista("conciliacion")} onMarkAllRead={() => {}} />
           <UserMenu
-            user={{ name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" }}
+            user={persona}
             onProfile={() => setVista("movimientos")}
             onSettings={() => setVista("movimientos")}
             onSignOut={() => setVista("movimientos")}

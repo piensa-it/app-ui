@@ -154,16 +154,27 @@ export interface SidebarNavItemProps extends React.HTMLAttributes<HTMLElement> {
  */
 export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>(
   ({ icon, active = false, badge, asChild = false, href = "#", className, children, onClick, ...props }, ref) => {
-    const { collapsed, closeMobile } = useSidebar();
+    const { collapsed, rail, closeMobile } = useSidebar();
     const Component = asChild ? Slot : "a";
+    // En el riel el menú está plegado pero la etiqueta se ve, bajo el icono.
+    const iconOnly = collapsed && !rail;
 
     const iconNode = icon ? (
-      <span aria-hidden="true" className="grid size-4 shrink-0 place-items-center [&_svg]:size-4">
+      <span
+        aria-hidden="true"
+        className={cn("grid shrink-0 place-items-center", rail ? "size-5 [&_svg]:size-5" : "size-4 [&_svg]:size-4")}
+      >
         {icon}
       </span>
     ) : null;
     // Plegado el texto deja de verse, pero el enlace conserva su nombre.
-    const labelClassName = cn("min-w-0 flex-1 truncate", collapsed && "sr-only");
+    const labelClassName = cn(
+      "min-w-0 flex-1",
+      iconOnly && "sr-only",
+      // En el riel la etiqueta puede ocupar dos líneas antes de cortarse:
+      // «Cuentas bancarias» cabe; «Conciliación» no se parte por la mitad.
+      rail ? "line-clamp-2 w-full flex-none break-words text-center text-ui-caption leading-tight" : "truncate",
+    );
     const badgeNode = badge && !collapsed ? <span className="shrink-0">{badge}</span> : null;
 
     return (
@@ -172,7 +183,7 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
           ref={ref as React.Ref<HTMLAnchorElement>}
           {...(asChild ? {} : { href })}
           aria-current={active ? "page" : undefined}
-          title={collapsed && typeof children === "string" ? children : undefined}
+          title={iconOnly && typeof children === "string" ? children : undefined}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             onClick?.(event);
             // Navegar desde el panel móvil debe cerrarlo: si no, el contenido
@@ -180,7 +191,8 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
             closeMobile();
           }}
           className={cn(
-            "flex w-full items-center gap-ui-sm rounded-md px-ui-sm py-ui-xs text-ui-body-sm transition-colors duration-normal",
+            "flex w-full items-center rounded-md text-ui-body-sm transition-colors duration-normal",
+            rail ? "flex-col gap-ui-2xs px-ui-2xs py-ui-xs" : "gap-ui-sm px-ui-sm py-ui-xs",
             "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
             // La barra de acento a la izquierda mide `--sidebar-active-bar`,
             // que de fábrica es 0: la ponen los estilos (`data-ui-look="soft"`)
@@ -189,12 +201,14 @@ export const SidebarNavItem = React.forwardRef<HTMLElement, SidebarNavItemProps>
             active
               ? "bg-sidebar-active font-medium text-sidebar-active-foreground inset-shadow-[var(--sidebar-active-bar)_0_0_0_hsl(var(--sidebar-ring))]"
               : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",
-            collapsed && "justify-center px-0",
+            iconOnly && "justify-center px-0",
             // Con `asChild` el contenido es del consumidor y no se puede
             // envolver para ocultarlo al plegar. Se ocultan sus hijos salvo el
             // icono, que va marcado como decorativo: por eso la etiqueta debe
             // ir dentro de un elemento, no como texto suelto.
-            collapsed && asChild && "[&>*:not([aria-hidden])]:sr-only",
+            iconOnly && asChild && "[&>*:not([aria-hidden])]:sr-only",
+            // En el riel, la etiqueta del consumidor baja bajo el icono.
+            rail && asChild && "[&>*:not([aria-hidden])]:line-clamp-2 [&>*:not([aria-hidden])]:w-full [&>*:not([aria-hidden])]:break-words [&>*:not([aria-hidden])]:text-center [&>*:not([aria-hidden])]:text-ui-caption [&>*:not([aria-hidden])]:leading-tight",
             className,
           )}
           {...props}

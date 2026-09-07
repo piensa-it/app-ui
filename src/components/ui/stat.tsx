@@ -35,8 +35,8 @@ export interface StatProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "t
    * Qué clase de noticia es la cifra. @default "default"
    *
    * - `default`: informativa. Es un dato, no una noticia. Va en el color de
-   *   marca, no en gris: un tablero de seis cifras en gris no dice «esto es
-   *   normal», dice «esto está apagado».
+   *   marca —icono y borde—, no en gris: un tablero de seis cifras en gris no
+   *   dice «esto es normal», dice «esto está apagado».
    * - `positive`: salió bien.
    * - `warning`: hay que mirarlo esta semana.
    * - `negative`: hay que hacer algo ya.
@@ -73,10 +73,10 @@ const TONE: Record<
   StatTone,
   { icon: string; border: string; value: string; announce: string | null }
 > = {
-  default: { icon: "text-primary", border: "border-raised-border", value: "text-foreground", announce: null },
-  positive: { icon: "text-success", border: "border-success/40", value: "text-foreground", announce: "salió bien" },
-  warning: { icon: "text-warning", border: "border-warning/50", value: "text-foreground", announce: "requiere atención esta semana" },
-  negative: { icon: "text-destructive", border: "border-destructive/40", value: "text-destructive", announce: "requiere acción" },
+  default: { icon: "bg-primary/10 text-primary", border: "border-primary/30", value: "text-foreground", announce: null },
+  positive: { icon: "bg-success/10 text-success", border: "border-success/40", value: "text-foreground", announce: "salió bien" },
+  warning: { icon: "bg-warning/10 text-warning", border: "border-warning/50", value: "text-foreground", announce: "requiere atención esta semana" },
+  negative: { icon: "bg-destructive/10 text-destructive", border: "border-destructive/40", value: "text-destructive", announce: "requiere acción" },
 };
 
 function trendTone(trend: StatTrend): string {
@@ -113,25 +113,35 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
         role="group"
         aria-labelledby={labelId}
         aria-busy={loading || undefined}
-        className={cn("rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
+        // `@container`: la cifra se mide contra la tarjeta, no contra la
+        // ventana. Cuatro tarjetas en una fila estrecha son tarjetas
+        // estrechas aunque la ventana sea ancha.
+        className={cn("@container rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
         {...props}
       >
-        <dl className="flex flex-col gap-ui-2xs">
-          <dt id={labelId} className="flex items-center gap-ui-xs text-ui-body-sm text-muted-foreground">
+        <dl className="flex min-w-0 flex-col gap-ui-2xs">
+          {/* El icono en una tesela con el tono, en la fila del rótulo, como
+              en `IconTile`: dice de qué es la cifra de un vistazo. Va en esta
+              fila y no flotando sobre la cifra, para que la cifra tenga todo
+              el ancho de la tarjeta. */}
+          <dt id={labelId} className="flex items-start justify-between gap-ui-sm text-ui-body-sm text-muted-foreground">
+            <span className="min-w-0 pt-ui-2xs">{label}</span>
             {icon ? (
-              <span aria-hidden="true" className={cn("grid size-4 place-items-center [&_svg]:size-4", styles.icon)}>
+              <span aria-hidden="true" className={cn("inline-grid size-10 shrink-0 place-items-center rounded-xl [&_svg]:size-5", styles.icon)}>
                 {icon}
               </span>
             ) : null}
-            {label}
             {/* El tono se anuncia además de pintarse: el color solo no llega a
                 quien no lo distingue, y con la marca en verde `default` y
                 `positive` salen del mismo color. */}
             {styles.announce ? <span className="sr-only">, {styles.announce}</span> : null}
           </dt>
+          {/* Tarjeta estrecha, cifra un escalón más pequeña; y si aun así no
+              cabe, se parte antes que salirse de la tarjeta: una cifra
+              cortada se lee, una desbordada tapa a la de al lado. */}
           <dd
             className={cn(
-              "font-heading text-ui-title font-semibold tabular-nums tracking-tight",
+              "font-heading text-ui-title-sm font-semibold tabular-nums tracking-tight [overflow-wrap:anywhere] @[16rem]:text-ui-title",
               styles.value,
               loading && "animate-pulse text-muted-foreground",
             )}

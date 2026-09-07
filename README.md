@@ -204,6 +204,18 @@ an application can override either one from its own `@layer base` and win. Until
 0.6.0 the `.dark` block sat outside every layer, and since unlayered CSS always
 beats layered CSS, an application's dark theme lost against the library's.
 
+### App shell layouts
+
+`AppShell` keeps one structure — sidebar, top bar, content — and lets the
+application choose its shape: `layout="docked" | "floating" | "rail" | "framed" | "rail-panel"`
+(two levels: modules in the rail via `rail`, the active module's tree in a
+side panel via `sidebar`),
+`sidebarTone="dark" | "light"` (light is the explicit exception to the
+"sidebar is dark in both themes" rule: it takes the page tokens and follows the
+theme), and `topbarCenter` for a centered search box. `SidebarIdentity` in the
+`brand` slot shows system · company (with its environment badge) · module (module optional). `SidebarSearch` filters the menu. The person
+always sits top right, in `UserMenu`. Without those props nothing changes.
+
 ### Spacing scale
 
 The spacing steps carry a `ui-` prefix: `p-ui-md`, `gap-ui-sm`, `-mt-ui-lg`.

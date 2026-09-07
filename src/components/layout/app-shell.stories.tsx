@@ -9,7 +9,8 @@ import { PageContainer } from "./page-container";
 import { PageHeader } from "./page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardIcon, ReceiptIcon, SettingsIcon, UsersIcon } from "@/icons";
+import { Input } from "@/components/ui/input";
+import { DashboardIcon, ReceiptIcon, SearchIcon, SettingsIcon, UsersIcon, WalletIcon } from "@/icons";
 
 const meta = {
   title: "Layout/AppShell",
@@ -345,5 +346,221 @@ export const MenuLargo: Story = {
         </PageContainer>
       </AppShell>
     );
+  },
+};
+
+/**
+ * La forma del armazón se elige con `layout` (#113). `floating`: el menú es
+ * una tarjeta con radio, borde y sombra `raised`, separada de los bordes por
+ * un paso de espaciado. Se combina con cualquier variante y tono.
+ */
+export const MenuFlotante: Story = {
+  name: "Menú flotante",
+  render: () => (
+    <AppShell
+      layout="floating"
+      storageKey="demo-flotante"
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="El menú flota como una tarjeta más; se pliega igual." />
+        <Card>
+          <CardContent>
+            <p className="pt-inset text-ui-body-sm text-muted-foreground">
+              Cambia `layout` a `docked` para verlo pegado al borde, que es el de siempre.
+            </p>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `layout="rail"`: riel de 5 rem, siempre plegado, con la etiqueta bajo el
+ * icono. No hay botón de plegar. Para aplicaciones de pocas secciones donde
+ * el ancho de página importa más que el nombre largo del enlace.
+ */
+export const Riel: Story = {
+  render: () => (
+    <AppShell
+      layout="rail"
+      brand={<SidebarBrand name="Acme S.A." />}
+      sidebarFooter={<AppVersion version="1.4.2" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Movimientos" description="Icono y etiqueta, sin desplegar nunca." />
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `sidebarTone="light"` es la excepción explícita a «el menú es oscuro en
+ * ambos temas»: el menú toma los tokens de la página y sigue al tema. Es una
+ * decisión de la aplicación, no una variante más; se combina con `layout`.
+ */
+export const MenuClaro: Story = {
+  name: "Menú claro",
+  render: () => (
+    <AppShell
+      layout="floating"
+      sidebarTone="light"
+      storageKey="demo-claro"
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" buildDate="2026-09-03" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="Menú claro y flotante: al mismo plano que las tarjetas." />
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-ui-body-sm text-muted-foreground">Cambia el tema en el toolbar: el menú lo sigue.</p>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/** `topbarCenter`: el buscador centrado en la barra superior, entre el inicio y las acciones. */
+export const BuscadorCentrado: Story = {
+  name: "Buscador centrado",
+  render: () => (
+    <AppShell
+      brand={<SidebarBrand name="Acme S.A." />}
+      sidebar={<Navegacion />}
+      topbarCenter={
+        <div className="relative w-full max-w-xl">
+          <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-ui-sm top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input aria-label="Buscar" placeholder="Buscar en toda la aplicación…" className="pl-ui-xl" />
+        </div>
+      }
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Inicio" description="El buscador ocupa el centro; las acciones siguen a la derecha." />
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `layout="framed"` (#118): el menú encierra el contenido. La raíz es del
+ * color del menú y la página va dentro como un panel redondeado con margen,
+ * que es quien se desplaza: el marco no se mueve nunca. En oscuro, con el
+ * estilo `deep` y la paleta cian, es la plantilla 2 de la evaluación. En
+ * móvil no hay marco.
+ */
+export const Enmarcado: Story = {
+  render: () => (
+    <AppShell
+      layout="framed"
+      storageKey="demo-enmarcado"
+      brand={<SidebarBrand name="Acme S.A." groups={grupos} />}
+      sidebarFooter={<AppVersion version="1.4.2" />}
+      sidebar={<Navegacion />}
+      topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+    >
+      <PageContainer>
+        <PageHeader title="Arqueo de caja" description="La página dentro del marco del menú; el marco no se desplaza." />
+        {Array.from({ length: 6 }, (_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <CardTitle>Bloque {i + 1}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-ui-body-sm text-muted-foreground">Desplaza: la barra superior se queda pegada al borde del panel.</p>
+            </CardContent>
+          </Card>
+        ))}
+      </PageContainer>
+    </AppShell>
+  ),
+};
+
+/**
+ * `layout="rail-panel"` (#114): dos niveles. El riel lleva los módulos
+ * (`rail`) y el panel de sección, el árbol del módulo activo (`sidebar`), con
+ * los grupos plegables de siempre. Plegar oculta el panel; el riel nunca se
+ * oculta. Para aplicaciones con muchos módulos, cada uno con varias pantallas:
+ * con un solo nivel, seis secciones y cuarenta enlaces se leen como una lista.
+ */
+export const RielConPanel: Story = {
+  name: "Riel con panel de sección",
+  render: () => {
+    const Demo = () => {
+      const [modulo, setModulo] = useState("tesoreria");
+      const modulos = [
+        { id: "tesoreria", label: "Tesorería", icon: WalletIcon },
+        { id: "cartera", label: "Cartera", icon: ReceiptIcon },
+        { id: "clientes", label: "Clientes", icon: UsersIcon },
+        { id: "ajustes", label: "Ajustes", icon: SettingsIcon },
+      ];
+      const arbol: Record<string, Array<{ grupo: string; enlaces: string[] }>> = {
+        tesoreria: [
+          { grupo: "Operación", enlaces: ["Movimientos", "Arqueo de caja", "Conciliación"] },
+          { grupo: "Informes", enlaces: ["Flujo de caja", "Extractos"] },
+        ],
+        cartera: [{ grupo: "Cobros", enlaces: ["Facturas", "Recaudos", "Cobranza"] }],
+        clientes: [{ grupo: "Maestros", enlaces: ["Clientes", "Contactos"] }],
+        ajustes: [{ grupo: "Administración", enlaces: ["Usuarios", "Permisos", "Parámetros"] }],
+      };
+      const activo = modulos.find((m) => m.id === modulo)!;
+      return (
+        <AppShell
+          layout="rail-panel"
+          storageKey="demo-riel-panel"
+          brand={<SidebarBrand name="Acme S.A." />}
+          sidebarFooter={<AppVersion version="1.4.2" />}
+          panelTitle={activo.label}
+          rail={
+            <SidebarNav>
+              {modulos.map(({ id, label, icon: Icon }) => (
+                <SidebarNavItem
+                  key={id}
+                  icon={<Icon />}
+                  active={modulo === id}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setModulo(id);
+                  }}
+                >
+                  {label}
+                </SidebarNavItem>
+              ))}
+            </SidebarNav>
+          }
+          sidebar={
+            <SidebarNav>
+              {arbol[modulo].map(({ grupo, enlaces }, i) => (
+                <SidebarNavGroup key={grupo} label={grupo} collapsible groupId={`${modulo}-${grupo}`}>
+                  {enlaces.map((enlace, j) => (
+                    <SidebarNavItem key={enlace} icon={<DashboardIcon />} active={i === 0 && j === 0}>
+                      {enlace}
+                    </SidebarNavItem>
+                  ))}
+                </SidebarNavGroup>
+              ))}
+            </SidebarNav>
+          }
+          topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+        >
+          <PageContainer animateKey={modulo}>
+            <PageHeader title={activo.label} description="Cambia de módulo en el riel: el panel muestra su árbol." />
+          </PageContainer>
+        </AppShell>
+      );
+    };
+    return <Demo />;
   },
 };

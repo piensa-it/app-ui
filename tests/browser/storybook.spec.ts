@@ -191,6 +191,17 @@ test.describe("Armazón", () => {
   // capturas los habrían frenado antes de publicar.
   const shellStories = [
     ["armazon-completo", "layout-appshell--default"],
+    // La forma del armazón es elegible (#113): flotante, riel y tono claro
+    // se fijan en claro; el resto de combinaciones son las mismas clases.
+    ["armazon-flotante", "layout-appshell--menu-flotante"],
+    ["armazon-riel", "layout-appshell--riel"],
+    ["armazon-claro", "layout-appshell--menu-claro"],
+    ["armazon-riel-panel", "layout-appshell--riel-con-panel"],
+    ["armazon-enmarcado", "layout-appshell--enmarcado"],
+    ["sidebar-identity", "layout-sidebaridentity--completo"],
+    ["notifications-menu", "layout-notificationsmenu--abierto"],
+    ["sidebar-search", "layout-sidebarsearch--filtrando"],
+    ["screen-search", "layout-screensearch--en-la-barra"],
     ["armazon-plegado", "layout-appshell--plegado"],
     ["armazon-router", "layout-appshell--con-router"],
     ["armazon-secciones", "layout-appshell--secciones-plegables"],

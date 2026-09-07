@@ -161,7 +161,28 @@ export { contrastRatio, relativeLuminance, parseHsl, type Rgb } from "./lib/colo
 
 // --- Layout ---
 // Armazón de aplicación: lo que antes escribía cada producto por su cuenta.
-export { AppShell, type AppShellProps, type SidebarVariant } from "./components/layout/app-shell";
+export {
+  AppShell,
+  type AppShellProps,
+  type SidebarVariant,
+  type AppShellLayout,
+  type SidebarTone,
+} from "./components/layout/app-shell";
+export {
+  SidebarIdentity,
+  type SidebarIdentityProps,
+  type SidebarIdentitySegment,
+  type SidebarIdentitySystem,
+} from "./components/layout/sidebar-identity";
+export {
+  NotificationsMenu,
+  type NotificationsMenuProps,
+  type NotificationItem,
+  type NotificationsLabels,
+} from "./components/layout/notifications-menu";
+export { SidebarSearch, type SidebarSearchProps } from "./components/layout/sidebar-search";
+export { ScreenSearch, type ScreenSearchProps } from "./components/layout/screen-search";
+export { normalizeSearch } from "./lib/search";
 export {
   SidebarBrand,
   type SidebarBrandProps,

@@ -204,6 +204,54 @@ Para afinar una variante, redefine los tokens bajo tu propio selector:
 }
 ```
 
+### La forma del armazón se elige; la estructura no
+
+`layout` decide la forma sin cambiar qué hay (#113):
+
+| Forma | Qué es | Cuándo |
+|---|---|---|
+| `docked` | Menú fijo al borde, plegable a iconos. El de siempre. | Por defecto. |
+| `floating` | El menú es una tarjeta con radio, borde y sombra `raised`, separada de los bordes por un paso. | Productos con pocas secciones donde el menú convive con tarjetas. |
+| `rail` | Riel de 5,5 rem, siempre plegado, con la etiqueta bajo el icono. Sin botón de plegar. | Pocas secciones y páginas anchas (tablas). |
+| `framed` | El menú encierra el contenido: la raíz es del color del menú y la página va dentro como un panel redondeado con margen, que es quien se desplaza. En móvil no hay marco. | Productos que quieren leerse como una sola pieza, con el menú y el marco en el mismo plano. |
+| `rail-panel` | Dos niveles: el riel lleva los módulos (`rail`) y un panel de sección al lado, el árbol del módulo activo (`sidebar`). Plegar oculta el panel; el riel nunca se oculta. | Muchos módulos, cada uno con varias pantallas. Con un solo nivel, seis secciones y cuarenta enlaces se leen como una lista. |
+
+En dos niveles la aplicación decide qué módulo está activo y qué árbol
+mostrar, igual que decide `active` en cada enlace: la librería no conoce el
+router. El panel es claro por defecto; el riel, siempre oscuro.
+
+`sidebarTone="light"` es la **excepción explícita** a la regla de arriba: el
+menú toma los tokens de la página (`raised`, `subtle` para el activo) y sigue
+al tema. Es una decisión de la aplicación, no una variante más, y por eso no
+está en `variant`. `topbarCenter` centra el buscador en la barra superior.
+La persona va siempre arriba a la derecha, en `UserMenu`: el menú lateral
+es para la identidad de la aplicación y para navegar.
+
+### La barra superior es estándar
+
+A la izquierda, el buscador de pantallas (`ScreenSearch`, con Ctrl K); a la
+derecha van dos cosas y siempre las mismas: las notificaciones
+(`NotificationsMenu`, la campana con el número de pendientes y su panel) y la
+persona (`UserMenu`). Lo que es de una pantalla —el periodo, un buscador, el
+botón de crear— va en la cabecera de esa pantalla (`PageHeader`), no en la
+barra: una acción que solo tiene sentido en Movimientos no puede estar a la
+vista en Conciliación.
+
+### La identidad va en la cabecera del menú
+
+Qué sistema es, con qué compañía se trabaja —y en qué entorno de esa
+compañía— y en qué módulo, en el mismo sitio para una aplicación grande y una
+pequeña: `SidebarIdentity` en el hueco `brand`. La pequeña omite el módulo y no
+queda hueco. Cada segmento es un control —o una etiqueta, si no hay nada que
+elegir— y **la compañía se cambia en un solo sitio**. El distintivo de entorno
+(UAT, Pruebas) va junto a la compañía, no junto al sistema: el sistema es el
+mismo para todas y los ambientes se paralelizan por compañía. En dos niveles el módulo ya está en el riel; el segmento es
+para las formas de un nivel. La persona no va en el menú: vive arriba a la
+derecha, en `UserMenu`, en todas las formas del armazón.
+
+`SidebarBrand` sigue existiendo para quien solo tenga una organización y
+grupos de opciones propios (entorno, sucursal, periodo).
+
 ### Un control por fila
 
 En la cabecera del menú va **un solo control**. Es un aprendizaje caro: teníamos

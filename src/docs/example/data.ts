@@ -156,6 +156,16 @@ export const movimientos: Movimiento[] = [
     estado: "conciliado",
     valor: 8_060_000,
   },
+  {
+    id: "MC-2055",
+    fecha: "2026-09-04",
+    concepto: "Recaudo contrato corporativo",
+    tercero: "GrupoDO.com",
+    centro: "Comercial",
+    metodo: "Transferencia",
+    estado: "conciliado",
+    valor: 46_500_000,
+  },
 ];
 
 /** Pesos colombianos sin decimales, que es como se leen en un arqueo. */
@@ -175,10 +185,15 @@ export function formatoFecha(iso: string): string {
   });
 }
 
+/**
+ * El entorno es de cada compañía, no del sistema: el sistema es el mismo y
+ * los ambientes se paralelizan por compañía. Por eso el distintivo lo declara
+ * la opción, y así la identidad lo muestra junto a la compañía elegida.
+ */
 export const empresas = [
-  { value: "poblado", label: "Distribuidora El Poblado S.A.S.", description: "NIT 900.412.331-4" },
-  { value: "andinos", label: "Servicios Andinos Ltda.", description: "NIT 830.118.902-7" },
-  { value: "cafeteros", label: "Transportes Cafeteros S.A.S.", description: "NIT 901.554.208-1" },
+  { value: "poblado", label: "GrupoDO.com", description: "NIT 900.412.331-4", badge: { label: "UAT", tone: "warning" as const } },
+  { value: "andinos", label: "Andinos Ltda.", description: "NIT 830.118.902-7" },
+  { value: "cafeteros", label: "Cafeteros S.A.S.", description: "NIT 901.554.208-1", badge: { label: "Pruebas", tone: "neutral" as const } },
 ];
 
 export const entornos = [
@@ -206,4 +221,29 @@ export const metodosDePago = [
   { value: "efectivo", label: "Efectivo" },
   { value: "tarjeta", label: "Tarjeta corporativa" },
   { value: "cheque", label: "Cheque", disabled: true },
+];
+
+/** Flujo de caja de los últimos seis meses, para la gráfica del tablero. */
+export const flujoMensual = [
+  { mes: "Abr", entradas: 52_300_000, salidas: 48_900_000 },
+  { mes: "May", entradas: 58_100_000, salidas: 61_400_000 },
+  { mes: "Jun", entradas: 63_700_000, salidas: 55_200_000 },
+  { mes: "Jul", entradas: 49_800_000, salidas: 57_600_000 },
+  { mes: "Ago", entradas: 71_200_000, salidas: 64_300_000 },
+  { mes: "Sep", entradas: 107_438_100, salidas: 79_615_800 },
+];
+
+/** Lo que espera una acción de tesorería, para la tarjeta de pendientes del tablero. */
+export const pendientes = [
+  { id: "p1", titulo: "Conciliar extracto de agosto", detalle: "Banco de Bogotá 4218 · 3 diferencias", vence: "Hoy" },
+  { id: "p2", titulo: "Aprobar pago a Servicios Andinos", detalle: "Anticipo contrato mantenimiento", vence: "Mañana" },
+  { id: "p3", titulo: "Registrar consignación de Carolina Ríos", detalle: "Venta de contado mostrador", vence: "Esta semana" },
+  { id: "p4", titulo: "Renovar token del portal bancario", detalle: "Vence el 15 de septiembre", vence: "Esta semana" },
+];
+
+/** Los avisos de la campana. De dónde salen y a dónde llevan lo decide la aplicación. */
+export const notificaciones = [
+  { id: "n1", title: "Conciliación pendiente", description: "Banco de Bogotá 4218 · 3 diferencias en agosto", time: "Hace 5 min", unread: true },
+  { id: "n2", title: "Pago aprobado", description: "Anticipo contrato mantenimiento · Andinos Ltda.", time: "Hace 2 h", unread: true },
+  { id: "n3", title: "Extracto descargado", description: "Septiembre, cuenta corriente 4218", time: "Ayer" },
 ];

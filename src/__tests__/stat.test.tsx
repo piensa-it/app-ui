@@ -6,7 +6,8 @@ describe("Stat", () => {
   it("relaciona el rótulo con su cifra", () => {
     render(<Stat label="Entradas" value="$ 60.938.100" />);
     const term = screen.getByText("Entradas");
-    expect(term.tagName).toBe("DT");
+    // El rótulo va dentro del <dt> (en un span, para convivir con la tesela).
+    expect(term.closest("dt")).not.toBeNull();
     expect(screen.getByText("$ 60.938.100").tagName).toBe("DD");
   });
 
@@ -72,7 +73,8 @@ describe("StatGroup", () => {
  */
 describe("Stat · tono", () => {
   it("sin tono, el icono va en el color de marca y no en gris", () => {
-    // Un tablero de seis cifras en gris no dice «normal», dice «apagado».
+    // Un tablero de seis cifras en gris no dice «normal», dice «apagado». El
+    // icono va en una tesela con el tono, arriba a la derecha de la tarjeta.
     const { container } = render(<Stat label="Ventas" value="1.248" icon={<svg />} />);
     const icono = container.querySelector("dt > span[aria-hidden]") as HTMLElement;
     expect(icono.className).toMatch(/text-primary/);

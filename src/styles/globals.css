@@ -360,6 +360,31 @@
   }
 
   /**
+   * Tono claro del menú (`<AppShell sidebarTone="light">`, #113): la
+   * excepción explícita a «el menú es oscuro en ambos temas». El menú toma
+   * los tokens de la página —`raised` de fondo, `subtle` para el activo— y
+   * sigue al tema, así que no hace falta un bloque `.dark` propio.
+   *
+   * Va después de las variantes y de sus versiones `.dark`, y con un
+   * selector más específico que `.dark [data-sidebar="…"]`, para ganar a
+   * las dos.
+   */
+  [data-sidebar][data-sidebar-tone="light"],
+  .dark [data-sidebar][data-sidebar-tone="light"] {
+    --sidebar: var(--raised);
+    --sidebar-alpha: 1;
+    --sidebar-blur: 0px;
+    --sidebar-foreground: var(--raised-foreground);
+    --sidebar-muted-foreground: var(--muted-foreground);
+    --sidebar-border: var(--raised-border);
+    --sidebar-hover: var(--surface-hover);
+    --sidebar-active: var(--subtle);
+    --sidebar-active-foreground: var(--subtle-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+  }
+
+  /**
    * Tema oscuro.
    *
    * Vive en `@layer base`, igual que `:root`. Estuvo fuera de toda capa por un
