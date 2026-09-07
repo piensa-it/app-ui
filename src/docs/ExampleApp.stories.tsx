@@ -47,8 +47,8 @@ const meta = {
     defaultCollapsed: { control: "boolean" },
     layout: {
       control: "inline-radio",
-      options: ["docked", "floating", "rail"],
-      description: "Forma del armazón: pegado al borde, flotante o riel.",
+      options: ["docked", "floating", "rail", "rail-panel"],
+      description: "Forma del armazón: pegado al borde, flotante, riel, o riel con panel de sección.",
     },
     sidebarTone: {
       control: "inline-radio",
@@ -63,7 +63,6 @@ const meta = {
     vistaInicial: "movimientos",
     defaultCollapsed: false,
     layout: "docked",
-    sidebarTone: "dark",
     perfilEnMenu: false,
     buscadorCentrado: false,
   },
@@ -132,4 +131,14 @@ export const AplicacionDeEjemplo2: Story = {
 export const AplicacionDeEjemplo3: Story = {
   name: "Aplicación de ejemplo 3 · riel",
   args: { layout: "rail", buscadorCentrado: true },
+};
+
+/**
+ * La misma aplicación en dos niveles (#114): el riel lleva los módulos y el
+ * panel de sección, el árbol del módulo activo. Es la plantilla 3 completa.
+ * Plegar oculta el panel; el riel se queda.
+ */
+export const AplicacionDeEjemplo4: Story = {
+  name: "Aplicación de ejemplo 4 · riel con panel",
+  args: { layout: "rail-panel", buscadorCentrado: true },
 };

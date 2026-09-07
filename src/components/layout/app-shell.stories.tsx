@@ -11,7 +11,7 @@ import { PageHeader } from "./page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { DashboardIcon, ReceiptIcon, SearchIcon, SettingsIcon, UsersIcon } from "@/icons";
+import { DashboardIcon, ReceiptIcon, SearchIcon, SettingsIcon, UsersIcon, WalletIcon } from "@/icons";
 
 const meta = {
   title: "Layout/AppShell",
@@ -480,4 +480,81 @@ export const BuscadorCentrado: Story = {
       </PageContainer>
     </AppShell>
   ),
+};
+
+/**
+ * `layout="rail-panel"` (#114): dos niveles. El riel lleva los módulos
+ * (`rail`) y el panel de sección, el árbol del módulo activo (`sidebar`), con
+ * los grupos plegables de siempre. Plegar oculta el panel; el riel nunca se
+ * oculta. Para aplicaciones con muchos módulos, cada uno con varias pantallas:
+ * con un solo nivel, seis secciones y cuarenta enlaces se leen como una lista.
+ */
+export const RielConPanel: Story = {
+  name: "Riel con panel de sección",
+  render: () => {
+    const Demo = () => {
+      const [modulo, setModulo] = useState("tesoreria");
+      const modulos = [
+        { id: "tesoreria", label: "Tesorería", icon: WalletIcon },
+        { id: "cartera", label: "Cartera", icon: ReceiptIcon },
+        { id: "clientes", label: "Clientes", icon: UsersIcon },
+        { id: "ajustes", label: "Ajustes", icon: SettingsIcon },
+      ];
+      const arbol: Record<string, Array<{ grupo: string; enlaces: string[] }>> = {
+        tesoreria: [
+          { grupo: "Operación", enlaces: ["Movimientos", "Arqueo de caja", "Conciliación"] },
+          { grupo: "Informes", enlaces: ["Flujo de caja", "Extractos"] },
+        ],
+        cartera: [{ grupo: "Cobros", enlaces: ["Facturas", "Recaudos", "Cobranza"] }],
+        clientes: [{ grupo: "Maestros", enlaces: ["Clientes", "Contactos"] }],
+        ajustes: [{ grupo: "Administración", enlaces: ["Usuarios", "Permisos", "Parámetros"] }],
+      };
+      const activo = modulos.find((m) => m.id === modulo)!;
+      return (
+        <AppShell
+          layout="rail-panel"
+          storageKey="demo-riel-panel"
+          brand={<SidebarBrand name="Acme S.A." />}
+          sidebarFooter={<AppVersion version="1.4.2" />}
+          panelTitle={activo.label}
+          rail={
+            <SidebarNav>
+              {modulos.map(({ id, label, icon: Icon }) => (
+                <SidebarNavItem
+                  key={id}
+                  icon={<Icon />}
+                  active={modulo === id}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setModulo(id);
+                  }}
+                >
+                  {label}
+                </SidebarNavItem>
+              ))}
+            </SidebarNav>
+          }
+          sidebar={
+            <SidebarNav>
+              {arbol[modulo].map(({ grupo, enlaces }, i) => (
+                <SidebarNavGroup key={grupo} label={grupo} collapsible groupId={`${modulo}-${grupo}`}>
+                  {enlaces.map((enlace, j) => (
+                    <SidebarNavItem key={enlace} icon={<DashboardIcon />} active={i === 0 && j === 0}>
+                      {enlace}
+                    </SidebarNavItem>
+                  ))}
+                </SidebarNavGroup>
+              ))}
+            </SidebarNav>
+          }
+          topbar={<Button size="sm" variant="outline">Mi perfil</Button>}
+        >
+          <PageContainer animateKey={modulo}>
+            <PageHeader title={activo.label} description="Cambia de módulo en el riel: el panel muestra su árbol." />
+          </PageContainer>
+        </AppShell>
+      );
+    };
+    return <Demo />;
+  },
 };

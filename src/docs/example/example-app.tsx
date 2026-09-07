@@ -10,6 +10,9 @@ import {
   LogOut,
   Settings,
   Search,
+  Wallet,
+  Receipt,
+  ShoppingCart,
 } from "lucide-react";
 
 import { AppShell, type AppShellLayout, type SidebarTone, type SidebarVariant } from "@/components/layout/app-shell";
@@ -54,6 +57,13 @@ interface EnlaceNav {
   label: string;
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 }
+
+const MODULOS = [
+  { id: "tesoreria", label: "Tesorería", icon: Wallet },
+  { id: "cartera", label: "Cartera", icon: Receipt },
+  { id: "compras", label: "Compras", icon: ShoppingCart },
+  { id: "informes", label: "Informes", icon: BarChart3 },
+] as const;
 
 const ENLACES: EnlaceNav[] = [
   { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
@@ -361,7 +371,8 @@ export function ExampleApp({
   vistaInicial = "movimientos",
   defaultCollapsed = false,
   layout = "docked",
-  sidebarTone = "dark",
+  // Sin valor: manda el de la librería (oscuro; claro en el panel de dos niveles).
+  sidebarTone,
   perfilEnMenu = false,
   buscadorCentrado = false,
 }: ExampleAppProps) {
@@ -387,6 +398,18 @@ export function ExampleApp({
     ) : (
       <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." />
     );
+
+  // Los módulos del riel en dos niveles (#114). Tesorería es el activo: su
+  // árbol es el menú de siempre. Los demás son de muestra.
+  const modulos = (
+    <SidebarNav>
+      {MODULOS.map((modulo) => (
+        <SidebarNavItem key={modulo.id} icon={<modulo.icon aria-hidden="true" />} active={modulo.id === "tesoreria"} onClick={(e) => e.preventDefault()}>
+          {modulo.label}
+        </SidebarNavItem>
+      ))}
+    </SidebarNav>
+  );
 
   const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
 
@@ -427,6 +450,8 @@ export function ExampleApp({
       variant={variant}
       layout={layout}
       sidebarTone={sidebarTone}
+      rail={layout === "rail-panel" ? modulos : undefined}
+      panelTitle={layout === "rail-panel" ? "Tesorería" : undefined}
       storageKey="ejemplo-tesoreria"
       defaultCollapsed={defaultCollapsed}
       brand={
