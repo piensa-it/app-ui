@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`UserMenu`: el menú de la persona en la barra superior** (#97). Avatar —foto, o iniciales sobre un color— con nombre y rol como disparador; dentro, cabecera con quién está y con qué cuenta, «Mi perfil», «Configuración», las acciones propias de la aplicación y «Cerrar sesión», en ese orden y siempre en el mismo sitio. Cada aplicación se escribía el suyo y se desviaba de las otras en orden, iconos y comportamiento. La librería no conoce el router ni la sesión: todo son callbacks; los textos se sustituyen con `labels`. Con `confirmSignOut`, cerrar sesión pide confirmación reutilizando `confirmAlert`, sin montar una capa modal propia. En pantallas estrechas queda solo el avatar, y el nombre sigue en el nombre accesible. Las iniciales salen de la misma regla que `SidebarBrand` (`initialsFrom`, ahora exportada), para que la persona y la organización se vean igual.
+
 ## [0.7.3] - 2026-09-06
 
 ### Fixed
