@@ -2,6 +2,7 @@ import * as React from "react";
 import { ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { initialsFrom } from "@/lib/initials";
 import { useSidebar } from "./sidebar-context";
 import {
   Menu,
@@ -102,21 +103,6 @@ const TONES = {
   danger: "bg-destructive text-destructive-foreground",
 } as const;
 
-/** Dos primeras iniciales del nombre, ignorando las formas societarias. */
-function initialsFrom(name: string): string {
-  const ignored = /^(s\.?a\.?s?|ltda|inc|llc|corp|s\.?l|c\.?a|gmbh)\.?$/i;
-  const words = name
-    .split(/\s+/)
-    .filter((word) => word.length > 0 && !ignored.test(word.replace(/[.,]/g, "")));
-  const source = words.length > 0 ? words : name.split(/\s+/);
-  // Con una sola palabra ("Acme S.A." → "Acme") dos letras se leen mejor que
-  // una suelta en el cuadro.
-  if (source.length === 1) return (source[0] ?? "").slice(0, 2).toLocaleUpperCase();
-  return source
-    .slice(0, 2)
-    .map((word) => word[0]?.toLocaleUpperCase() ?? "")
-    .join("");
-}
 
 /**
  * Identidad de la organización en la cabecera del menú lateral: logo o

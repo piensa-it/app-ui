@@ -17,6 +17,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
+import { UserMenu } from "@/components/layout/user-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -442,6 +443,15 @@ export function ExampleApp({
             <FilePlus2 aria-hidden="true" />
             Nuevo
           </Button>
+          {/* La persona, siempre en el mismo sitio y con el mismo orden dentro:
+              perfil, configuración, lo propio de la aplicación, cerrar sesión. */}
+          <UserMenu
+            user={{ name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" }}
+            onProfile={() => setVista("movimientos")}
+            onSettings={() => setVista("movimientos")}
+            onSignOut={() => setVista("movimientos")}
+            confirmSignOut
+          />
         </>
       }
     >

@@ -312,3 +312,23 @@ test.describe("PageContainer · bloque vacío", () => {
     expect(separacion).toBeLessThanOrEqual(25);
   });
 });
+
+test.describe("UserMenu", () => {
+  // Cada aplicación se escribía su desplegable de usuario y cada uno se
+  // desviaba de los otros. Estas capturas fijan el estándar abierto, en los
+  // dos temas: cabecera, perfil, configuración, cerrar sesión.
+  for (const tema of ["light", "dark"] as const) {
+    test(`abierto en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+      await page.goto(storyUrl("layout-usermenu--con-acciones-propias", `theme:${tema};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await page.getByRole("button", { name: "Andrés Montoya" }).click();
+      const menu = page.getByRole("menu");
+      await expect(menu).toBeVisible();
+      await expect(menu.getByRole("menuitem", { name: "Cerrar sesión" })).toBeVisible();
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`user-menu-${tema}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+});

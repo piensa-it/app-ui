@@ -168,6 +168,14 @@ export {
 export { PageContainer, type PageContainerProps } from "./components/layout/page-container";
 export { PageHeader, type PageHeaderProps } from "./components/layout/page-header";
 export { AppVersion, type AppVersionProps } from "./components/layout/app-version";
+export {
+  UserMenu,
+  type UserMenuProps,
+  type UserMenuUser,
+  type UserMenuItem,
+  type UserMenuLabels,
+} from "./components/layout/user-menu";
+export { initialsFrom } from "./lib/initials";
 export { Layout, type LayoutProps } from "./components/layout/Layout";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/GlobalErrorBoundary";
 
