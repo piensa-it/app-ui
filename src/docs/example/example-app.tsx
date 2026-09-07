@@ -17,7 +17,6 @@ import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
-import { SidebarProfile } from "@/components/layout/sidebar-profile";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Badge } from "@/components/ui/badge";
@@ -343,8 +342,6 @@ export interface ExampleAppProps {
   layout?: AppShellLayout;
   /** Tono del menú (#113). */
   sidebarTone?: SidebarTone;
-  /** La persona arriba del menú (`SidebarProfile`) y la empresa abajo, como en la plantilla 2. */
-  perfilEnMenu?: boolean;
   /** El buscador centrado en la barra superior (`topbarCenter`), como en la plantilla 3. */
   buscadorCentrado?: boolean;
 }
@@ -362,7 +359,6 @@ export function ExampleApp({
   defaultCollapsed = false,
   layout = "docked",
   sidebarTone = "dark",
-  perfilEnMenu = false,
   buscadorCentrado = false,
 }: ExampleAppProps) {
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
@@ -429,13 +425,7 @@ export function ExampleApp({
       sidebarTone={sidebarTone}
       storageKey="ejemplo-tesoreria"
       defaultCollapsed={defaultCollapsed}
-      brand={
-        perfilEnMenu ? (
-          <SidebarProfile name={persona.name} description={persona.role} avatarColor={persona.avatarColor} onClick={() => setVista("movimientos")} />
-        ) : (
-          marca
-        )
-      }
+      brand={marca}
       sidebar={
         <SidebarNav>
           {ENLACES.map((enlace) => (
@@ -443,16 +433,7 @@ export function ExampleApp({
           ))}
         </SidebarNav>
       }
-      sidebarFooter={
-        perfilEnMenu ? (
-          <>
-            {marca}
-            <AppVersion version="4.2.0" buildDate="2026-09-03" />
-          </>
-        ) : (
-          <AppVersion version="4.2.0" buildDate="2026-09-03" />
-        )
-      }
+      sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
       topbarCenter={
         buscadorCentrado ? (
           <div className="relative w-full max-w-xl">
