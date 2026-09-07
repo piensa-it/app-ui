@@ -529,7 +529,7 @@ export function ExampleApp({
       // El sistema es el mismo para todas las compañías: nombre genérico y la
       // marca de Piensa IT. El entorno va con la compañía, que es donde se
       // paraleliza.
-      system={{ name: "Sistema", logo: <img src="/favicon.png" alt="" className="size-full object-cover" /> }}
+      system={{ name: "Sistema", logo: <img src="/piensait.png" alt="" className="size-full object-cover" /> }}
       company={{ caption: "Compañía", value: empresa, options: empresas, onChange: setEmpresa }}
       module={
         layout === "rail-panel"

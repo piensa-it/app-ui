@@ -113,10 +113,13 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
         role="group"
         aria-labelledby={labelId}
         aria-busy={loading || undefined}
-        className={cn("rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
+        // `@container`: la cifra se mide contra la tarjeta, no contra la
+        // ventana. Cuatro tarjetas en una fila estrecha son tarjetas
+        // estrechas aunque la ventana sea ancha.
+        className={cn("@container rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
         {...props}
       >
-        <dl className="flex flex-col gap-ui-2xs">
+        <dl className="flex min-w-0 flex-col gap-ui-2xs">
           <dt id={labelId} className="flex items-center gap-ui-xs text-ui-body-sm text-muted-foreground">
             {icon ? (
               <span aria-hidden="true" className={cn("grid size-4 place-items-center [&_svg]:size-4", styles.icon)}>
@@ -129,9 +132,12 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
                 `positive` salen del mismo color. */}
             {styles.announce ? <span className="sr-only">, {styles.announce}</span> : null}
           </dt>
+          {/* Tarjeta estrecha, cifra un escalón más pequeña; y si aun así no
+              cabe, se parte antes que salirse de la tarjeta: una cifra
+              cortada se lee, una desbordada tapa a la de al lado. */}
           <dd
             className={cn(
-              "font-heading text-ui-title font-semibold tabular-nums tracking-tight",
+              "font-heading text-ui-title-sm font-semibold tabular-nums tracking-tight [overflow-wrap:anywhere] @[16rem]:text-ui-title",
               styles.value,
               loading && "animate-pulse text-muted-foreground",
             )}
