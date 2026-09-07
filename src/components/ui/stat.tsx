@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Minus } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -161,24 +161,6 @@ export interface StatGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string;
   /** Columnas en pantalla ancha. @default 3 */
   columns?: 2 | 3 | 4;
-  /**
-   * Deja ocultar y mostrar los indicadores. @default false
-   *
-   * Una pantalla de tabla no siempre quiere las cifras arriba: quien captura
-   * cuarenta movimientos al día prefiere las filas, y quien supervisa
-   * prefiere el resumen. Con esto lo decide cada persona, y no la pantalla
-   * por todos.
-   */
-  collapsible?: boolean;
-  /** Estado inicial cuando no hay preferencia guardada. @default false */
-  defaultCollapsed?: boolean;
-  /**
-   * Clave para recordar en este dispositivo si se ocultaron. Ponla distinta
-   * por pantalla; sin clave, no se recuerda. Mismo mecanismo que `AppShell`.
-   */
-  storageKey?: string;
-  /** Textos del botón. */
-  labels?: { hide?: string; show?: string };
   children: React.ReactNode;
 }
 
@@ -188,76 +170,20 @@ const GROUP_COLUMNS: Record<NonNullable<StatGroupProps["columns"]>, string> = {
   4: "sm:grid-cols-2 lg:grid-cols-4",
 };
 
-const groupKeyFor = (key: string) => `ui-stats:${key}:collapsed`;
-
-function readStoredCollapsed(key: string | undefined, fallback: boolean): boolean {
-  if (!key || typeof window === "undefined") return fallback;
-  try {
-    const stored = window.localStorage.getItem(groupKeyFor(key));
-    return stored === null ? fallback : stored === "true";
-  } catch {
-    return fallback;
-  }
-}
-
-/** Fila de métricas, con el espaciado del sistema. Opcionalmente plegable. */
+/**
+ * Fila de métricas, con el espaciado del sistema.
+ *
+ * No trae ningún control para que la persona oculte los indicadores: si una
+ * pantalla los muestra o no lo decide la configuración técnica de cada
+ * aplicación, no cada usuario. Se probó un botón de ocultar con preferencia
+ * por dispositivo y se retiró antes de publicarlo, para no dejar abierta
+ * una ventana que ninguna aplicación pidió todavía.
+ */
 export const StatGroup = React.forwardRef<HTMLDivElement, StatGroupProps>(
-  (
-    { label = "Indicadores", columns = 3, collapsible = false, defaultCollapsed = false, storageKey, labels, className, children, ...props },
-    ref,
-  ) => {
-    const [collapsed, setCollapsedState] = React.useState(() => readStoredCollapsed(storageKey, defaultCollapsed));
-    const gridId = React.useId();
-    const text = { hide: "Ocultar indicadores", show: "Mostrar indicadores", ...labels };
-
-    const setCollapsed = (next: boolean) => {
-      setCollapsedState(next);
-      if (!storageKey || typeof window === "undefined") return;
-      try {
-        window.localStorage.setItem(groupKeyFor(storageKey), String(next));
-      } catch {
-        // Se pliega igual aunque no se pueda recordar.
-      }
-    };
-
-    const grid = (
-      <div id={gridId} className={cn("grid grid-cols-1 gap-ui-md", GROUP_COLUMNS[columns])}>
-        {children}
-      </div>
-    );
-
-    if (!collapsible) {
-      return (
-        <div ref={ref} role="group" aria-label={label} className={cn("grid grid-cols-1 gap-ui-md", GROUP_COLUMNS[columns], className)} {...props}>
-          {children}
-        </div>
-      );
-    }
-
-    return (
-      <div ref={ref} role="group" aria-label={label} className={cn("flex flex-col gap-ui-xs", className)} {...props}>
-        {/* El botón va a la derecha y en caja, como una acción secundaria de
-            la pantalla: plegado, es lo único que queda y no debe parecer un
-            título huérfano. */}
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            aria-expanded={!collapsed}
-            aria-controls={gridId}
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              "inline-flex items-center gap-ui-2xs rounded-md px-ui-xs py-ui-2xs text-ui-caption font-medium text-muted-foreground",
-              "transition-colors duration-fast hover:bg-surface-hover hover:text-foreground",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            )}
-          >
-            {collapsed ? <ChevronDown aria-hidden="true" className="size-4" /> : <ChevronUp aria-hidden="true" className="size-4" />}
-            {collapsed ? text.show : text.hide}
-          </button>
-        </div>
-        {collapsed ? null : grid}
-      </div>
-    );
-  },
+  ({ label = "Indicadores", columns = 3, className, children, ...props }, ref) => (
+    <div ref={ref} role="group" aria-label={label} className={cn("grid grid-cols-1 gap-ui-md", GROUP_COLUMNS[columns], className)} {...props}>
+      {children}
+    </div>
+  ),
 );
 StatGroup.displayName = "StatGroup";

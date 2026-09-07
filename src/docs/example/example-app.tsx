@@ -14,16 +14,30 @@ import {
 import { AppShell, type SidebarVariant } from "@/components/layout/app-shell";
 import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
+import { configuracion } from "./config";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tooltip } from "@/components/ui/tooltip";
-import { BanknoteIcon, CancelIcon, EditIcon, ReceiptIcon, ViewIcon, WalletIcon } from "@/icons";
+import {
+  BanknoteIcon,
+  CancelIcon,
+  EditIcon,
+  ReceiptIcon,
+  ViewIcon,
+  WalletIcon,
+} from "@/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Column, DataTable } from "@/components/ui/data-table";
 import { FormGrid } from "@/components/ui/form-grid";
 import { Stat, StatGroup } from "@/components/ui/stat";
@@ -48,12 +62,16 @@ import {
 /* Navegación                                                                  */
 /* -------------------------------------------------------------------------- */
 
-type VistaId = "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
+type VistaId =
+  "movimientos" | "nuevo" | "conciliacion" | "reportes" | "cuentas";
 
 interface EnlaceNav {
   id: VistaId;
   label: string;
-  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+  icon: React.ComponentType<{
+    className?: string;
+    "aria-hidden"?: boolean | "true" | "false";
+  }>;
 }
 
 const ENLACES: EnlaceNav[] = [
@@ -101,16 +119,24 @@ function NavLink({
 /* Vistas                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const TONO_ESTADO: Record<Movimiento["estado"], { variante: "success" | "warning" | "outline"; label: string }> = {
+const TONO_ESTADO: Record<
+  Movimiento["estado"],
+  { variante: "success" | "warning" | "outline"; label: string }
+> = {
   conciliado: { variante: "success", label: "Conciliado" },
   pendiente: { variante: "warning", label: "Pendiente" },
   anulado: { variante: "outline", label: "Anulado" },
 };
 
 function VistaMovimientos() {
-  const entradas = movimientos.filter((m) => m.valor > 0 && m.estado !== "anulado");
-  const salidas = movimientos.filter((m) => m.valor < 0 && m.estado !== "anulado");
-  const total = (lista: Movimiento[]) => lista.reduce((suma, m) => suma + m.valor, 0);
+  const entradas = movimientos.filter(
+    (m) => m.valor > 0 && m.estado !== "anulado",
+  );
+  const salidas = movimientos.filter(
+    (m) => m.valor < 0 && m.estado !== "anulado",
+  );
+  const total = (lista: Movimiento[]) =>
+    lista.reduce((suma, m) => suma + m.valor, 0);
   const saldo = total(entradas) + total(salidas);
 
   return (
@@ -130,32 +156,38 @@ function VistaMovimientos() {
         }
       />
 
-      {/* Los indicadores son opcionales por persona: quien captura prefiere
-          las filas, quien supervisa prefiere el resumen. Se recuerda en el
-          dispositivo, con la misma clave que usaría la aplicación. */}
-      <StatGroup label="Resumen del periodo" collapsible storageKey="ejemplo:movimientos">
-        <Stat
-          label="Entradas"
-          value={formatoPesos(total(entradas))}
-          description={`${entradas.length} movimientos recaudados`}
-          icon={<BanknoteIcon />}
-          tone="positive"
-        />
-        <Stat
-          label="Salidas"
-          value={formatoPesos(total(salidas))}
-          description={`${salidas.length} pagos ejecutados`}
-          icon={<ReceiptIcon />}
-        />
-        <Stat
-          label="Saldo del periodo"
-          value={formatoPesos(saldo)}
-          description="Antes de conciliación bancaria"
-          icon={<WalletIcon />}
-          tone={saldo < 0 ? "warning" : "default"}
-          trend={{ value: "-18,6% vs. agosto", direction: "down", goodWhenUp: true }}
-        />
-      </StatGroup>
+      {/* Si se muestran los indicadores lo decide la configuración técnica de
+          la aplicación, no cada persona: la librería no trae un botón para
+          ocultarlos. */}
+      {configuracion.mostrarIndicadores ? (
+        <StatGroup label="Resumen del periodo">
+          <Stat
+            label="Entradas"
+            value={formatoPesos(total(entradas))}
+            description={`${entradas.length} movimientos recaudados`}
+            icon={<BanknoteIcon />}
+            tone="positive"
+          />
+          <Stat
+            label="Salidas"
+            value={formatoPesos(total(salidas))}
+            description={`${salidas.length} pagos ejecutados`}
+            icon={<ReceiptIcon />}
+          />
+          <Stat
+            label="Saldo del periodo"
+            value={formatoPesos(saldo)}
+            description="Antes de conciliación bancaria"
+            icon={<WalletIcon />}
+            tone={saldo < 0 ? "warning" : "default"}
+            trend={{
+              value: "-18,6% vs. agosto",
+              direction: "down",
+              goodWhenUp: true,
+            }}
+          />
+        </StatGroup>
+      ) : null}
 
       <DataTable
         value={movimientos}
@@ -169,7 +201,13 @@ function VistaMovimientos() {
         searchPlaceholder="Buscar por concepto o tercero…"
         aria-label="Movimientos de caja"
       >
-        <Column<Movimiento> field="id" header="Consecutivo" sortable className="font-medium tabular-nums" footer={() => "Total del periodo"} />
+        <Column<Movimiento>
+          field="id"
+          header="Consecutivo"
+          sortable
+          className="font-medium tabular-nums"
+          footer={() => "Total del periodo"}
+        />
         <Column<Movimiento>
           field="fecha"
           header="Fecha"
@@ -181,7 +219,9 @@ function VistaMovimientos() {
         <Column<Movimiento>
           field="tercero"
           header="Tercero"
-          body={(fila) => <span className="text-muted-foreground">{fila.tercero}</span>}
+          body={(fila) => (
+            <span className="text-muted-foreground">{fila.tercero}</span>
+          )}
         />
         <Column<Movimiento> field="centro" header="Centro de costo" sortable />
         <Column<Movimiento>
@@ -201,7 +241,11 @@ function VistaMovimientos() {
           // `align="right"` ya trae las cifras de ancho fijo.
           align="right"
           body={(fila) => (
-            <span className={fila.valor < 0 ? "text-destructive" : "text-foreground"}>
+            <span
+              className={
+                fila.valor < 0 ? "text-destructive" : "text-foreground"
+              }
+            >
               {formatoPesos(fila.valor)}
             </span>
           )}
@@ -210,11 +254,13 @@ function VistaMovimientos() {
           // el encabezado no cuadran, la pantalla deja de ser creíble.
           footer={(filas) =>
             formatoPesos(
-              filas.filter((fila) => fila.estado !== "anulado").reduce((suma, fila) => suma + fila.valor, 0),
+              filas
+                .filter((fila) => fila.estado !== "anulado")
+                .reduce((suma, fila) => suma + fila.valor, 0),
             )
           }
         />
-              {/* Acciones por fila: iconos con su nombre en el tooltip y en el nombre
+        {/* Acciones por fila: iconos con su nombre en el tooltip y en el nombre
             accesible. Anular es destructivo y va en último lugar. */}
         <Column<Movimiento>
           id="acciones"
@@ -228,7 +274,11 @@ function VistaMovimientos() {
                 </Button>
               </Tooltip>
               <Tooltip content="Editar">
-                <Button size="xs" variant="ghost" aria-label={`Editar ${fila.id}`}>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  aria-label={`Editar ${fila.id}`}
+                >
                   <EditIcon aria-hidden="true" />
                 </Button>
               </Tooltip>
@@ -255,12 +305,22 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
   const [concepto, setConcepto] = React.useState("");
   const [tercero, setTercero] = React.useState("Ferretería La Ceiba S.A.S.");
   const [valor, setValor] = React.useState("");
-  const [centro, setCentro] = React.useState<string | number | null>("operaciones");
-  const [metodo, setMetodo] = React.useState<string | number | null>("transferencia");
+  const [centro, setCentro] = React.useState<string | number | null>(
+    "operaciones",
+  );
+  const [metodo, setMetodo] = React.useState<string | number | null>(
+    "transferencia",
+  );
   const [enviado, setEnviado] = React.useState(false);
 
-  const errorConcepto = enviado && concepto.trim() === "" ? "Escribe el concepto del movimiento." : undefined;
-  const errorValor = enviado && Number(valor) <= 0 ? "El valor debe ser mayor que cero." : undefined;
+  const errorConcepto =
+    enviado && concepto.trim() === ""
+      ? "Escribe el concepto del movimiento."
+      : undefined;
+  const errorValor =
+    enviado && Number(valor) <= 0
+      ? "El valor debe ser mayor que cero."
+      : undefined;
 
   return (
     <PageContainer>
@@ -273,7 +333,9 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
       <Card>
         <CardHeader>
           <CardTitle>Datos del movimiento</CardTitle>
-          <CardDescription>Los campos marcados con asterisco son obligatorios.</CardDescription>
+          <CardDescription>
+            Los campos marcados con asterisco son obligatorios.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -300,10 +362,18 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
               </Field>
 
               <Field label="Tercero" required>
-                <Input value={tercero} onChange={(event) => setTercero(event.target.value)} />
+                <Input
+                  value={tercero}
+                  onChange={(event) => setTercero(event.target.value)}
+                />
               </Field>
 
-              <Field label="Valor" required error={errorValor} description="En pesos colombianos, sin puntos.">
+              <Field
+                label="Valor"
+                required
+                error={errorValor}
+                description="En pesos colombianos, sin puntos."
+              >
                 <Input
                   type="number"
                   inputMode="numeric"
@@ -316,7 +386,11 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
               </Field>
 
               <Field label="Centro de costo" required>
-                <Select options={centrosDeCosto} value={centro} onChange={setCentro} />
+                <Select
+                  options={centrosDeCosto}
+                  value={centro}
+                  onChange={setCentro}
+                />
               </Field>
 
               <Field label="Método de pago" required>
@@ -340,7 +414,8 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
               </Button>
               {enviado && !errorConcepto && !errorValor ? (
                 <span className="text-ui-body-sm text-muted-foreground">
-                  Listo: {formatoPesos(Number(valor))} quedaría pendiente de conciliar.
+                  Listo: {formatoPesos(Number(valor))} quedaría pendiente de
+                  conciliar.
                 </span>
               ) : null}
             </Toolbar>
@@ -351,7 +426,13 @@ function VistaNuevoMovimiento({ onCancelar }: { onCancelar: () => void }) {
   );
 }
 
-function VistaPendiente({ titulo, descripcion }: { titulo: string; descripcion: string }) {
+function VistaPendiente({
+  titulo,
+  descripcion,
+}: {
+  titulo: string;
+  descripcion: string;
+}) {
   return (
     // `animateKey` porque estas tres vistas comparten componente: React lo
     // reutiliza al cambiar de una a otra y, sin volver a montarlo, la entrada
@@ -397,10 +478,13 @@ export function ExampleApp({
   const [vista, setVista] = React.useState<VistaId>(vistaInicial);
   const [empresa, setEmpresa] = React.useState(empresas[0].value);
   const [entorno, setEntorno] = React.useState(entornos[1].value);
-  const [periodo, setPeriodo] = React.useState<string | number | null>("2026-09");
+  const [periodo, setPeriodo] = React.useState<string | number | null>(
+    "2026-09",
+  );
   const [busqueda, setBusqueda] = React.useState("");
 
-  const nombreEmpresa = empresas.find((opcion) => opcion.value === empresa)?.label ?? "";
+  const nombreEmpresa =
+    empresas.find((opcion) => opcion.value === empresa)?.label ?? "";
 
   const contenido =
     vista === "movimientos" ? (
@@ -413,9 +497,15 @@ export function ExampleApp({
         descripcion="Cruce del extracto contra los movimientos registrados."
       />
     ) : vista === "reportes" ? (
-      <VistaPendiente titulo="Reportes" descripcion="Flujo de caja, cartera y ejecución por centro de costo." />
+      <VistaPendiente
+        titulo="Reportes"
+        descripcion="Flujo de caja, cartera y ejecución por centro de costo."
+      />
     ) : (
-      <VistaPendiente titulo="Cuentas bancarias" descripcion="Cuentas habilitadas para recaudo y pagos." />
+      <VistaPendiente
+        titulo="Cuentas bancarias"
+        descripcion="Cuentas habilitadas para recaudo y pagos."
+      />
     );
 
   return (
@@ -444,7 +534,10 @@ export function ExampleApp({
           ]}
           footer={
             <>
-              <MenuItem value="preferencias" icon={<Settings aria-hidden="true" />}>
+              <MenuItem
+                value="preferencias"
+                icon={<Settings aria-hidden="true" />}
+              >
                 Preferencias
               </MenuItem>
               <MenuItem value="salir" icon={<LogOut aria-hidden="true" />}>
@@ -457,7 +550,12 @@ export function ExampleApp({
       sidebar={
         <SidebarNav>
           {ENLACES.map((enlace) => (
-            <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+            <NavLink
+              key={enlace.id}
+              enlace={enlace}
+              activo={vista === enlace.id}
+              onSelect={setVista}
+            />
           ))}
         </SidebarNav>
       }
@@ -502,7 +600,12 @@ export function ExampleApp({
           {/* La persona, siempre en el mismo sitio y con el mismo orden dentro:
               perfil, configuración, lo propio de la aplicación, cerrar sesión. */}
           <UserMenu
-            user={{ name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" }}
+            user={{
+              name: "Andrés Montoya",
+              email: "andres@piensait.com",
+              role: "Cajera",
+              avatarColor: "350 75% 45%",
+            }}
             onProfile={() => setVista("movimientos")}
             onSettings={() => setVista("movimientos")}
             onSignOut={() => setVista("movimientos")}

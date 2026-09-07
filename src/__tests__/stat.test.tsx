@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { Stat, StatGroup } from "../components/ui/stat";
 
@@ -125,55 +124,21 @@ describe("Stat · tono", () => {
 });
 
 /**
- * Una pantalla de tabla no siempre quiere las cifras arriba: quien captura
- * prefiere las filas, quien supervisa prefiere el resumen. `collapsible` deja
- * que lo decida cada persona, y `storageKey` lo recuerda en el dispositivo,
- * con el mismo mecanismo que el plegado del menú de `AppShell`.
+ * Si una pantalla muestra los indicadores lo decide la configuración técnica
+ * de cada aplicación, no cada persona: el grupo no trae ningún control de
+ * usuario. Se probó un botón de ocultar con preferencia por dispositivo y se
+ * retiró antes de publicarlo.
  */
-describe("StatGroup · plegable", () => {
-  beforeEach(() => window.localStorage.clear());
-
-  const montar = (props: Partial<React.ComponentProps<typeof StatGroup>> = {}) =>
+describe("StatGroup", () => {
+  it("es un grupo con nombre y sin controles de usuario", () => {
     render(
-      <StatGroup label="Resumen" collapsible {...props}>
+      <StatGroup label="Resumen">
         <Stat label="Entradas" value="1" />
         <Stat label="Salidas" value="2" />
       </StatGroup>,
     );
-
-  it("sin `collapsible` no hay botón, como antes", () => {
-    render(<StatGroup label="Resumen"><Stat label="Entradas" value="1" /></StatGroup>);
+    expect(screen.getByRole("group", { name: "Resumen" })).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-  });
-
-  it("ocultar quita los indicadores y deja el botón para volver a mostrarlos", async () => {
-    montar();
-    const boton = screen.getByRole("button", { name: "Ocultar indicadores" });
-    expect(boton).toHaveAttribute("aria-expanded", "true");
-    await userEvent.click(boton);
-    expect(screen.queryByText("Entradas")).not.toBeInTheDocument();
-    const mostrar = screen.getByRole("button", { name: "Mostrar indicadores" });
-    expect(mostrar).toHaveAttribute("aria-expanded", "false");
-    await userEvent.click(mostrar);
     expect(screen.getByText("Entradas")).toBeInTheDocument();
-  });
-
-  it("con `storageKey` recuerda la preferencia en este dispositivo", async () => {
-    const { unmount } = montar({ storageKey: "movimientos" });
-    await userEvent.click(screen.getByRole("button", { name: "Ocultar indicadores" }));
-    unmount();
-    montar({ storageKey: "movimientos" });
-    expect(screen.queryByText("Entradas")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Mostrar indicadores" })).toBeInTheDocument();
-  });
-
-  it("sin clave no recuerda nada: cada montaje empieza como diga `defaultCollapsed`", async () => {
-    const { unmount } = montar();
-    await userEvent.click(screen.getByRole("button", { name: "Ocultar indicadores" }));
-    unmount();
-    montar();
-    expect(screen.getByText("Entradas")).toBeInTheDocument();
-    render(<StatGroup label="Otro" collapsible defaultCollapsed><Stat label="Saldo" value="3" /></StatGroup>);
-    expect(screen.queryByText("Saldo")).not.toBeInTheDocument();
   });
 });
