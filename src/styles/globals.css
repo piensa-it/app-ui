@@ -256,8 +256,15 @@
    *
    * El menú es oscuro en ambos temas: es un plano distinto de la interfaz, no
    * una superficie más de la página, y mantenerlo estable evita que la
-   * navegación cambie de identidad al alternar claro/oscuro. Por eso estos
-   * tokens no se redefinen en `.dark`.
+   * navegación cambie de identidad al alternar claro/oscuro.
+   *
+   * Lo que sí cambia en `.dark` es su LUMINOSIDAD, no su carácter. Con estos
+   * valores fijos, en tema oscuro el menú quedaba en un gris azulado al 13%
+   * junto a una página neutra al 7%: más claro que la página y que la barra
+   * superior, y de otro tono. Se leía como un panel tintado, no como un plano.
+   * En oscuro cada variante baja al nivel `surface` (10%), el mismo de la
+   * barra superior, para que menú y barra enmarquen la página juntos; el
+   * grafito además pierde el tinte azul, que solo contrasta bien contra claro.
    *
    * `--sidebar-alpha` y `--sidebar-blur` permiten variantes translúcidas sin
    * que el componente tenga lógica condicional: siempre pinta el fondo con
@@ -307,6 +314,43 @@
     --sidebar-active: 224 14% 34%;
     --sidebar-active-foreground: 0 0% 100%;
     --sidebar-accent: 224 12% 30%;
+    --sidebar-accent-foreground: 0 0% 97%;
+  }
+
+  /* Tema oscuro: mismo carácter, luminosidad al nivel `surface`. */
+  .dark [data-sidebar="graphite"] {
+    --sidebar: 0 0% 10%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-muted-foreground: 0 0% 64%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-hover: 0 0% 14%;
+    --sidebar-active: 0 0% 20%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 18%;
+    --sidebar-accent-foreground: 0 0% 95%;
+  }
+
+  .dark [data-sidebar="ink"] {
+    --sidebar: 162 24% 9%;
+    --sidebar-foreground: 150 16% 95%;
+    --sidebar-muted-foreground: 155 12% 62%;
+    --sidebar-border: 160 18% 17%;
+    --sidebar-hover: 160 20% 13%;
+    --sidebar-active: 160 24% 19%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 160 22% 18%;
+    --sidebar-accent-foreground: 150 16% 95%;
+  }
+
+  .dark [data-sidebar="smoke"] {
+    --sidebar: 224 10% 10%;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-muted-foreground: 224 8% 66%;
+    --sidebar-border: 224 8% 20%;
+    --sidebar-hover: 224 8% 15%;
+    --sidebar-active: 224 10% 22%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-accent: 224 8% 20%;
     --sidebar-accent-foreground: 0 0% 97%;
   }
 

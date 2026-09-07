@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **El menú lateral no casaba con el tema oscuro.** Sus tokens estaban fijados iguales para los dos temas, con la idea correcta de que el menú es un plano distinto y no debe cambiar de identidad al alternar. Pero en oscuro el resultado era un gris azulado al 13% junto a una página neutra al 7%: más claro que la página y que la barra superior, y de otro tono. Se leía como un panel tintado, no como un plano. Ahora cada variante conserva su carácter y baja en `.dark` al nivel `surface` (10%), el mismo de la barra superior, para que menú y barra enmarquen la página juntos; el grafito además pierde el tinte azul, que solo contrasta bien contra claro. Dos capturas comparadas nuevas fijan las tres variantes en oscuro. Si redefinías `--sidebar-*` bajo tu `[data-sidebar]`, añade la versión `.dark` o heredarás la nuestra.
+
 ## [0.7.2] - 2026-09-06
 
 Las dos historias salen de la adopción de la 0.7.1 en MiDivisa.
