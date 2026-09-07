@@ -170,6 +170,12 @@ export {
 } from "./components/layout/app-shell";
 export { SidebarProfile, type SidebarProfileProps } from "./components/layout/sidebar-profile";
 export {
+  TopbarIdentity,
+  type TopbarIdentityProps,
+  type TopbarIdentitySegment,
+  type TopbarIdentitySystem,
+} from "./components/layout/topbar-identity";
+export {
   SidebarBrand,
   type SidebarBrandProps,
   type SidebarBrandGroup,

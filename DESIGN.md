@@ -216,6 +216,16 @@ al tema. Es una decisión de la aplicación, no una variante más, y por eso no
 está en `variant`. `SidebarProfile` pone a la persona arriba del menú, en el
 hueco `brand`, y `topbarCenter` centra el buscador en la barra superior.
 
+### La identidad va en la barra superior
+
+Qué sistema es, con qué empresa se trabaja y en qué módulo, en el mismo sitio
+para una aplicación grande y una pequeña: `TopbarIdentity` en `topbarStart`.
+La pequeña omite el módulo y no queda hueco. Cada segmento es un control —o
+una etiqueta, si no hay nada que elegir— y **la empresa se cambia en un solo
+sitio**: con esto puesto, `SidebarBrand` va sin el grupo de empresa (queda el
+entorno, o nada). En dos niveles el módulo ya está en el riel; el segmento es
+para las formas de un nivel.
+
 ### Un control por fila
 
 En la cabecera del menú va **un solo control**. Es un aprendizaje caro: teníamos

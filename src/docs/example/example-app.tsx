@@ -21,6 +21,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarBrand } from "@/components/layout/sidebar-brand";
 import { SidebarProfile } from "@/components/layout/sidebar-profile";
+import { TopbarIdentity } from "@/components/layout/topbar-identity";
 import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Badge } from "@/components/ui/badge";
@@ -418,13 +419,6 @@ export function ExampleApp({
       name={nombreEmpresa}
       groups={[
         {
-          id: "empresa",
-          label: "Empresa",
-          value: empresa,
-          options: empresas,
-          onChange: setEmpresa,
-        },
-        {
           id: "entorno",
           label: "Entorno",
           value: entorno,
@@ -487,9 +481,18 @@ export function ExampleApp({
         ) : undefined
       }
       topbarStart={
-        <span className="hidden text-ui-body-sm text-muted-foreground sm:inline">
-          Tesorería · {nombreEmpresa}
-        </span>
+        // La identidad vive arriba: sistema, empresa y —salvo en dos niveles,
+        // donde el módulo ya está en el riel— módulo. La empresa se cambia
+        // aquí, y por eso la marca del menú solo conserva el entorno.
+        <TopbarIdentity
+          system={{ name: "Tesorería" }}
+          company={{ caption: "Empresa", value: empresa, options: empresas, onChange: setEmpresa }}
+          module={
+            layout === "rail-panel"
+              ? undefined
+              : { caption: "Módulo", value: "tesoreria", options: MODULOS.map((m) => ({ value: m.id, label: m.label })), onChange: () => {} }
+          }
+        />
       }
       topbar={
         <>

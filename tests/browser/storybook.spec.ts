@@ -165,6 +165,7 @@ test.describe("Armazón", () => {
     ["armazon-claro", "layout-appshell--menu-claro"],
     ["armazon-riel-panel", "layout-appshell--riel-con-panel"],
     ["armazon-enmarcado", "layout-appshell--enmarcado"],
+    ["topbar-identity", "layout-topbaridentity--completo"],
     ["armazon-plegado", "layout-appshell--plegado"],
     ["armazon-router", "layout-appshell--con-router"],
     ["armazon-secciones", "layout-appshell--secciones-plegables"],
