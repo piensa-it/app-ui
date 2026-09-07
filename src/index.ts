@@ -112,6 +112,14 @@ export { Tooltip, type TooltipProps } from "./components/ui/tooltip";
 export { Tabs, TabPanel, type TabsProps, type TabPanelProps } from "./components/ui/tabs";
 export { Accordion, AccordionTab, type AccordionProps, type AccordionTabProps } from "./components/ui/accordion";
 export { Avatar, type AvatarProps } from "./components/ui/avatar";
+export { DEFAULT_AVATAR_COLORS } from "./lib/avatar-colors";
+export {
+  AvatarPicker,
+  type AvatarPickerProps,
+  type AvatarPickerValue,
+  type AvatarPickerChange,
+  type AvatarPickerLabels,
+} from "./components/ui/avatar-picker";
 export { Progress, type ProgressProps } from "./components/ui/progress";
 export { Toaster, toast, type ToastOptions } from "./components/ui/toast";
 

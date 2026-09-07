@@ -332,3 +332,17 @@ test.describe("UserMenu", () => {
     });
   }
 });
+
+test.describe("AvatarPicker", () => {
+  // Foto o iniciales sobre color, una sola elección. La captura fija los ocho
+  // colores por defecto y la vista previa, que es el mismo Avatar de UserMenu.
+  test("con iniciales se mantiene visualmente estable", async ({ page }) => {
+    await page.goto(storyUrl("ui-avatarpicker--iniciales"));
+    await stabilize(page);
+    await expect(page.getByRole("radiogroup", { name: "Color de las iniciales" })).toBeVisible();
+    await expect(page.locator("#storybook-root")).toHaveScreenshot("avatar-picker.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+});
