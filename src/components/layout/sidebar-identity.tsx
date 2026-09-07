@@ -134,8 +134,11 @@ export const SidebarIdentity = React.forwardRef<HTMLDivElement, SidebarIdentityP
     }
 
     return (
+      // Mismo relleno que los enlaces de abajo (`px-ui-2xs` del nav más
+      // `px-ui-sm` del ítem): la marca y los rótulos arrancan en la misma
+      // columna que los iconos del menú.
       <div ref={ref} className={cn("flex flex-col gap-ui-2xs px-ui-2xs py-ui-xs", className)} {...props}>
-        <div className="flex items-center gap-ui-sm p-ui-2xs">
+        <div className="flex items-center gap-ui-sm px-ui-sm py-ui-2xs">
           {mark}
           <span className="w-full min-w-0 truncate text-ui-body-sm font-semibold text-sidebar-foreground">{system.name}</span>
         </div>
@@ -169,14 +172,14 @@ function Segment({ segment, badge }: { segment: SidebarIdentitySegment; badge?: 
   );
 
   if (!interactive) {
-    return <div className="flex items-center gap-ui-sm px-ui-2xs py-ui-2xs">{content}</div>;
+    return <div className="flex items-center gap-ui-sm px-ui-sm py-ui-2xs">{content}</div>;
   }
 
   const trigger = (
     <button
       type="button"
       className={cn(
-        "flex w-full items-center gap-ui-sm rounded-md px-ui-2xs py-ui-2xs text-left transition-colors duration-normal",
+        "flex w-full items-center gap-ui-sm rounded-md px-ui-sm py-ui-2xs text-left transition-colors duration-normal",
         "hover:bg-sidebar-hover",
         "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
       )}

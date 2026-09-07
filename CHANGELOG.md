@@ -17,6 +17,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 ### Docs
 
 - **`Stat` ya no desborda la tarjeta.** La cifra se mide contra la tarjeta (`@container`): en una tarjeta de menos de 16 rem baja un escalón de tamaño, y si aun así no cabe se parte antes que salirse. Cuatro cifras de nueve dígitos en una fila estrecha tapaban a la de al lado.
+- **Los ejemplos agrupan el menú en secciones plegables** (Operación, Control, Maestros) con su chevrón, que es lo que se ve cuando una aplicación crece; las secciones cerradas se recuerdan con el plegado.
 - **Las aplicaciones de ejemplo arrancan en un tablero** con datos de ejemplo: cuatro cifras con icono y tono (`Stat` ya los tenía; el ejemplo no los usaba), la gráfica de flujo de caja (`Chart`) y dos tarjetas con lo pendiente y lo reciente. Los indicadores de Movimientos también llevan icono. Es lo primero que se ve al abrir cada ejemplo; el resto de vistas siguen en el menú.
 - **Cuatro aplicaciones de ejemplo, una por forma del armazón.** Las stories «Aplicación completa», «Vista de tabla» y «Vista de formulario» se funden en «Aplicación de ejemplo 1 · clásica», que arranca en el formulario y tiene la tabla a un clic. La 2 es flotante y clara, con el buscador centrado (la plantilla 1 de la evaluación, solo con props de `AppShell`); la 3, en riel (la plantilla 3 con un solo nivel); la 4, riel con panel de sección (la plantilla 3 completa). El estilo visual se elige en el toolbar y se combina con las cuatro.
 

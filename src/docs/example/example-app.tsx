@@ -19,7 +19,7 @@ import { AppVersion } from "@/components/layout/app-version";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarIdentity } from "@/components/layout/sidebar-identity";
-import { SidebarNav, SidebarNavItem } from "@/components/layout/sidebar-nav";
+import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -66,13 +66,34 @@ const MODULOS = [
   { id: "informes", label: "Informes", icon: BarChart3 },
 ] as const;
 
-const ENLACES: EnlaceNav[] = [
-  { id: "tablero", label: "Tablero", icon: LayoutDashboard },
-  { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
-  { id: "nuevo", label: "Nuevo movimiento", icon: FilePlus2 },
-  { id: "conciliacion", label: "Conciliación", icon: Landmark },
-  { id: "reportes", label: "Reportes", icon: BarChart3 },
-  { id: "cuentas", label: "Cuentas bancarias", icon: Building2 },
+/**
+ * Los enlaces van en secciones plegables: es lo que se ve cuando una
+ * aplicación crece, y con el chevrón cada persona cierra lo que no usa. Las
+ * secciones cerradas se recuerdan con `storageKey`, junto al plegado.
+ */
+const SECCIONES: { id: string; label: string; enlaces: EnlaceNav[] }[] = [
+  {
+    id: "operacion",
+    label: "Operación",
+    enlaces: [
+      { id: "tablero", label: "Tablero", icon: LayoutDashboard },
+      { id: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
+      { id: "nuevo", label: "Nuevo movimiento", icon: FilePlus2 },
+    ],
+  },
+  {
+    id: "control",
+    label: "Control",
+    enlaces: [
+      { id: "conciliacion", label: "Conciliación", icon: Landmark },
+      { id: "reportes", label: "Reportes", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "maestros",
+    label: "Maestros",
+    enlaces: [{ id: "cuentas", label: "Cuentas bancarias", icon: Building2 }],
+  },
 ];
 
 /**
@@ -551,8 +572,12 @@ export function ExampleApp({
       brand={marca}
       sidebar={
         <SidebarNav>
-          {ENLACES.map((enlace) => (
-            <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+          {SECCIONES.map((seccion) => (
+            <SidebarNavGroup key={seccion.id} label={seccion.label} collapsible groupId={seccion.id}>
+              {seccion.enlaces.map((enlace) => (
+                <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+              ))}
+            </SidebarNavGroup>
           ))}
         </SidebarNav>
       }
