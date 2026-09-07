@@ -169,3 +169,42 @@ describe("estilos visuales (data-ui-look)", () => {
     }
   });
 });
+
+describe("paletas incluidas", () => {
+  // Las paletas se escriben a mano y hasta ahora nadie las revisaba: la
+  // prueba de arriba solo mira `:root` y `.dark`. Sol es la que lo hizo
+  // evidente: blanco sobre amarillo no llega a AA (#117).
+  const palettesCss = readFileSync(path.resolve(process.cwd(), "src/styles/palettes.css"), "utf8");
+  const PALETTES = ["indigo", "ocean", "violet", "emerald", "ruby", "amber", "cyan", "sun"] as const;
+
+  function paletteTokens(palette: string, scope: "light" | "dark"): Record<string, string> {
+    const selector = scope === "light" ? `[data-ui-palette="${palette}"] {` : `.dark [data-ui-palette="${palette}"]`;
+    const start = palettesCss.indexOf(selector);
+    expect(start, `${palette} en ${scope}`).toBeGreaterThan(-1);
+    const block = palettesCss.slice(start, palettesCss.indexOf("}", start));
+    const found: Record<string, string> = {};
+    for (const [, name, value] of block.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) found[name] = value.trim();
+    return found;
+  }
+
+  it.each(PALETTES)("%s: texto sobre primario y sobre subtle en AA, en los dos temas", (palette) => {
+    for (const [name, base, scope] of [
+      ["claro", light, "light"],
+      ["oscuro", dark, "dark"],
+    ] as const) {
+      const theme = { ...base, ...paletteTokens(palette, scope) };
+      for (const [fg, bg] of [
+        ["--primary-foreground", "--primary"],
+        ["--subtle-foreground", "--subtle"],
+      ] as const) {
+        const ratio = contrastRatio(parseHsl(theme[fg]), parseHsl(theme[bg]));
+        expect(ratio, `${palette} ${fg} sobre ${bg} en ${name}: ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("las ocho están en BUNDLED_PALETTES, en el mismo orden", async () => {
+    const { BUNDLED_PALETTES } = await import("../lib/appearance-presets");
+    expect(BUNDLED_PALETTES.map((p) => p.id)).toEqual([...PALETTES]);
+  });
+});

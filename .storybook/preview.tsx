@@ -132,6 +132,8 @@ const preview: Preview = {
           { value: "emerald", title: "Esmeralda" },
           { value: "ruby", title: "Rubí" },
           { value: "amber", title: "Ámbar" },
+          { value: "cyan", title: "Cian" },
+          { value: "sun", title: "Sol" },
         ],
         dynamicTitle: true,
       },

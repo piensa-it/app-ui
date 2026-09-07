@@ -121,8 +121,9 @@ Apply a bundled palette to an application or an individual section:
 </div>
 ```
 
-Available palettes are `indigo`, `ocean`, `violet`, `emerald`, `ruby`, and
-`amber`. Available font presets are `geist`, `inter`, `dm-sans`, and `system`.
+Available palettes are `indigo`, `ocean`, `violet`, `emerald`, `ruby`,
+`amber`, `cyan`, and `sun` (the only one with dark text on the primary in
+both themes: white on yellow never reaches AA). Available font presets are `geist`, `inter`, `dm-sans`, and `system`.
 
 ### Looks
 

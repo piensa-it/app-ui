@@ -14,13 +14,14 @@
 }
 
 [data-ui-palette="ocean"] {
-  --primary: 205 88% 45%;
+  /* 45% → 41%: con blanco encima, 45% daba 3,97:1 (falla AA). 41% da 4,67:1. */
+  --primary: 205 88% 41%;
   --primary-foreground: 0 0% 100%;
-  --ring: 205 88% 45%;
+  --ring: 205 88% 41%;
   --subtle: 202 80% 95%;
   --subtle-hover: 202 72% 90%;
   --subtle-foreground: 205 72% 28%;
-  --chart-1: 205 88% 45%;
+  --chart-1: 205 88% 41%;
 }
 
 [data-ui-palette="violet"] {
@@ -34,13 +35,14 @@
 }
 
 [data-ui-palette="emerald"] {
-  --primary: 158 72% 34%;
+  /* 34% → 30%: con blanco encima, 34% daba 3,79:1 (falla AA). 30% da 4,71:1. */
+  --primary: 158 72% 30%;
   --primary-foreground: 0 0% 100%;
-  --ring: 158 72% 34%;
+  --ring: 158 72% 30%;
   --subtle: 156 55% 94%;
   --subtle-hover: 156 50% 88%;
   --subtle-foreground: 158 66% 24%;
-  --chart-1: 158 72% 34%;
+  --chart-1: 158 72% 30%;
 }
 
 [data-ui-palette="ruby"] {
@@ -54,13 +56,38 @@
 }
 
 [data-ui-palette="amber"] {
-  --primary: 30 90% 42%;
+  /* 42% → 37%: con blanco encima, 42% daba 3,71:1 (falla AA). 37% da 4,62:1. */
+  --primary: 30 90% 37%;
   --primary-foreground: 0 0% 100%;
-  --ring: 30 90% 42%;
+  --ring: 30 90% 37%;
   --subtle: 35 90% 94%;
   --subtle-hover: 35 82% 87%;
   --subtle-foreground: 28 78% 26%;
-  --chart-1: 30 90% 42%;
+  --chart-1: 30 90% 37%;
+}
+
+/* Cian: el teal radiante de la plantilla 2 (#117). */
+[data-ui-palette="cyan"] {
+  --primary: 185 90% 28%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 185 90% 28%;
+  --subtle: 185 60% 94%;
+  --subtle-hover: 185 55% 88%;
+  --subtle-foreground: 185 85% 20%;
+  --chart-1: 185 90% 28%;
+}
+
+/* Sol: el amarillo de la plantilla 1 (#117). La única paleta con texto
+   oscuro sobre el primario en los dos temas: blanco sobre amarillo no llega
+   a AA a ninguna luminosidad que siga siendo amarillo. */
+[data-ui-palette="sun"] {
+  --primary: 48 96% 50%;
+  --primary-foreground: 45 90% 10%;
+  --ring: 45 90% 40%;
+  --subtle: 48 90% 93%;
+  --subtle-hover: 48 85% 86%;
+  --subtle-foreground: 42 85% 24%;
+  --chart-1: 45 90% 45%;
 }
 
 :is(.dark [data-ui-palette="indigo"], .dark[data-ui-palette="indigo"]) {
@@ -121,4 +148,24 @@
   --subtle-hover: 35 40% 21%;
   --subtle-foreground: 35 82% 78%;
   --chart-1: 35 92% 60%;
+}
+
+:is(.dark [data-ui-palette="cyan"], .dark[data-ui-palette="cyan"]) {
+  --primary: 185 80% 55%;
+  --primary-foreground: 185 60% 10%;
+  --ring: 185 80% 55%;
+  --subtle: 185 40% 16%;
+  --subtle-hover: 185 40% 21%;
+  --subtle-foreground: 185 80% 78%;
+  --chart-1: 185 80% 55%;
+}
+
+:is(.dark [data-ui-palette="sun"], .dark[data-ui-palette="sun"]) {
+  --primary: 50 95% 58%;
+  --primary-foreground: 45 90% 10%;
+  --ring: 50 95% 58%;
+  --subtle: 48 40% 16%;
+  --subtle-hover: 48 40% 21%;
+  --subtle-foreground: 48 90% 78%;
+  --chart-1: 50 95% 58%;
 }

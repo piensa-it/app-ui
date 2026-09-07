@@ -25,7 +25,7 @@ describe("AppearanceSettings · qué ofrece", () => {
   it("las cuatro secciones, con sus opciones", () => {
     montar();
     expect(within(grupo("Tema")).getAllByRole("radio")).toHaveLength(3);
-    expect(within(grupo("Color")).getAllByRole("radio")).toHaveLength(6);
+    expect(within(grupo("Color")).getAllByRole("radio")).toHaveLength(8);
     expect(within(grupo("Tipografía")).getAllByRole("radio")).toHaveLength(4);
     expect(within(grupo("Densidad")).getAllByRole("radio")).toHaveLength(3);
   });

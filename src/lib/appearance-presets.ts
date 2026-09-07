@@ -2,7 +2,7 @@
  * Lo que el sistema de diseño trae de fábrica y un panel de apariencia puede
  * ofrecer: las seis paletas y los cuatro presets tipográficos, con su nombre.
  */
-/** Las seis paletas incluidas, con su nombre. */
+/** Las ocho paletas incluidas, con su nombre. */
 export const BUNDLED_PALETTES: readonly { id: string; label: string }[] = [
   { id: "indigo", label: "Índigo" },
   { id: "ocean", label: "Océano" },
@@ -10,6 +10,8 @@ export const BUNDLED_PALETTES: readonly { id: string; label: string }[] = [
   { id: "emerald", label: "Esmeralda" },
   { id: "ruby", label: "Rubí" },
   { id: "amber", label: "Ámbar" },
+  { id: "cyan", label: "Cian" },
+  { id: "sun", label: "Sol" },
 ];
 
 /** Los cuatro presets tipográficos, con su nombre. */

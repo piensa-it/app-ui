@@ -163,6 +163,8 @@ const palettes = [
   { value: "emerald", label: "Esmeralda" },
   { value: "ruby", label: "Rubí" },
   { value: "amber", label: "Ámbar" },
+  { value: "cyan", label: "Cian" },
+  { value: "sun", label: "Sol" },
 ];
 
 const fontFamilies = [
