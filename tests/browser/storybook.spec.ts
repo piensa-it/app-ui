@@ -165,6 +165,23 @@ test.describe("Armazón", () => {
     ["armazon-menu-largo", "layout-appshell--menu-largo"],
   ] as const;
 
+  // En oscuro el menú quedaba en un gris azulado al 13% junto a una página
+  // neutra al 7%: más claro que ella y de otro tono. Estas dos capturas fijan
+  // cómo se ven las tres variantes contra el tema oscuro.
+  for (const [name, id] of [
+    ["armazon-oscuro", "layout-appshell--default"],
+    ["armazon-variantes-oscuro", "layout-appshell--variantes"],
+  ] as const) {
+    test(`${name} se mantiene visualmente estable`, async ({ page }) => {
+      await page.goto(storyUrl(id, "theme:dark;palette:indigo;fontFamily:geist"));
+      await stabilize(page);
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`${name}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
   for (const [name, id] of shellStories) {
     test(`${name} se mantiene visualmente estable`, async ({ page }) => {
       await page.goto(storyUrl(id));
