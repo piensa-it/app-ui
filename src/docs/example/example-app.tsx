@@ -19,8 +19,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { SidebarIdentity } from "@/components/layout/sidebar-identity";
 import { SidebarNav, SidebarNavGroup, SidebarNavItem } from "@/components/layout/sidebar-nav";
-import { SidebarSearch } from "@/components/layout/sidebar-search";
-import { normalizeSearch } from "@/lib/search";
+import { ScreenSearch } from "@/components/layout/screen-search";
 import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { UserMenu } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
@@ -554,13 +553,6 @@ export function ExampleApp({
     </SidebarNav>
   );
 
-  const [busqueda, setBusqueda] = React.useState("");
-  const termino = normalizeSearch(busqueda);
-  const seccionesVisibles = SECCIONES.map((seccion) => ({
-    ...seccion,
-    enlaces: seccion.enlaces.filter((enlace) => !termino || normalizeSearch(enlace.label).includes(termino)),
-  })).filter((seccion) => seccion.enlaces.length > 0);
-
   const persona = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };
 
   // La identidad vive en la cabecera del menú: sistema, compañía y —salvo en
@@ -592,27 +584,30 @@ export function ExampleApp({
       defaultCollapsed={defaultCollapsed}
       brand={marca}
       sidebar={
-        <>
-          {/* El buscador del menú: la librería pone el campo; qué se filtra
-              lo decide la aplicación. Buscando, las secciones se muestran
-              abiertas y las que no tienen resultados se ocultan. */}
-          <SidebarSearch value={busqueda} onChange={setBusqueda} />
-          <SidebarNav>
-            {seccionesVisibles.map((seccion) => (
-              <SidebarNavGroup key={seccion.id} label={seccion.label} collapsible={!termino} groupId={seccion.id}>
-                {seccion.enlaces.map((enlace) => (
-                  <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
-                ))}
-              </SidebarNavGroup>
-            ))}
-          </SidebarNav>
-        </>
+        <SidebarNav>
+          {SECCIONES.map((seccion) => (
+            <SidebarNavGroup key={seccion.id} label={seccion.label} collapsible groupId={seccion.id}>
+              {seccion.enlaces.map((enlace) => (
+                <NavLink key={enlace.id} enlace={enlace} activo={vista === enlace.id} onSelect={setVista} />
+              ))}
+            </SidebarNavGroup>
+          ))}
+        </SidebarNav>
       }
       sidebarFooter={<AppVersion version="4.2.0" buildDate="2026-09-03" />}
+      // El buscador de pantallas, a la izquierda: estándar en todas las
+      // aplicaciones, con Ctrl K desde cualquier sitio.
+      topbarStart={
+        <ScreenSearch
+          groups={SECCIONES.map((s) => ({ id: s.id, label: s.label, items: s.enlaces.map((e) => ({ id: e.id, label: e.label })) }))}
+          activeId={vista}
+          onSelect={(id) => setVista(id as VistaId)}
+        />
+      }
       topbar={
-        // La barra superior es estándar: notificaciones y persona, siempre en
-        // el mismo sitio. Lo específico de cada pantalla —periodo, acciones—
-        // va en la pantalla, no aquí.
+        // A la derecha, lo estándar: notificaciones y persona, siempre en el
+        // mismo sitio. Lo específico de cada pantalla —periodo, acciones— va
+        // en la pantalla, no aquí.
         <>
           <NotificationsMenu items={notificaciones} onSelect={() => setVista("conciliacion")} onViewAll={() => setVista("conciliacion")} onMarkAllRead={() => {}} />
           <UserMenu

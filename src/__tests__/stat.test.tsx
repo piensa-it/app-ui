@@ -6,7 +6,8 @@ describe("Stat", () => {
   it("relaciona el rótulo con su cifra", () => {
     render(<Stat label="Entradas" value="$ 60.938.100" />);
     const term = screen.getByText("Entradas");
-    expect(term.tagName).toBe("DT");
+    // El rótulo va dentro del <dt> (en un span, para convivir con la tesela).
+    expect(term.closest("dt")).not.toBeNull();
     expect(screen.getByText("$ 60.938.100").tagName).toBe("DD");
   });
 
@@ -75,7 +76,7 @@ describe("Stat · tono", () => {
     // Un tablero de seis cifras en gris no dice «normal», dice «apagado». El
     // icono va en una tesela con el tono, arriba a la derecha de la tarjeta.
     const { container } = render(<Stat label="Ventas" value="1.248" icon={<svg />} />);
-    const icono = container.querySelector(":scope > div > span[aria-hidden]") as HTMLElement;
+    const icono = container.querySelector("dt > span[aria-hidden]") as HTMLElement;
     expect(icono.className).toMatch(/text-primary/);
     expect(icono.className).not.toMatch(/text-muted/);
   });
@@ -89,7 +90,7 @@ describe("Stat · tono", () => {
     for (const [tone, patron] of casos) {
       const { container, unmount } = render(<Stat label="x" value="1" tone={tone} icon={<svg />} />);
       const raiz = container.firstElementChild as HTMLElement;
-      const icono = container.querySelector(":scope > div > span[aria-hidden]") as HTMLElement;
+      const icono = container.querySelector("dt > span[aria-hidden]") as HTMLElement;
       expect(raiz.className).toMatch(patron);
       expect(icono.className).toMatch(patron);
       unmount();

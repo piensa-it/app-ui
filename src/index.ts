@@ -181,6 +181,7 @@ export {
   type NotificationsLabels,
 } from "./components/layout/notifications-menu";
 export { SidebarSearch, type SidebarSearchProps } from "./components/layout/sidebar-search";
+export { ScreenSearch, type ScreenSearchProps } from "./components/layout/screen-search";
 export { normalizeSearch } from "./lib/search";
 export {
   SidebarBrand,

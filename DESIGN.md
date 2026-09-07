@@ -219,7 +219,8 @@ es para la identidad de la aplicación y para navegar.
 
 ### La barra superior es estándar
 
-A la derecha van dos cosas y siempre las mismas: las notificaciones
+A la izquierda, el buscador de pantallas (`ScreenSearch`, con Ctrl K); a la
+derecha van dos cosas y siempre las mismas: las notificaciones
 (`NotificationsMenu`, la campana con el número de pendientes y su panel) y la
 persona (`UserMenu`). Lo que es de una pantalla —el periodo, un buscador, el
 botón de crear— va en la cabecera de esa pantalla (`PageHeader`), no en la

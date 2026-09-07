@@ -35,8 +35,8 @@ export interface StatProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "t
    * Qué clase de noticia es la cifra. @default "default"
    *
    * - `default`: informativa. Es un dato, no una noticia. Va en el color de
-   *   marca, no en gris: un tablero de seis cifras en gris no dice «esto es
-   *   normal», dice «esto está apagado».
+   *   marca —icono y borde—, no en gris: un tablero de seis cifras en gris no
+   *   dice «esto es normal», dice «esto está apagado».
    * - `positive`: salió bien.
    * - `warning`: hay que mirarlo esta semana.
    * - `negative`: hay que hacer algo ya.
@@ -73,7 +73,7 @@ const TONE: Record<
   StatTone,
   { icon: string; border: string; value: string; announce: string | null }
 > = {
-  default: { icon: "bg-primary/10 text-primary", border: "border-raised-border", value: "text-foreground", announce: null },
+  default: { icon: "bg-primary/10 text-primary", border: "border-primary/30", value: "text-foreground", announce: null },
   positive: { icon: "bg-success/10 text-success", border: "border-success/40", value: "text-foreground", announce: "salió bien" },
   warning: { icon: "bg-warning/10 text-warning", border: "border-warning/50", value: "text-foreground", announce: "requiere atención esta semana" },
   negative: { icon: "bg-destructive/10 text-destructive", border: "border-destructive/40", value: "text-destructive", announce: "requiere acción" },
@@ -116,23 +116,21 @@ export const Stat = React.forwardRef<HTMLDivElement, StatProps>(
         // `@container`: la cifra se mide contra la tarjeta, no contra la
         // ventana. Cuatro tarjetas en una fila estrecha son tarjetas
         // estrechas aunque la ventana sea ancha.
-        className={cn("@container relative rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
+        className={cn("@container rounded-lg border bg-raised p-inset shadow-raised", styles.border, className)}
         {...props}
       >
-        {/* El icono en una tesela con el tono, arriba a la derecha, como en
-            `IconTile`: dice de qué es la cifra de un vistazo. Un icono de 16 px
-            junto al rótulo no se veía. */}
-        {icon ? (
-          <span
-            aria-hidden="true"
-            className={cn("absolute right-inset top-inset inline-grid size-10 shrink-0 place-items-center rounded-xl [&_svg]:size-5", styles.icon)}
-          >
-            {icon}
-          </span>
-        ) : null}
-        <dl className={cn("flex min-w-0 flex-col gap-ui-2xs", icon && "pr-12")}>
-          <dt id={labelId} className="flex items-center gap-ui-xs text-ui-body-sm text-muted-foreground">
-            {label}
+        <dl className="flex min-w-0 flex-col gap-ui-2xs">
+          {/* El icono en una tesela con el tono, en la fila del rótulo, como
+              en `IconTile`: dice de qué es la cifra de un vistazo. Va en esta
+              fila y no flotando sobre la cifra, para que la cifra tenga todo
+              el ancho de la tarjeta. */}
+          <dt id={labelId} className="flex items-start justify-between gap-ui-sm text-ui-body-sm text-muted-foreground">
+            <span className="min-w-0 pt-ui-2xs">{label}</span>
+            {icon ? (
+              <span aria-hidden="true" className={cn("inline-grid size-10 shrink-0 place-items-center rounded-xl [&_svg]:size-5", styles.icon)}>
+                {icon}
+              </span>
+            ) : null}
             {/* El tono se anuncia además de pintarse: el color solo no llega a
                 quien no lo distingue, y con la marca en verde `default` y
                 `positive` salen del mismo color. */}
