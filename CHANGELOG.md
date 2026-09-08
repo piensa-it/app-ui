@@ -6,6 +6,19 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+La pantalla de ajustes que trajo #124 desaprovechaba el ancho: medido sobre `Layout/SettingsPage`, el contenido se quedaba en 959 px fijos de 1280 a 1920 px de ventana, porque el límite lo ponía el `max-w-5xl` del `PageContainer` de la aplicación, no `SettingsPage`. Pero ensanchar ese contenedor no arreglaba nada —a 959 px cada campo ya medía ~470 px, y con `width="wide"` habría pasado a ~780 px, un cuadro peor, no mejor, para un teléfono o un cargo—. El problema real era que nada detenía a los campos, y la mitad izquierda de cada fila no decía nada.
+
+### Added
+
+- **Tope de ancho y descripción a la izquierda en `Field` horizontal** (#132). `orientation="horizontal"` existía desde antes pero no lo usaba ningún componente del repo, y tal cual estaba no resolvía el caso: la descripción se pintaba en la columna del control en vez de bajo el rótulo, y esa columna no tenía tope (`minmax(10rem,0.4fr)_minmax(0,1fr)` sin límite, ~1143 px de control a 1600 px de contenido). Ahora, solo en horizontal, la descripción se muda a la columna izquierda —es lo que le da peso, y explica el campo sin alargar la página— y el control queda topado a 28 rem (`max-w-md`) para que un contenedor ancho no lo estire hasta hacerlo ilegible. El error se queda junto al control, donde tiene que estar; `aria-describedby` sigue apuntando a descripción y error igual en las dos orientaciones —la asociación accesible nunca dependió de dónde vive el nodo en el DOM—. En vertical no cambia nada, comprobado con las mismas pruebas que ya existían más una prueba de igualdad de estructura.
+- **`descriptions` en `ProfileForm`**: texto de ayuda por campo (`Partial<Record<ProfileField, ReactNode>>`), que en horizontal aparece bajo el rótulo de cada campo gracias al cambio de arriba. Sin la prop no se pinta nada ahí ni queda un hueco vacío: la librería no inventa copia de producto para tres aplicaciones distintas.
+- **`avatar` en `ProfileFormLabels`** (`@default "Foto"`): rótulo del bloque del avatar cuando `ProfileForm` es horizontal, para que ese bloque entre en la misma rejilla de dos columnas que el resto de campos en vez de quedar como un bloque suelto encima del formulario.
+
+### Changed
+
+- **`ProfileForm` es horizontal de fábrica** (#132; **cambio visual**). Es la mejor disposición para una pantalla de ajustes, que es para lo que existe este componente: rótulo a la izquierda, control con tope de ancho a la derecha, avatar integrado en la misma rejilla con su propio rótulo. `FormGrid` pasa a una sola columna en horizontal —rótulo y control ya ocupan dos columnas por campo; a dos columnas de campos habría sido cuatro subcolumnas apretadas—. Quien prefiera la disposición de 0.10.0 pasa `orientation="vertical"`, que la reproduce exactamente (misma rejilla a dos columnas, mismo avatar suelto arriba, sin el rótulo nuevo).
+- **JSDoc de `SettingsPage`**: documenta qué `width` de `PageContainer` usar y por qué —`default` para las secciones de una columna que trae normalmente una pantalla de ajustes, donde el tope nuevo de `Field` ya evita que un campo se estire; `wide` solo cuando alguna sección trae una tabla o una rejilla que de verdad aprovecha el ancho—. `SettingsPage` sigue sin acotar su propio ancho: lo decide el `PageContainer` de la aplicación, como en todo el resto del sistema.
+
 ## [0.10.0] - 2026-09-08
 
 El destino de «Mi perfil» y «Configuración». `UserMenu` (#97) ya fijaba las dos entradas, pero eran callbacks: lo que había al otro lado lo escribía cada aplicación a su manera, con su propio orden, su propio guardado y su propio aviso —o ninguno— al salir con cambios sin guardar.

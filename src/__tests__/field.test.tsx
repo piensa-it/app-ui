@@ -174,4 +174,92 @@ describe("Field · integración con los controles de formulario", () => {
       expect(screen.getByLabelText("Correo")).toHaveAccessibleDescription("Correo inválido");
     });
   });
+
+  /**
+   * `orientation="horizontal"` (#132): la descripción cambia de columna —de
+   * junto al control a bajo el rótulo— pero la asociación accesible
+   * (`aria-describedby`) no puede depender de dónde vive el nodo en el DOM.
+   * Estas pruebas comprueban las dos cosas por separado a propósito: que el
+   * texto esté en el sitio correcto, y que siga citado desde el control sin
+   * importar en qué columna quedó.
+   */
+  describe("orientación horizontal", () => {
+    it("pinta la descripción bajo el rótulo, no junto al control", () => {
+      render(
+        <Field orientation="horizontal" label="Nombre de la empresa" description="Como aparece en el registro.">
+          <Input />
+        </Field>,
+      );
+      const rotulo = screen.getByText("Nombre de la empresa");
+      const descripcion = screen.getByText("Como aparece en el registro.");
+      const control = screen.getByLabelText("Nombre de la empresa");
+
+      // Misma columna que el rótulo: la fila del rótulo vive dentro de la
+      // columna izquierda (un nivel más arriba), que es un ancestro común que
+      // no contiene al control. Si la descripción se quedara junto al
+      // control (el bug que corrige esta HU), el ancestro común más cercano
+      // sería el contenedor raíz de `Field`, que sí contiene al control.
+      const columnaIzquierda = rotulo.closest("div")?.parentElement;
+      expect(columnaIzquierda).toContainElement(descripcion);
+      expect(columnaIzquierda).not.toContainElement(control);
+    });
+
+    it("sigue asociando la descripción al control por aria-describedby aunque cambie de columna", () => {
+      render(
+        <Field orientation="horizontal" label="Nombre de la empresa" description="Como aparece en el registro.">
+          <Input />
+        </Field>,
+      );
+      expect(screen.getByLabelText("Nombre de la empresa")).toHaveAccessibleDescription(
+        "Como aparece en el registro.",
+      );
+    });
+
+    it("el error se queda junto al control, no en la columna del rótulo", () => {
+      render(
+        <Field orientation="horizontal" label="Correo de facturación" error="Dominio no autorizado.">
+          <Input />
+        </Field>,
+      );
+      const control = screen.getByLabelText("Correo de facturación");
+      const alerta = screen.getByRole("alert");
+      const rotulo = screen.getByText("Correo de facturación");
+
+      const columnaIzquierda = rotulo.closest("div");
+      expect(columnaIzquierda).not.toContainElement(alerta);
+      expect(control.getAttribute("aria-describedby")).toContain(alerta.id);
+    });
+
+    it("con error, la columna del rótulo no pinta la descripción (se pierde igual que en vertical)", () => {
+      render(
+        <Field
+          orientation="horizontal"
+          label="Correo de facturación"
+          description="Se usa para la factura electrónica."
+          error="Dominio no autorizado."
+        >
+          <Input />
+        </Field>,
+      );
+      expect(screen.queryByText("Se usa para la factura electrónica.")).not.toBeInTheDocument();
+    });
+
+    it("el control lleva la clase de tope de ancho; en vertical no la lleva", () => {
+      const { rerender, container } = render(
+        <Field orientation="horizontal" label="Teléfono">
+          <Input />
+        </Field>,
+      );
+      const columnaDeControlHorizontal = container.querySelector("input")?.parentElement;
+      expect(columnaDeControlHorizontal?.className).toContain("max-w-md");
+
+      rerender(
+        <Field orientation="vertical" label="Teléfono">
+          <Input />
+        </Field>,
+      );
+      const columnaDeControlVertical = container.querySelector("input")?.parentElement;
+      expect(columnaDeControlVertical?.className).not.toContain("max-w-md");
+    });
+  });
 });

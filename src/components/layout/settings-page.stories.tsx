@@ -23,9 +23,13 @@ const meta = {
     },
   },
   decorators: [
-    (Story) => (
+    // `width` es un parámetro de story, no un arg: no es algo que la
+    // aplicación consumidora elija en `SettingsPage` (que no acota su
+    // ancho, ver su JSDoc), sino la story demostrando los dos anchos de
+    // `PageContainer` que puede traer quien la usa.
+    (Story, context) => (
       <UiProvider>
-        <PageContainer>
+        <PageContainer width={(context.parameters.width as "default" | "wide") ?? "default"}>
           <Story />
         </PageContainer>
       </UiProvider>
@@ -289,4 +293,21 @@ export const SinAvisoAlSalir: Story = {
       ]}
     />
   ),
+};
+
+/**
+ * `PageContainer` con `width="wide"` (#132): la misma pantalla de «Mi
+ * perfil», en un contenedor de 1.536 px en vez de los 959 px de `default`.
+ * Antes de esta HU, ensanchar así solo estiraba cada control de ~470 px a
+ * ~780 px —un cuadro de esas dimensiones para un teléfono se ve peor, no
+ * mejor—. Ahora `Field` (en horizontal, el que trae `ProfileForm` de
+ * fábrica) topa el control en ~28 rem sin importar cuánto ancho sobre, y ese
+ * ancho sobrante lo ocupa la columna de rótulo y descripción, no el input.
+ * Es la prueba visual de que ensanchar `PageContainer` sin este tope —lo que
+ * medía la incidencia— no arreglaba nada; el tope, sí.
+ */
+export const AnchoCompleto: Story = {
+  name: "A lo ancho (PageContainer wide)",
+  parameters: { width: "wide" },
+  render: (args) => <PerfilDemo title={args.title} description={args.description} />,
 };

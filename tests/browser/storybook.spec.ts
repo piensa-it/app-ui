@@ -167,6 +167,51 @@ test.describe("Storybook browser gate", () => {
     });
   });
 
+  // #132: la incidencia medía 959 px fijos de contenido de 1280 a 1920 px de
+  // ventana, y ensanchar el `PageContainer` a `wide` solo estiraba cada
+  // control de ~470 a ~780 px —peor, no mejor—. Esta story usa `width="wide"`
+  // (`layout-settingspage--ancho-completo`) y una ventana de 1920: es la
+  // combinación exacta que exponía el bug. Medir el DOM en vez de comparar
+  // solo capturas es a propósito (ver el criterio de aceptación de la
+  // incidencia): una captura no falla de forma legible cuando un control se
+  // estira un poco, un `toBeLessThanOrEqual` sí.
+  test("el control de un campo horizontal no crece más allá de su tope aunque la ventana sea de 1920 px", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1000 });
+    await page.goto(storyUrl("layout-settingspage--ancho-completo"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    const nombre = story.getByLabel(/^Nombre/);
+    await expect(nombre).toBeVisible();
+    const caja = await nombre.boundingBox();
+    expect(caja).not.toBeNull();
+    // Tope real: 28rem (`max-w-md`, 448 px a 16 px de raíz). Un margen de
+    // 20 px cubre el borde y cualquier redondeo del navegador sin dejar
+    // pasar el bug (que estiraba el control a ~780 px).
+    expect(caja!.width).toBeLessThanOrEqual(468);
+    // Cota inferior de cordura: que el tope no haya colapsado el control.
+    expect(caja!.width).toBeGreaterThan(300);
+  });
+
+  for (const theme of ["light", "dark"] as const) {
+    test(`keeps the wide settings page stable in ${theme} theme`, async ({ page }) => {
+      await page.setViewportSize({ width: 1920, height: 1000 });
+      await page.goto(
+        storyUrl("layout-settingspage--ancho-completo", `theme:${theme};palette:indigo;fontFamily:geist`),
+      );
+      await stabilize(page);
+
+      const story = page.locator("#storybook-root");
+      await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+      await expect(story).toHaveScreenshot(`settings-page-wide-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
   test("keeps the animated banner visually stable", async ({ page }) => {
     await page.goto(storyUrl("contenedores-animatedbanner--exito"));
     await stabilize(page);

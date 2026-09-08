@@ -83,7 +83,9 @@ describe("ProfileForm", () => {
       </ProfileForm>,
     );
     const etiquetas = Array.from(container.querySelectorAll("label")).map((n) => n.textContent);
-    expect(etiquetas).toEqual(["Nombre*", "Correo", "Teléfono", "Cargo", "Documento"]);
+    // Horizontal es el orden de fábrica (#132): el avatar entra en la misma
+    // rejilla, con su propio rótulo («Foto») primero.
+    expect(etiquetas).toEqual(["Foto", "Nombre*", "Correo", "Teléfono", "Cargo", "Documento"]);
   });
 
   it("un error de validación se muestra en su campo", () => {
@@ -176,5 +178,67 @@ describe("ProfileForm", () => {
   it("un campo repetido en `fields` no se duplica", () => {
     montar({ fields: ["name", "name", "email"] });
     expect(screen.getAllByLabelText(/^Nombre/)).toHaveLength(1);
+  });
+
+  /**
+   * `orientation` (#132): horizontal es la disposición de fábrica —pensada
+   * para la pantalla de ajustes, que es para lo que existe `ProfileForm`—;
+   * `vertical` tiene que devolver EXACTAMENTE lo que había en 0.10.0, para
+   * quien la prefiera. jsdom no mide layout (por eso el tope de ancho se
+   * comprueba en `tests/browser`), así que aquí se comprueba lo que sí es
+   * observable desde el DOM: qué rótulos aparecen y en qué rejilla cae cada
+   * uno.
+   */
+  describe("orientation", () => {
+    it("horizontal (por defecto) agrega el rótulo del avatar y una sola columna en la rejilla", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} />);
+      expect(screen.getByText("Foto")).toBeInTheDocument();
+      // `FormGrid` con `columns={1}` no agrega `sm:grid-cols-2`; con
+      // `columns={2}` (el caso vertical) sí. Es la única marca observable en
+      // el DOM de que la rejilla pasó a una columna.
+      const rejilla = container.querySelector(".grid-cols-1");
+      expect(rejilla?.className).not.toContain("sm:grid-cols-2");
+    });
+
+    it("vertical no agrega el rótulo del avatar y conserva la rejilla a dos columnas", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="vertical" />);
+      expect(screen.queryByText("Foto")).not.toBeInTheDocument();
+      const rejilla = container.querySelector(".grid-cols-1");
+      expect(rejilla?.className).toContain("sm:grid-cols-2");
+    });
+
+    it("vertical reproduce el orden de rótulos de 0.10.0: sin el del avatar", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="vertical" />);
+      const etiquetas = Array.from(container.querySelectorAll("label")).map((n) => n.textContent);
+      expect(etiquetas).toEqual(["Nombre*", "Correo", "Teléfono", "Cargo"]);
+    });
+
+    it("`labels.avatar` sustituye el rótulo del bloque del avatar en horizontal", () => {
+      montar({ labels: { avatar: "Fotografía" } });
+      expect(screen.getByText("Fotografía")).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * `descriptions` (#132): sin valores, la columna de ayuda no queda con un
+   * hueco vacío —no se pinta nada—; con ellos, el texto se asocia al campo
+   * correspondiente igual que hace `description` en `Field` directamente.
+   */
+  describe("descriptions", () => {
+    it("sin la prop, ningún campo tiene descripción", () => {
+      montar();
+      expect(screen.getByLabelText("Correo")).not.toHaveAccessibleDescription();
+    });
+
+    it("agrega la ayuda al campo correspondiente", () => {
+      montar({ descriptions: { email: "Lo usamos para avisos importantes." } });
+      expect(screen.getByText("Lo usamos para avisos importantes.")).toBeInTheDocument();
+      expect(screen.getByLabelText("Correo")).toHaveAccessibleDescription("Lo usamos para avisos importantes.");
+    });
+
+    it("un campo sin entrada en `descriptions` no muestra ayuda aunque otros sí la tengan", () => {
+      montar({ descriptions: { email: "Ayuda de correo." } });
+      expect(screen.getByLabelText("Teléfono")).not.toHaveAccessibleDescription();
+    });
   });
 });

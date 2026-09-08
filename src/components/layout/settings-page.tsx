@@ -211,6 +211,15 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
  * la aplicación —su contenido es negocio puro—.
  *
  * Va dentro del `PageContainer` de la aplicación, como cualquier otra pantalla.
+ * `SettingsPage` no fija ni acota ese ancho —lo decide el `PageContainer`, como
+ * en todo el resto del sistema (#132)—: usá `width="default"` (`max-w-5xl`)
+ * cuando las secciones son de una columna, que es el caso normal de una
+ * pantalla de ajustes —`ProfileForm`, `AppearanceSettings`— y donde el tope de
+ * ancho de `Field` (~28 rem por control, en horizontal) ya evita que un campo
+ * se estire; reservá `width="wide"` para cuando alguna sección trae algo que
+ * de verdad aprovecha el ancho —una `DataTable` o una rejilla con muchas
+ * columnas—, no para "que se vea más lleno": ensanchar una pantalla de solo
+ * campos no la mejora, solo separa más las dos mitades de cada fila.
  *
  * @example
  * ```tsx

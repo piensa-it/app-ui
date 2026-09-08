@@ -49,6 +49,18 @@ export function Field({
   const errorId = error ? `${controlId}-error` : undefined;
   const describedBy = [children.props["aria-describedby"], descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
+  // La fila de rótulo (+ el aviso de opcional) es idéntica en las dos
+  // orientaciones; lo único que cambia es qué más comparte columna con ella.
+  const labelRow = (
+    <div className="flex items-baseline justify-between gap-ui-sm">
+      <Label htmlFor={controlId}>
+        {label}
+        {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span> : null}
+      </Label>
+      {!required && optionalLabel ? <span className="text-xs text-muted-foreground">{optionalLabel}</span> : null}
+    </div>
+  );
+
   return (
     <div
       className={cn(
@@ -64,20 +76,39 @@ export function Field({
         className,
       )}
     >
-      <div className={cn("flex items-baseline justify-between gap-ui-sm", orientation === "horizontal" && "sm:pt-ui-2xs")}>
-        <Label htmlFor={controlId}>
-          {label}
-          {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span> : null}
-        </Label>
-        {!required && optionalLabel ? <span className="text-xs text-muted-foreground">{optionalLabel}</span> : null}
-      </div>
-      <div className="grid min-w-0 gap-field">
+      {orientation === "horizontal" ? (
+        // La descripción se muda aquí, bajo el rótulo: es lo que le da peso a
+        // la columna izquierda y evita alargar la página con una fila de
+        // ayuda aparte junto al control. El error no se muda —sigue junto al
+        // control, ver más abajo— así que esta columna nunca lo pinta.
+        <div className="flex flex-col gap-ui-2xs sm:pt-ui-2xs">
+          {labelRow}
+          {description && !error ? (
+            <p id={descriptionId} className="text-sm leading-5 text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        labelRow
+      )}
+      <div
+        className={cn(
+          "grid min-w-0 gap-field",
+          // Tope de ancho solo en horizontal: sin él, un campo dentro de un
+          // contenedor ancho (una `SettingsPage` a lo ancho de un monitor)
+          // estira el control hasta hacerlo ilegible —un input de teléfono de
+          // 780 px no se ve mejor que uno de 470, se ve peor—. En vertical el
+          // control siempre ocupa el ancho de su columna, como hasta ahora.
+          orientation === "horizontal" && "sm:max-w-md",
+        )}
+      >
         {React.cloneElement(children, {
           id: controlId,
           "aria-describedby": describedBy,
           "aria-invalid": error ? true : children.props["aria-invalid"],
         })}
-        {description && !error ? (
+        {orientation === "vertical" && description && !error ? (
           <p id={descriptionId} className="text-sm leading-5 text-muted-foreground">
             {description}
           </p>
