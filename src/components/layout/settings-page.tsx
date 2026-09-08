@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabPanel } from "@/components/ui/tabs";
 import { PageHeader } from "./page-header";
 import { BellIcon, PaletteIcon, ShieldIcon, UserIcon } from "@/icons";
@@ -36,8 +37,34 @@ export interface SettingsSection {
   label?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   content: React.ReactNode;
+  /**
+   * Guarda lo de esta sección. Con él, el armazón pinta el pie; sin él, la
+   * sección no tiene pie y la aplicación pone sus botones donde quiera.
+   */
+  onSave?: () => void | Promise<void>;
+  /** Descarta los cambios. Sin él, no se pinta «Cancelar». */
+  onCancel?: () => void;
+  /** Hay cambios sin guardar: habilita «Guardar». */
+  dirty?: boolean;
+  /** Se está guardando: el pie lo dice y no admite otro clic. */
+  saving?: boolean;
   disabled?: boolean;
 }
+
+export interface SettingsPageLabels {
+  /** @default "Guardar" */
+  save?: string;
+  /** @default "Cancelar" */
+  cancel?: string;
+  /** @default "Guardando…" */
+  saving?: string;
+}
+
+const DEFAULT_LABELS: Required<SettingsPageLabels> = {
+  save: "Guardar",
+  cancel: "Cancelar",
+  saving: "Guardando…",
+};
 
 export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;
@@ -48,6 +75,8 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
   /** Sección abierta. Sin ella, el armazón la lleva solo. */
   section?: string;
   onSectionChange?: (id: string) => void;
+  /** Textos, para otro idioma o para decirlo de otra forma. */
+  labels?: SettingsPageLabels;
 }
 
 /**
@@ -73,7 +102,9 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
  * ```
  */
 export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
-  ({ title, description, actions, sections, section, onSectionChange, className, ...props }, ref) => {
+  ({ title, description, actions, sections, section, onSectionChange, labels, className, ...props }, ref) => {
+    const text = { ...DEFAULT_LABELS, ...labels };
+
     // La primera sección habilitada. Si no hay ninguna —todas deshabilitadas,
     // o la lista está vacía— no hay nada que abrir: no se cae en
     // `sections[0]` a costa de abrir una deshabilitada.
@@ -143,6 +174,27 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
                 }
               >
                 {item.content}
+                {item.onSave ? (
+                  <div className="mt-ui-lg flex justify-end gap-ui-xs border-t border-border pt-ui-md">
+                    {item.onCancel ? (
+                      <Button
+                        type="button"
+                        variant="plain"
+                        onClick={item.onCancel}
+                        disabled={!item.dirty || item.saving || item.disabled}
+                      >
+                        {text.cancel}
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      onClick={() => void item.onSave?.()}
+                      disabled={!item.dirty || item.saving || item.disabled}
+                    >
+                      {item.saving ? text.saving : text.save}
+                    </Button>
+                  </div>
+                ) : null}
               </TabPanel>
             );
           })}

@@ -259,3 +259,58 @@ describe("SettingsPage · avisa del repliegue", () => {
     expect(llamadas).toEqual(["account"]);
   });
 });
+
+describe("SettingsPage · el pie de guardado", () => {
+  it("sin `onSave`, no hay pie", () => {
+    montar();
+    expect(screen.queryByRole("button", { name: "Guardar" })).not.toBeInTheDocument();
+  });
+
+  it("con `onSave`, pinta Guardar; sin cambios está deshabilitado", () => {
+    montar({ sections: [{ id: "account", content: <p>A</p>, onSave: vi.fn() }] });
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
+  });
+
+  it("con `dirty`, Guardar se habilita y llama a `onSave`", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave }] });
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("Cancelar solo aparece con `onCancel`, y devuelve el control a la aplicación", async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave: vi.fn(), onCancel }] });
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("mientras guarda, lo dice y no admite otro clic", () => {
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, saving: true, onSave: vi.fn() }] });
+    expect(screen.getByRole("button", { name: "Guardando…" })).toBeDisabled();
+  });
+
+  it("los textos del pie se pueden sustituir", () => {
+    montar({
+      labels: { save: "Save", cancel: "Discard" },
+      sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave: vi.fn(), onCancel: vi.fn() }],
+    });
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Discard" })).toBeInTheDocument();
+  });
+
+  it("el pie es solo de la sección abierta", async () => {
+    const user = userEvent.setup();
+    montar({
+      sections: [
+        { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
+        { id: "appearance", content: <p>Tema y color</p> },
+      ],
+    });
+    await user.click(screen.getByRole("tab", { name: "Apariencia" }));
+    await screen.findByText("Tema y color");
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Guardar" })).not.toBeInTheDocument());
+  });
+});
