@@ -530,4 +530,57 @@ describe("DataTable — columnas de presentación", () => {
     const filaWebDespues = screen.getByText("Web").closest("tr")!;
     expect(within(filaWebDespues).getByRole("textbox", { name: "Nota" })).toHaveValue("marcada");
   });
+
+  it("onRowClick abre la fila con ratón y con teclado", async () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByText("Ana"));
+    expect(abrir).toHaveBeenCalledWith(value[0]);
+
+    abrir.mockClear();
+    const fila = screen.getByText("Ana").closest("tr")!;
+    fila.focus();
+    await user.keyboard("{Enter}");
+    expect(abrir).toHaveBeenCalledWith(value[0]);
+  });
+
+  it("onRowClick NO se dispara desde un botón de la fila", async () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const borrar = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila>
+          id="acciones"
+          header="Acciones"
+          body={() => <button type="button" onClick={borrar}>Eliminar</button>}
+        />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Eliminar" }));
+    expect(borrar).toHaveBeenCalledTimes(1);
+    expect(abrir).not.toHaveBeenCalled();
+  });
+
+  it("sin onRowClick la fila no es interactiva", () => {
+    render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    const fila = screen.getByText("Ana").closest("tr")!;
+    expect(fila).not.toHaveAttribute("tabindex");
+  });
 });

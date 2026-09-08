@@ -191,6 +191,15 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * reordenar o filtrar el estado interno de una fila salta a otra.
    */
   getRowId?: (row: TValue, index: number) => string;
+  /**
+   * Qué hacer al activar una fila. Con ella la fila se vuelve enfocable y
+   * responde a Enter y Espacio, no sólo al ratón.
+   *
+   * Los clics nacidos dentro de un control de la fila —un botón de acciones,
+   * un enlace, una casilla— NO la disparan: pulsar «Eliminar» no puede abrir
+   * además el detalle.
+   */
+  onRowClick?: (row: TValue) => void;
   className?: string;
 }
 
@@ -231,6 +240,7 @@ function DataTable<TValue extends DataTableValue>({
   preferencesKey,
   onColumnVisibilityChange,
   getRowId,
+  onRowClick,
   className,
 }: DataTableProps<TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -343,6 +353,11 @@ function DataTable<TValue extends DataTableValue>({
     comfortable: "px-4 py-4",
   }[activeDensity];
   const TitleTag = titleAs;
+
+  /* Un clic que nace en un control es del control, no de la fila. */
+  const naceEnUnControl = (target: EventTarget | null) =>
+    target instanceof globalThis.Element
+    && Boolean(target.closest("button, a, input, select, textarea, [role='button'], [role='checkbox']"));
 
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
@@ -572,9 +587,30 @@ function DataTable<TValue extends DataTableValue>({
                 <tr
                   key={row.id}
                   data-row-id={getRowId ? row.id : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  onClick={
+                    onRowClick
+                      ? (event) => {
+                          if (naceEnUnControl(event.target)) return;
+                          onRowClick(row.original);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    onRowClick
+                      ? (event) => {
+                          if (event.key !== "Enter" && event.key !== " ") return;
+                          if (naceEnUnControl(event.target)) return;
+                          // El Espacio desplaza la página si se le deja.
+                          event.preventDefault();
+                          onRowClick(row.original);
+                        }
+                      : undefined
+                  }
                   className={cn(
                     "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
                     striped && "even:bg-muted/30",
+                    onRowClick && "cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (

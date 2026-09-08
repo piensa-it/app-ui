@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DataTable, Column } from "./data-table";
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Trash2 } from "lucide-react";
 
 const meta = {
   title: "UI/DataTable",
@@ -242,6 +242,48 @@ export const PaginadorForzado: Story = {
     <DataTable value={usuarios} paginator>
       <Column field="nombre" header="Nombre" sortable />
       <Column field="correo" header="Correo" />
+    </DataTable>
+  ),
+};
+
+/**
+ * `onRowClick` convierte la fila en un control: responde al ratón y al
+ * teclado (Enter y Espacio). La columna de acciones sigue siendo un botón
+ * normal, y su clic no llega a `onRowClick` — pulsar «Eliminar» no abre
+ * además el detalle de la fila.
+ */
+export const FilaClicable: Story = {
+  name: "Fila clicable, sin robarle el clic a las acciones",
+  render: () => (
+    <DataTable
+      value={usuarios}
+      title="Miembros del equipo"
+      description="Haz clic en una fila para abrir su detalle."
+      onRowClick={(usuario) => window.alert(`Abriendo a ${usuario.nombre}`)}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+      <Column
+        id="acciones"
+        header="Acciones"
+        hideable={false}
+        body={() => (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.alert("Eliminar (no abre el detalle)")}
+          >
+            <Trash2 /> Eliminar
+          </Button>
+        )}
+      />
     </DataTable>
   ),
 };
