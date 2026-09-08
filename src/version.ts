@@ -13,13 +13,35 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.9.0";
+export const UI_LIBRARY_VERSION = "0.10.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar la pantalla estándar de perfil y configuración.",
+      "Perfil y configuración: sustituí el armazón de tus dos pantallas por `SettingsPage`, dentro de tu `PageContainer`. Va `title`, `description` y `sections`; cada sección lleva `id` y `content`. Los `id` conocidos —`account`, `appearance`, `security`, `notifications`— ya traen rótulo e icono, así que no les pases `label`; una sección propia tuya sí necesita el suyo.",
+      "Guardado: dale a cada sección `onSave`, `dirty` y `saving` y `SettingsPage` le pinta el pie con Guardar y Cancelar. Una sección sin `onSave` no lleva pie. El guardado es por sección, no global: cada una resuelve su error por su cuenta. Ojo, sin `dirty` el botón nunca se habilita.",
+      "Cambios sin guardar: con `dirty` puesto, cambiar de pestaña pide confirmación sola (`guardUnsaved`, activo de fábrica) y reutiliza `confirmAlert`, así que necesitás `UiProvider` montado. Cubre solo el cambio de pestaña: si querés proteger también la salida de la pantalla, eso sigue siendo tuyo —tu router o `beforeunload`—.",
+      "Datos de la persona: sustituí tu formulario de perfil por `ProfileForm` como contenido de la sección `account`. Trae avatar, nombre, correo, teléfono y cargo; lo tuyo —documento, sede, contraseña— entra por `children` y hereda la rejilla, con `span=\"full\"` si lo querés a lo ancho. Guardá `avatarFile` solo cuando venga: aparece nada más cuando el cambio fue subir o quitar la foto.",
+      "Apariencia: no estrena componente. Poné tu `AppearanceSettings` de siempre como contenido de la sección `appearance` y ganás su rótulo, su icono y su sitio.",
+      "Sección atada a la URL: si querés que la pestaña abierta viva en la ruta, pasá `section` y `onSectionChange`. Sin ellas `SettingsPage` la lleva sola.",
+      "Pestañas: el indicador de la pestaña activa no se pintaba y ahora sí. Si parcheaste eso en tu aplicación, quitá el parche.",
+      "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",
+      "Cabecera del menú: sustituí `SidebarBrand` por `SidebarIdentity` en `brand`: `system` (nombre y logo), `company` con caption «Compañía», tus opciones y el `badge` de entorno por compañía, y `module` solo si tenés módulos. La empresa se cambia ahí y en ningún otro sitio; la persona vive en `UserMenu`.",
+      "Menú: agrupá los enlaces en `SidebarNavGroup` con `collapsible` y `groupId`, y pasá `storageKey` al `AppShell` para que se recuerde.",
+      "Forma y color: elegí `layout` en `AppShell` (docked, floating, rail, framed o rail-panel), `sidebarTone` si querés el menú claro, y `data-ui-look` (classic, soft, deep, flat) y `data-ui-palette` (ocho, con cyan y sun) en tu raíz. Si ya tenés `AppearanceSettings`, añadí `look` a `sections`.",
+      "Indicadores: dale a cada `Stat` un `icon` del catálogo y un `tone` solo cuando la cifra sea noticia. No pongas botón de ocultar: si una pantalla los muestra lo decide tu configuración técnica.",
+      "Tablas: usá la `DataTable` de la librería sin envolverla en `Card` ni en un `div` con borde; columnas numéricas con `align=\"right\"`; badges de estado con las variantes de `Badge`, sin grises crudos.",
+      "Paletas: Océano, Esmeralda y Ámbar se oscurecen 4–5 puntos en claro para cumplir AA; si usás una de las tres, tus botones salen un pelo más oscuros. Nada que hacer.",
+    ],
+  },
+  {
+    version: "0.9.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-07",
     migration: [
       "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar el armazón estándar.",
       "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",

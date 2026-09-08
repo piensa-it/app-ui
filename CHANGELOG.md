@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-08
+
+El destino de «Mi perfil» y «Configuración». `UserMenu` (#97) ya fijaba las dos entradas, pero eran callbacks: lo que había al otro lado lo escribía cada aplicación a su manera, con su propio orden, su propio guardado y su propio aviso —o ninguno— al salir con cambios sin guardar.
+
 ### Added
 
 - **`SettingsPage`: el destino estándar de «Mi perfil» y «Configuración»** (#124). Cabecera, secciones en pestañas y el pie de guardado siempre en el mismo sitio —cada aplicación lo escribía por su cuenta, con su propio orden de botones y su propio aviso (o ninguno) al salir con cambios sin guardar. El pie de guardado es opcional por sección: solo pinta si la sección declara `onSave`, así que seguridad o notificaciones pueden no traerlo. Con `dirty` en la sección activa, cambiar de pestaña reutiliza `confirmAlert` para pedir confirmación (`guardUnsaved`, activo por defecto) — pero solo cubre el cambio de pestaña dentro del propio componente, no la navegación fuera de la pantalla. `saving` imita el estado deshabilitado con `aria-disabled` y una clase en vez de `disabled` nativo, para no perder el foco de quien navega con teclado ni el anuncio del lector de pantalla. El catálogo de secciones conocidas (`account`, `appearance`, `security`, `notifications`) trae rótulo e icono sin pasarlos; una sección propia de la aplicación necesita su `label`. `section`/`onSectionChange` deja la pestaña activa en manos de la aplicación —típicamente atada a la ruta— en vez de llevarla `SettingsPage` sola.
