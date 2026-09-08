@@ -404,10 +404,18 @@ En la desestructuración, debajo de `getRowId,`:
 Antes del `return (`:
 
 ```tsx
-  /* Un clic que nace en un control es del control, no de la fila. */
+  /* Un clic que nace en un control es del control, no de la fila.
+   *
+   * `closest` NO basta: el menú de acciones de fila pinta sus opciones en un
+   * `<Portal>`, así que en el DOM cuelgan de `document.body` mientras el
+   * evento sintético de React sigue burbujeando hasta el `<tr>`. Pulsar
+   * «Eliminar» en el kebab borraba Y abría el detalle. Por eso el guardián
+   * estructural va ANTES, en los dos manejadores: lo que no está dentro de la
+   * fila no pasó en la fila. Y `label` entra en la lista porque el radio y el
+   * interruptor tapan su `<input>`, y el clic aterriza en la etiqueta. */
   const naceEnUnControl = (target: EventTarget | null) =>
     target instanceof globalThis.Element
-    && Boolean(target.closest("button, a, input, select, textarea, [role='button'], [role='checkbox']"));
+    && Boolean(target.closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"));
 ```
 
 Y sustituye el `<tr>` del `tbody` por:
@@ -420,6 +428,7 @@ Y sustituye el `<tr>` del `tbody` por:
                   onClick={
                     onRowClick
                       ? (event) => {
+                          if (!event.currentTarget.contains(event.target as Node)) return;
                           if (naceEnUnControl(event.target)) return;
                           onRowClick(row.original);
                         }
@@ -429,6 +438,7 @@ Y sustituye el `<tr>` del `tbody` por:
                     onRowClick
                       ? (event) => {
                           if (event.key !== "Enter" && event.key !== " ") return;
+                          if (!event.currentTarget.contains(event.target as Node)) return;
                           if (naceEnUnControl(event.target)) return;
                           // El Espacio desplaza la página si se le deja.
                           event.preventDefault();
@@ -609,6 +619,7 @@ En el `<tbody>`, sustituye el `map` de filas para que cada fila pueda ir acompa�
                       onClick={
                         onRowClick
                           ? (event) => {
+                              if (!event.currentTarget.contains(event.target as Node)) return;
                               if (naceEnUnControl(event.target)) return;
                               onRowClick(row.original);
                             }
@@ -618,6 +629,7 @@ En el `<tbody>`, sustituye el `map` de filas para que cada fila pueda ir acompa�
                         onRowClick
                           ? (event) => {
                               if (event.key !== "Enter" && event.key !== " ") return;
+                              if (!event.currentTarget.contains(event.target as Node)) return;
                               if (naceEnUnControl(event.target)) return;
                               event.preventDefault();
                               onRowClick(row.original);
