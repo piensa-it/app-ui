@@ -43,7 +43,9 @@ type Story = StoryObj<typeof meta>;
 
 type CabeceraArgs = Pick<SettingsPageProps, "title" | "description">;
 
-const PerfilDemo = ({ title, description }: CabeceraArgs) => {
+type PerfilDemoProps = CabeceraArgs & Pick<React.ComponentProps<typeof ProfileForm>, "orientation" | "descriptions">;
+
+const PerfilDemo = ({ title, description, orientation, descriptions }: PerfilDemoProps) => {
   const [value, setValue] = React.useState<ProfileFormValue>({
     name: "Andrés Montoya",
     email: "andres@piensait.com",
@@ -63,7 +65,9 @@ const PerfilDemo = ({ title, description }: CabeceraArgs) => {
           // `account` es del catálogo conocido: rótulo «Cuenta» e icono ya
           // vienen puestos, sin pasar `label` ni `icon` aquí.
           id: "account",
-          content: <ProfileForm value={value} onChange={setValue} />,
+          content: (
+            <ProfileForm value={value} onChange={setValue} orientation={orientation} descriptions={descriptions} />
+          ),
           dirty,
           onSave: () => setGuardado(value),
           onCancel: () => setValue(guardado),
@@ -89,7 +93,7 @@ const PerfilDemo = ({ title, description }: CabeceraArgs) => {
  * «Mi perfil»: la sección de cuenta (`ProfileForm`, controlado por esta
  * story) trae pie de guardado propio porque declara `onSave`; seguridad no
  * lo trae, porque no lo declara — ese pie es opcional por sección, no de toda
- * la pantalla.
+ * la pantalla. `ProfileForm` va con su disposición de fábrica —vertical—.
  */
 export const Default: Story = {
   name: "Mi perfil",
@@ -287,6 +291,37 @@ export const SinAvisoAlSalir: Story = {
         },
         { id: "appearance", content: <p className="text-ui-body-sm">Tema, color, tipografía y densidad.</p> },
       ]}
+    />
+  ),
+};
+
+/**
+ * «Mi perfil» con `ProfileForm` en `orientation="horizontal"` y
+ * `descriptions` —la combinación que de verdad vale la pena en horizontal
+ * (ver el JSDoc de la prop): sin `descriptions` la columna izquierda no
+ * lleva más que el rótulo y el bloque se ve descuadrado—. Va en
+ * `width="default"` a propósito: `wide` es para secciones que traen algo
+ * que de verdad aprovecha el ancho —una `DataTable`, una rejilla ancha—, no
+ * para un formulario de puros campos; usarlo aquí solo dejaría un vacío a
+ * la derecha del contenido. Con `default`, `Field` topa igual el control
+ * (~28 rem) y la columna del rótulo (~20 rem): el bloque se mantiene junto
+ * y proporcionado sin importar el ancho del contenedor —es la prueba de que
+ * el tope, no el ancho del `PageContainer`, es lo que arregla el caso que
+ * medía la incidencia—.
+ */
+export const HorizontalConDescripciones: Story = {
+  name: "Horizontal con descripciones",
+  render: (args) => (
+    <PerfilDemo
+      title={args.title}
+      description={args.description}
+      orientation="horizontal"
+      descriptions={{
+        name: "Como aparece para el resto del equipo.",
+        email: "Lo usamos para avisos de la cuenta, nunca para mercadeo.",
+        phone: "Solo para contacto en caso de una alerta operativa.",
+        jobTitle: "El mismo que se ve en el menú de usuario.",
+      }}
     />
   ),
 };
