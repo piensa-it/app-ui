@@ -354,10 +354,34 @@ function DataTable<TValue extends DataTableValue>({
   }[activeDensity];
   const TitleTag = titleAs;
 
-  /* Un clic que nace en un control es del control, no de la fila. */
-  const naceEnUnControl = (target: EventTarget | null) =>
-    target instanceof globalThis.Element
-    && Boolean(target.closest("button, a, input, select, textarea, [role='button'], [role='checkbox']"));
+  /*
+   * El kebab de acciones de una fila (`MenuTrigger` + `MenuContent`) pinta su
+   * `MenuItem` en un `Portal`, igual que `Select` — en el DOM ese ítem cuelga
+   * de `document.body`, no del `<tr>`. `closest()` viaja por el DOM: un clic
+   * en «Eliminar» no encuentra ningún control camino arriba y se cuela como
+   * clic de fila, así que un solo click borraba la fila Y abría su detalle.
+   * React sí entrega el evento al `onClick` del `<tr>` porque su árbol de
+   * bubbling es el de React, no el del DOM — por eso el primer filtro no es
+   * "¿hay un control en el camino?" sino "¿el clic nació siquiera dentro de
+   * este `<tr>`?": si no, es de un portal y no es de la fila.
+   */
+  const naceFueraDeLaFila = (currentTarget: HTMLTableRowElement, target: EventTarget | null) =>
+    !(target instanceof Node) || !currentTarget.contains(target);
+
+  /*
+   * Ya dentro de la fila, un control real tampoco la dispara. `RadioGroupItem`
+   * y `Switch` envuelven su `<input>` (clip a 1px, sin geometría) en un
+   * `<label>` que pinta el círculo/interruptor visible: el clic aterriza en
+   * ese `<label>` o en su texto, nunca en el input, así que hace falta
+   * nombrar el `label` explícitamente o el clic se cuela igual.
+   */
+  const naceEnUnControl = (target: EventTarget | null) => {
+    const element = target as { closest?: unknown } | null;
+    return (
+      typeof element?.closest === "function"
+      && Boolean((element as Element).closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"))
+    );
+  };
 
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
@@ -591,6 +615,7 @@ function DataTable<TValue extends DataTableValue>({
                   onClick={
                     onRowClick
                       ? (event) => {
+                          if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
                           if (naceEnUnControl(event.target)) return;
                           onRowClick(row.original);
                         }
@@ -600,6 +625,7 @@ function DataTable<TValue extends DataTableValue>({
                     onRowClick
                       ? (event) => {
                           if (event.key !== "Enter" && event.key !== " ") return;
+                          if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
                           if (naceEnUnControl(event.target)) return;
                           // El Espacio desplaza la página si se le deja.
                           event.preventDefault();

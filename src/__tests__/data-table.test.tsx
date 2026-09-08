@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
+import { Menu, MenuTrigger, MenuContent, MenuItem } from "../components/ui/menu";
+import { Switch } from "../components/ui/switch";
 
 interface Fila {
   nombre: string;
@@ -571,6 +573,77 @@ describe("DataTable — columnas de presentación", () => {
 
     await user.click(screen.getByRole("button", { name: "Eliminar" }));
     expect(borrar).toHaveBeenCalledTimes(1);
+    expect(abrir).not.toHaveBeenCalled();
+  });
+
+  // El kebab de acciones es el caso real, no el botón suelto de arriba: su
+  // `MenuItem` se pinta en un `Portal` (fuera del <tr> en el DOM), y es
+  // exactamente lo que un click de "Eliminar" en un menú de fila se parece
+  // en las 12 pantallas que van a usar esto.
+  it("onRowClick NO se dispara desde un ítem de un menú portado (kebab de la fila)", async () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const borrar = vi.fn();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila>
+          id="acciones"
+          header="Acciones"
+          body={() => (
+            <Menu>
+              <MenuTrigger>
+                <button type="button">Más opciones</button>
+              </MenuTrigger>
+              <MenuContent>
+                <MenuItem value="delete" onSelect={borrar}>
+                  Eliminar
+                </MenuItem>
+              </MenuContent>
+            </Menu>
+          )}
+        />
+      </DataTable>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
+    const item = await screen.findByRole("menuitem", { name: "Eliminar" });
+    // Ver menu.test.tsx: Ark UI solo dispara onSelect si el ítem quedó
+    // "highlighted" antes del click, algo que hace el pointerdown real.
+    fireEvent.pointerDown(item, { pointerType: "mouse" });
+    await waitFor(() => expect(item).toHaveAttribute("data-highlighted"));
+    fireEvent.click(item);
+
+    await waitFor(() => expect(borrar).toHaveBeenCalledTimes(1));
+    expect(abrir).not.toHaveBeenCalled();
+  });
+
+  // `RadioGroupItem` y `Switch` envuelven su `<input>` real (clip a 1px) en un
+  // `<label>` que pinta el control visible: el click aterriza en ese `label`
+  // o en su texto, nunca en el input — por eso hace falta nombrar `label` en
+  // el selector, no solo los roles de formulario.
+  it("onRowClick NO se dispara al marcar un Switch de la fila", async () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const marcar = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila>
+          id="activo"
+          header="Estado"
+          body={() => <Switch label="Activo" onCheckedChange={marcar} />}
+        />
+      </DataTable>,
+    );
+
+    // El click cae sobre el texto visible de la etiqueta, no sobre el input
+    // oculto — es justo el caso que un click de ratón real produce.
+    await user.click(screen.getByText("Activo"));
+    expect(marcar).toHaveBeenCalledTimes(1);
     expect(abrir).not.toHaveBeenCalled();
   });
 
