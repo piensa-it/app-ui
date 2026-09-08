@@ -169,6 +169,11 @@ export interface DataTableProps<TValue extends DataTableValue> {
   preferencesKey?: string;
   /** Notifica cambios para persistencia externa en perfiles de usuario. */
   onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;
+  /**
+   * Identidad estable de cada fila. Sin ella TanStack usa el índice, y al
+   * reordenar o filtrar el estado interno de una fila salta a otra.
+   */
+  getRowId?: (row: TValue, index: number) => string;
   className?: string;
 }
 
@@ -206,6 +211,7 @@ function DataTable<TValue extends DataTableValue>({
   configurableColumns = false,
   preferencesKey,
   onColumnVisibilityChange,
+  getRowId,
   className,
 }: DataTableProps<TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -288,6 +294,7 @@ function DataTable<TValue extends DataTableValue>({
     features: dataTableFeatures,
     data: value,
     columns: columnDefs,
+    getRowId: getRowId ? (row, index) => getRowId(row, index) : undefined,
     state: { sorting, pagination: effectivePagination, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
@@ -544,6 +551,7 @@ function DataTable<TValue extends DataTableValue>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
+                  data-row-id={row.id}
                   className={cn(
                     "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
                     striped && "even:bg-muted/30",

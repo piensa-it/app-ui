@@ -420,4 +420,20 @@ describe("DataTable — columnas de presentación", () => {
     await user.type(screen.getByRole("textbox", { name: "Buscar en la tabla" }), "Ana");
     await waitFor(() => expect(screen.getByText("Ana Gómez")).toBeInTheDocument());
   });
+
+  it("usa getRowId para identificar las filas", () => {
+    interface Canal { id: string; nombre: string }
+    const value: Canal[] = [
+      { id: "ch_web", nombre: "Web" },
+      { id: "ch_mostrador", nombre: "Mostrador" },
+    ];
+    const { container } = render(
+      <DataTable value={value} getRowId={(c) => c.id}>
+        <Column<Canal> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    const filas = container.querySelectorAll("tbody tr");
+    expect(filas[0].getAttribute("data-row-id")).toBe("ch_web");
+    expect(filas[1].getAttribute("data-row-id")).toBe("ch_mostrador");
+  });
 });
