@@ -124,6 +124,35 @@ export const Horizontal: Story = {
 };
 
 /**
+ * Sin contenedor que la acote (#132): demuestra que los dos topes de
+ * `orientation="horizontal"` —el control (~28rem, `max-w-md`) y la columna
+ * del rótulo (~20rem)— dependen de `Field`, no de qué tan ancho sea lo que
+ * lo envuelve. Existe para que `tests/browser/storybook.spec.ts` mida el DOM
+ * contra una ventana arbitrariamente ancha sin mezclar esa comprobación con
+ * qué `width` de `PageContainer` conviene usar en una pantalla real —esa es
+ * una decisión de la aplicación (ver el JSDoc de `PageContainer` y de
+ * `SettingsPage`), no algo que dependa de este componente.
+ */
+export const TopeDeAncho: Story = {
+  name: "Tope de ancho",
+  args: {
+    label: "Nombre de la empresa",
+    children: <Input />,
+  },
+  render: () => (
+    <div className="w-full">
+      <Field
+        orientation="horizontal"
+        label="Nombre de la empresa"
+        description="Como aparece en el registro mercantil."
+      >
+        <Input defaultValue="Piensa IT" />
+      </Field>
+    </div>
+  ),
+};
+
+/**
  * Densidad compacta: reduce el espacio entre label, control y mensaje. Resérvala
  * para paneles laterales, filtros y formularios embebidos donde el alto es
  * escaso; en un formulario de página completa, `comfortable` se lee mejor.

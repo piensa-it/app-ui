@@ -219,7 +219,16 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
             // diferencia de las de abajo— quedaba con el rótulo *encima* del
             // avatar en vez de al lado, rompiendo el ritmo de dos columnas
             // que se supone que comparte con el resto de campos.
-            <Field label={text.avatar} orientation={orientation}>
+            //
+            // `compositeControl`: `AvatarPicker` no es un control simple con
+            // un único elemento enfocable —son varios controles (subir,
+            // quitar, los ocho colores) bajo un mismo rótulo—, y
+            // `AvatarPickerProps` no acepta `id` ni hace rest-spread, así que
+            // el `id` que `Field` inyectaría normalmente se perdía y el
+            // `<label htmlFor>` quedaba apuntando a un elemento que no
+            // existe. Con esta prop, `Field` pinta el rótulo como `<span id>`
+            // y usa `role="group"` + `aria-labelledby` en su lugar.
+            <Field label={text.avatar} orientation={orientation} compositeControl>
               {avatarPicker}
             </Field>
           ) : null}

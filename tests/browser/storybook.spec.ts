@@ -168,20 +168,23 @@ test.describe("Storybook browser gate", () => {
   });
 
   // #132: la incidencia medía 959 px fijos de contenido de 1280 a 1920 px de
-  // ventana, y ensanchar el `PageContainer` a `wide` solo estiraba cada
-  // control de ~470 a ~780 px —peor, no mejor—. Esta story usa `width="wide"`
-  // (`layout-settingspage--ancho-completo`, `ProfileForm` en horizontal con
-  // `descriptions`) y una ventana de 1920: es la combinación exacta que
-  // exponía el bug, tanto en el control como en la columna del rótulo (la
-  // segunda ronda de revisión: `0.4fr` sin tope estiraba «Nombre» a ~590 px
-  // de ancho). Medir el DOM en vez de comparar solo capturas es a propósito
-  // (ver el criterio de aceptación de la incidencia): una captura no falla de
-  // forma legible cuando algo se estira un poco, un `toBeLessThanOrEqual` sí.
-  test("el control y la columna del rótulo de un campo horizontal no crecen más allá de su tope aunque la ventana sea de 1920 px", async ({
+  // ventana, y ensanchar `PageContainer` a `wide` solo estiraba el control de
+  // ~470 a ~780 px —peor, no mejor—. Esta story es `width="default"` a
+  // propósito (`wide` es para secciones con tablas o rejillas anchas, no para
+  // un formulario de campos, ver su JSDoc), así que la ventana de 1920 no
+  // ensancha el contenedor —lo acota `PageContainer`—; lo que prueba es que
+  // ensanchar la ventana no vuelve a estirar el control aunque el contenedor
+  // se quede corto. Medido con la mutación real (quitar `max-w-md` del
+  // control): 632 px, muy por encima del tope de 468 que afirma esta prueba
+  // —sigue matando la mutación aunque el contenedor no sea `wide`—. Medir el
+  // DOM en vez de comparar solo capturas es a propósito (ver el criterio de
+  // aceptación de la incidencia): una captura no falla de forma legible
+  // cuando algo se estira un poco, un `toBeLessThanOrEqual` sí.
+  test("el control de un campo horizontal no crece más allá de su tope aunque la ventana sea de 1920 px", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1920, height: 1000 });
-    await page.goto(storyUrl("layout-settingspage--ancho-completo"));
+    await page.goto(storyUrl("layout-settingspage--horizontal-con-descripciones"));
     await stabilize(page);
 
     const story = page.locator("#storybook-root");
@@ -191,15 +194,54 @@ test.describe("Storybook browser gate", () => {
     expect(caja).not.toBeNull();
     // Tope real: 28rem (`max-w-md`, 448 px a 16 px de raíz). Un margen de
     // 20 px cubre el borde y cualquier redondeo del navegador sin dejar
-    // pasar el bug (que estiraba el control a ~780 px).
+    // pasar el bug (que estiraba el control a ~780 px a 1920 px de ventana
+    // con `PageContainer` `wide`, y a 632 px incluso con `default`).
     expect(caja!.width).toBeLessThanOrEqual(468);
     // Cota inferior de cordura: que el tope no haya colapsado el control.
     expect(caja!.width).toBeGreaterThan(300);
+  });
 
-    // La columna del rótulo (rótulo + descripción) es el nodo que ocupa el
-    // primer track de la rejilla de `Field`: medirla a ella, no solo al
-    // `<label>`, es lo que refleja el tope real del track (20rem = 320 px).
-    const columnaDelRotulo = await nombre.evaluate((input) => {
+  for (const theme of ["light", "dark"] as const) {
+    test(`keeps the horizontal-with-descriptions settings page stable in ${theme} theme`, async ({ page }) => {
+      await page.goto(
+        storyUrl("layout-settingspage--horizontal-con-descripciones", `theme:${theme};palette:indigo;fontFamily:geist`),
+      );
+      await stabilize(page);
+
+      const story = page.locator("#storybook-root");
+      await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+      await expect(story).toHaveScreenshot(`settings-page-horizontal-descriptions-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
+  // El tope de ancho de `Field` horizontal es una garantía del componente,
+  // no de una página en particular: se comprueba aquí sobre
+  // `ui-field--tope-de-ancho` (sin ningún `PageContainer` de por medio, ver
+  // su JSDoc) para no mezclarlo con qué `width` conviene en una pantalla
+  // real —eso es harina de otro costal (la prueba de arriba, sobre
+  // `SettingsPage`)—. Cubre las dos columnas: medido con cada mutación por
+  // separado, sin `max-w-md` el control mide 1398 px y sin el tope de la
+  // columna del rótulo (volver a `0.4fr`) esa columna mide ~491 px — las dos
+  // muy por encima de sus topes.
+  test("Field mantiene los dos topes horizontales sin importar cuánto ancho le sobre al contenedor", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await page.goto(storyUrl("ui-field--tope-de-ancho"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    const control = story.locator("input");
+    await expect(control).toBeVisible();
+    const cajaControl = await control.boundingBox();
+    expect(cajaControl).not.toBeNull();
+    expect(cajaControl!.width).toBeLessThanOrEqual(468);
+    expect(cajaControl!.width).toBeGreaterThan(300);
+
+    const columnaDelRotulo = await control.evaluate((input) => {
       // `input` → el `div` que envuelve el control (columna 2) → la raíz de
       // `Field` (la rejilla de dos columnas) → su primer hijo, la columna
       // del rótulo (columna 1).
@@ -207,28 +249,12 @@ test.describe("Storybook browser gate", () => {
       const columna = raizDelField.firstElementChild as HTMLElement;
       return columna.getBoundingClientRect().width;
     });
-    // Tope real: 20rem = 320 px. Mismo margen de 20 px que arriba; antes del
-    // arreglo, esta columna medía ~590 px para una sola palabra.
+    // Tope real: 20rem = 320 px. Cota inferior subida a 280: a 160 px
+    // (10rem, el mínimo de `minmax`) esta prueba tiene que fallar, no dejar
+    // pasar un tope mucho más bajo que el que se documenta.
     expect(columnaDelRotulo).toBeLessThanOrEqual(340);
-    expect(columnaDelRotulo).toBeGreaterThan(150);
+    expect(columnaDelRotulo).toBeGreaterThan(280);
   });
-
-  for (const theme of ["light", "dark"] as const) {
-    test(`keeps the wide settings page stable in ${theme} theme`, async ({ page }) => {
-      await page.setViewportSize({ width: 1920, height: 1000 });
-      await page.goto(
-        storyUrl("layout-settingspage--ancho-completo", `theme:${theme};palette:indigo;fontFamily:geist`),
-      );
-      await stabilize(page);
-
-      const story = page.locator("#storybook-root");
-      await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
-      await expect(story).toHaveScreenshot(`settings-page-wide-${theme}.png`, {
-        animations: "disabled",
-        maxDiffPixels: MAX_DIFF_PIXELS,
-      });
-    });
-  }
 
   test("keeps the animated banner visually stable", async ({ page }) => {
     await page.goto(storyUrl("contenedores-animatedbanner--exito"));

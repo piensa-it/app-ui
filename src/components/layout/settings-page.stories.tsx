@@ -23,13 +23,9 @@ const meta = {
     },
   },
   decorators: [
-    // `width` es un parámetro de story, no un arg: no es algo que la
-    // aplicación consumidora elija en `SettingsPage` (que no acota su
-    // ancho, ver su JSDoc), sino la story demostrando los dos anchos de
-    // `PageContainer` que puede traer quien la usa.
-    (Story, context) => (
+    (Story) => (
       <UiProvider>
-        <PageContainer width={(context.parameters.width as "default" | "wide") ?? "default"}>
+        <PageContainer>
           <Story />
         </PageContainer>
       </UiProvider>
@@ -300,21 +296,21 @@ export const SinAvisoAlSalir: Story = {
 };
 
 /**
- * `PageContainer` con `width="wide"` (#132): la misma pantalla de «Mi
- * perfil», en un contenedor de 1.536 px en vez de los 959 px de `default`,
- * con `ProfileForm` en `orientation="horizontal"` y `descriptions` —la
- * combinación que de verdad vale la pena en horizontal (ver el JSDoc de la
- * prop)—. Antes de esta HU, ensanchar así solo estiraba cada control de
- * ~470 px a ~780 px —un cuadro de esas dimensiones para un teléfono se ve
- * peor, no mejor—. Ahora `Field`, en horizontal, topa el control en ~28 rem
- * y la columna de rótulo en ~20 rem sin importar cuánto ancho sobre, y ese
- * ancho sobrante queda como margen a la derecha, no estirando ni el input ni
- * la etiqueta. Es la prueba visual de que ensanchar `PageContainer` sin este
- * tope —lo que medía la incidencia— no arreglaba nada; el tope, sí.
+ * «Mi perfil» con `ProfileForm` en `orientation="horizontal"` y
+ * `descriptions` —la combinación que de verdad vale la pena en horizontal
+ * (ver el JSDoc de la prop): sin `descriptions` la columna izquierda no
+ * lleva más que el rótulo y el bloque se ve descuadrado—. Va en
+ * `width="default"` a propósito: `wide` es para secciones que traen algo
+ * que de verdad aprovecha el ancho —una `DataTable`, una rejilla ancha—, no
+ * para un formulario de puros campos; usarlo aquí solo dejaría un vacío a
+ * la derecha del contenido. Con `default`, `Field` topa igual el control
+ * (~28 rem) y la columna del rótulo (~20 rem): el bloque se mantiene junto
+ * y proporcionado sin importar el ancho del contenedor —es la prueba de que
+ * el tope, no el ancho del `PageContainer`, es lo que arregla el caso que
+ * medía la incidencia—.
  */
-export const AnchoCompleto: Story = {
-  name: "A lo ancho (PageContainer wide)",
-  parameters: { width: "wide" },
+export const HorizontalConDescripciones: Story = {
+  name: "Horizontal con descripciones",
   render: (args) => (
     <PerfilDemo
       title={args.title}

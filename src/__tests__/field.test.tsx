@@ -264,12 +264,14 @@ describe("Field · integración con los controles de formulario", () => {
 
     /**
      * La columna del rótulo también topa (#132, segunda ronda): con
-     * `minmax(10rem, 0.4fr)` una sola palabra se estiraba a ~590 px a
-     * 1920 px de contenido. `20rem` la mantiene junto al control en vez de
-     * separarlos por medio contenedor de sobra. El valor exacto se
-     * comprueba aquí (contra un cambio que lo borre o lo cambie sin darse
-     * cuenta); que a 1920 px eso de verdad se traduzca en un bloque
-     * compacto se comprueba midiendo el DOM en `tests/browser`.
+     * `minmax(10rem, 0.4fr)` una sola palabra se estiraba a 418 px, medido
+     * con la mutación real en `tests/browser` a 1920 px de ventana con
+     * `PageContainer` `wide` (0,4 × ~1045 px de contenido, no de ventana).
+     * `20rem` la mantiene junto al control en vez de separarlos por medio
+     * contenedor de sobra. El valor exacto se comprueba aquí (contra un
+     * cambio que lo borre o lo cambie sin darse cuenta); que a 1920 px eso de
+     * verdad se traduzca en un bloque compacto se comprueba midiendo el DOM
+     * en `tests/browser`.
      */
     it("la columna del rótulo topa en 20rem, no en una fracción del contenedor", () => {
       const { container } = render(
@@ -280,6 +282,86 @@ describe("Field · integración con los controles de formulario", () => {
       const raiz = container.firstElementChild;
       expect(raiz?.className).toContain("minmax(10rem,20rem)");
       expect(raiz?.className).not.toContain("0.4fr");
+    });
+  });
+
+  /**
+   * `compositeControl` (#132, revisión): `AvatarPicker` no expone un único
+   * elemento enfocable al que asociar el `id` que `Field` inyecta —y
+   * `AvatarPickerProps` ni siquiera acepta `id`—, así que el `<label
+   * htmlFor>` de siempre quedaba apuntando a un elemento que nunca existió.
+   * `getByLabelText`/`toHaveAccessibleDescription` no lo habrían detectado
+   * porque ninguno resuelve `htmlFor` contra el DOM real; por eso la prueba
+   * de más abajo lo hace a mano.
+   */
+  describe("control compuesto (compositeControl)", () => {
+    it("pinta el rótulo como <span>, no como <label>", () => {
+      const { container } = render(
+        <Field compositeControl label="Foto">
+          <div>Contenido compuesto</div>
+        </Field>,
+      );
+      expect(container.querySelector("label")).not.toBeInTheDocument();
+      expect(screen.getByText("Foto").tagName).toBe("SPAN");
+    });
+
+    it("asocia el grupo por aria-labelledby, con role=group, en vez de por htmlFor", () => {
+      render(
+        <Field compositeControl label="Foto">
+          <div>Contenido compuesto</div>
+        </Field>,
+      );
+      expect(screen.getByRole("group", { name: "Foto" })).toBeInTheDocument();
+    });
+
+    it("el aria-labelledby del grupo resuelve a un elemento que de verdad existe", () => {
+      const { container } = render(
+        <Field compositeControl label="Foto">
+          <div>Contenido compuesto</div>
+        </Field>,
+      );
+      const grupo = screen.getByRole("group", { name: "Foto" });
+      const labelledbyId = grupo.getAttribute("aria-labelledby");
+      expect(labelledbyId).toBeTruthy();
+      expect(container.querySelector(`[id="${labelledbyId}"]`)).not.toBeNull();
+    });
+
+    it("aria-describedby del grupo referencia la descripción, igual que en un control simple", () => {
+      render(
+        <Field compositeControl label="Foto" description="Ayuda del grupo.">
+          <div>Contenido compuesto</div>
+        </Field>,
+      );
+      expect(screen.getByRole("group", { name: "Foto" })).toHaveAccessibleDescription("Ayuda del grupo.");
+    });
+
+    /**
+     * La prueba general que pidió la revisión: no basta con que `Field`
+     * ofrezca `compositeControl`, hay que comprobar que quien lo usa no deja
+     * un `label[for]` colgando —apuntando a un `id` que ningún elemento del
+     * documento tiene—. Cubre tanto el caso simple (el `id` que `Field`
+     * genera sí existe, en el control clonado) como el compuesto (no hay
+     * ningún `label[for]` en absoluto).
+     */
+    it("ningún label[for] en el documento apunta a un id que no existe", () => {
+      const { container } = render(
+        <>
+          <Field label="Simple">
+            <Input />
+          </Field>
+          <Field compositeControl label="Compuesto">
+            <div>Contenido compuesto</div>
+          </Field>
+        </>,
+      );
+      const labelsConFor = Array.from(container.querySelectorAll("label[for]"));
+      // Sanity: el caso simple sí pinta un `label[for]` — si esto diera 0,
+      // la prueba de abajo pasaría sin comprobar nada.
+      expect(labelsConFor.length).toBeGreaterThan(0);
+      for (const label of labelsConFor) {
+        const forId = label.getAttribute("for")!;
+        expect(container.querySelector(`[id="${forId}"]`)).not.toBeNull();
+      }
     });
   });
 });

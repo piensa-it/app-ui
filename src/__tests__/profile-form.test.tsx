@@ -237,6 +237,30 @@ describe("ProfileForm", () => {
       montar({ orientation: "horizontal", labels: { avatar: "Fotografía" } });
       expect(screen.getByText("Fotografía")).toBeInTheDocument();
     });
+
+    /**
+     * Regresión (revisión de #132): el rótulo «Foto» se pintaba con
+     * `<label htmlFor>` apuntando al `id` que `Field` le inyectaba a
+     * `AvatarPicker`, pero `AvatarPickerProps` no acepta `id` ni hace
+     * rest-spread —lo descarta—, así que ese `for` apuntaba a un elemento
+     * que nunca existió: un rótulo que no hace nada al pulsarlo y sin
+     * asociación accesible real. El grupo del avatar usa `compositeControl`
+     * (rótulo como `<span>` + `role="group"`) precisamente para no dejar
+     * ningún `label[for]` colgando.
+     */
+    it("el rótulo del avatar no deja un label[for] apuntando a un id que no existe", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="horizontal" />);
+      const labelsConFor = Array.from(container.querySelectorAll("label[for]"));
+      // Sanity: los cuatro campos de texto sí pintan `label[for]` — si esto
+      // diera 0, la prueba de abajo pasaría sin comprobar nada.
+      expect(labelsConFor.length).toBe(4);
+      for (const label of labelsConFor) {
+        const forId = label.getAttribute("for")!;
+        expect(container.querySelector(`[id="${forId}"]`)).not.toBeNull();
+      }
+      // Y el rótulo del avatar en concreto no es un `<label>`.
+      expect(screen.getByText("Foto").tagName).toBe("SPAN");
+    });
   });
 
   /**
