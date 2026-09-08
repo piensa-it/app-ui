@@ -378,3 +378,55 @@ export const DetalleEnLinea: Story = {
     </DataTable>
   ),
 };
+
+/**
+ * `multiple` deja abiertas varias filas a la vez: en CoreLink, Categorías,
+ * Segmentos y Listas de Precios necesitan comparar dos fichas lado a lado
+ * (los ítems de una categoría junto a los de otra), y el comportamiento por
+ * defecto —una fila a la vez— se lo impediría.
+ */
+export const DetalleEnLineaMultiple: Story = {
+  name: "Detalle en línea, varias filas a la vez (multiple)",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="Con `multiple`, desplegar una fila no repliega las demás: se pueden comparar dos o más fichas a la vez."
+      searchable
+      rows={10}
+      getRowId={(usuario: Usuario) => usuario.correo}
+      multiple
+      renderExpanded={(usuario: Usuario) => (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cargo</dt>
+            <dd className="text-sm">{usuario.cargo}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sede</dt>
+            <dd className="text-sm">{usuario.sede}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supervisor</dt>
+            <dd className="text-sm">{usuario.supervisor}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Costo mensual</dt>
+            <dd className="text-sm">${usuario.costoMensual?.toLocaleString("es-CO")}</dd>
+          </div>
+        </dl>
+      )}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};

@@ -859,6 +859,54 @@ describe("DataTable — columnas de presentación", () => {
     expect(screen.queryByText("Detalle de Ana")).toBeNull();
   });
 
+  // Categorías, Segmentos y Listas de Precios en CoreLink comparan dos filas
+  // a la vez (los ítems de una categoría junto a los de otra, dos clientes de
+  // un segmento) — con `multiple` abrir una segunda fila no repliega la
+  // primera.
+  it("con multiple, abrir una segunda fila deja abierta la primera", async () => {
+    const value: Fila[] = [
+      { id: "a", nombre: "Ana" },
+      { id: "b", nombre: "Luis" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} multiple renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    const botones = screen.getAllByRole("button", { name: /desplegar/i });
+    await user.click(botones[0]);
+    await user.click(screen.getAllByRole("button", { name: /desplegar/i })[0]);
+
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+    expect(screen.getByText("Detalle de Luis")).toBeInTheDocument();
+  });
+
+  it("con multiple, replegar una fila deja la otra abierta", async () => {
+    const value: Fila[] = [
+      { id: "a", nombre: "Ana" },
+      { id: "b", nombre: "Luis" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} multiple renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    await user.click(screen.getAllByRole("button", { name: /desplegar/i })[0]);
+    await user.click(screen.getAllByRole("button", { name: /desplegar/i })[0]);
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+    expect(screen.getByText("Detalle de Luis")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /replegar el detalle de la fila 1/i }));
+    expect(screen.queryByText("Detalle de Ana")).toBeNull();
+    expect(screen.getByText("Detalle de Luis")).toBeInTheDocument();
+  });
+
   // Ordenar es una transformación interna de TanStack: reordena el
   // `sortedRowModel` para pintar, pero el `row.id` posicional por defecto se
   // asigna sobre el índice del arreglo `data` tal como lo recibió la tabla,

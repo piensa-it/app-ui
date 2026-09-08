@@ -317,9 +317,11 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * Detalle en línea bajo la fila. Cuando se pasa, la tabla añade al
    * principio una columna estrecha con el botón que lo abre y lo cierra.
    *
-   * Se despliega una fila cada vez: dos detalles abiertos a la vez convierten
-   * la tabla en una lista y se pierde la comparación entre filas, que es para
-   * lo que existe una tabla.
+   * Por defecto se despliega una fila cada vez: abrir otra repliega la
+   * anterior. Dos detalles abiertos a la vez convierten la tabla en una
+   * lista y se pierde la comparación entre filas, que es para lo que existe
+   * una tabla — ver `multiple` para el caso en que esa comparación es
+   * justamente el trabajo de la pantalla.
    *
    * La fila abierta se rastrea por `row.id`, así que este prop va emparejado
    * con `getRowId`. Sin él, `row.id` es la posición de TanStack, no una
@@ -331,6 +333,18 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * aviso en consola.
    */
   renderExpanded?: (row: TValue) => React.ReactNode;
+  /**
+   * Permite tener varias filas desplegadas a la vez.
+   *
+   * Por defecto NO: `renderExpanded` cierra la fila anterior al abrir otra,
+   * porque dos detalles abiertos convierten la tabla en una lista y se
+   * pierde la comparación entre filas, que es para lo que existe una tabla.
+   *
+   * Se enciende cuando comparar dos detalles ES el trabajo de la pantalla:
+   * los ítems de dos categorías, los clientes de dos segmentos, dos vistas
+   * previas de lista de precios, uno junto al otro.
+   */
+  multiple?: boolean;
   className?: string;
 }
 
@@ -373,6 +387,7 @@ function DataTable<TValue extends DataTableValue>({
   getRowId,
   onRowClick,
   renderExpanded,
+  multiple = false,
   className,
 }: DataTableProps<TValue>) {
   // Lee las preferencias persistidas de esta tabla. La clave nueva
@@ -410,7 +425,11 @@ function DataTable<TValue extends DataTableValue>({
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnQuery, setColumnQuery] = React.useState("");
   const [activeDensity, setActiveDensity] = React.useState(density);
-  const [filaAbierta, setFilaAbierta] = React.useState<string | null>(null);
+  // Un `Set` en vez de un solo `string | null`: `multiple` es lo único que
+  // cambia entre abrir una fila y abrir varias, así que basta con decidir,
+  // al abrir, si se vacía el resto del set o no — el caso de una sola fila
+  // (`multiple` en false) nunca llega a tener más de un elemento.
+  const [filasAbiertas, setFilasAbiertas] = React.useState<Set<string>>(() => new Set());
   // Prefijo para el `id` del `<td>` del detalle: único por instancia de
   // `DataTable`, para que dos tablas en la misma pantalla no compartan
   // identificadores.
@@ -900,14 +919,14 @@ function DataTable<TValue extends DataTableValue>({
               </tr>
             ) : (
               table.getRowModel().rows.map((row, rowIndex) => {
-                const abierta = filaAbierta === row.id;
+                const abierta = filasAbiertas.has(row.id);
                 // No se asume ningún campo (p. ej. `nombre`) en un `TValue`
                 // arbitrario: la posición en pantalla es lo único que la
                 // tabla conoce de toda fila, así que es lo que distingue un
                 // botón «Desplegar» del de al lado para quien navega con
                 // lector de pantalla.
-                // A propósito distinto de `filaAbierta`: ese guarda `row.id`
-                // porque necesita identidad de dato (sobrevivir a un
+                // A propósito distinto de `filasAbiertas`: ese guarda
+                // `row.id` porque necesita identidad de dato (sobrevivir a un
                 // reordenamiento, o no — ver el aviso de arriba). Este `id`
                 // solo necesita ser único en el DOM mientras existe, así que
                 // la posición en pantalla alcanza y evita tener que sanear un
@@ -959,7 +978,17 @@ function DataTable<TValue extends DataTableValue>({
                                 : `Desplegar el detalle de la fila ${rowIndex + 1}`
                             }
                             className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-                            onClick={() => setFilaAbierta(abierta ? null : row.id)}
+                            onClick={() =>
+                              setFilasAbiertas((previas) => {
+                                const siguientes = multiple ? new Set(previas) : new Set<string>();
+                                if (abierta) {
+                                  siguientes.delete(row.id);
+                                } else {
+                                  siguientes.add(row.id);
+                                }
+                                return siguientes;
+                              })
+                            }
                           >
                             {abierta ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                           </button>
