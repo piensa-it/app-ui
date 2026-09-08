@@ -466,6 +466,31 @@ describe("DataTable — columnas de presentación", () => {
     await waitFor(() => expect(screen.getByText("Ana Gómez")).toBeInTheDocument());
   });
 
+  it("una columna con accessor se ordena y se busca por el valor calculado", async () => {
+    interface Doc { id: string; estado: "draft" | "sent" }
+    const ETIQUETA = { draft: "Borrador", sent: "Enviado" } as const;
+    const value: Doc[] = [
+      { id: "1", estado: "sent" },
+      { id: "2", estado: "draft" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} searchable>
+        <Column<Doc> id="estado" header="Estado" sortable
+          accessor={(d) => ETIQUETA[d.estado]}
+          body={(d) => <span>{ETIQUETA[d.estado]}</span>} />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ordenar por estado/i }));
+    const celdas = () => screen.getAllByRole("cell").map((c) => c.textContent);
+    expect(celdas()).toEqual(["Borrador", "Enviado"]);
+
+    await user.type(screen.getByLabelText("Buscar en la tabla"), "Envi");
+    expect(celdas()).toEqual(["Enviado"]);
+  });
+
   it("usa getRowId para identificar las filas", () => {
     interface Canal { id: string; nombre: string }
     const value: Canal[] = [

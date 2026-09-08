@@ -223,6 +223,44 @@ export const ColumnaNumerica: Story = {
   ),
 };
 
+const ETIQUETA_ESTADO: Record<Usuario["estado"], string> = {
+  activo: "Activo",
+  inactivo: "Inactivo",
+};
+
+/**
+ * `accessor` es lo que hace ordenable y buscable una columna que no lee un
+ * campo crudo de la fila. Aquí «Estado» no tiene `field`: el valor en la fila
+ * es `"activo"` / `"inactivo"`, pero lo que el usuario ve —y por lo que
+ * espera ordenar y buscar— es la etiqueta en español. Sin `accessor` esta
+ * columna sería de presentación pura: ni orden ni búsqueda, aunque tenga
+ * `sortable`.
+ */
+export const ColumnaCalculada: Story = {
+  name: "Columna calculada (accessor)",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="«Estado» se ordena y se busca por la etiqueta en español, no por el valor crudo de la fila."
+      searchable
+      rows={10}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        id="estado"
+        header="Estado"
+        sortable
+        accessor={(row: Usuario) => ETIQUETA_ESTADO[row.estado]}
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{ETIQUETA_ESTADO[row.estado]}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};
+
 /** `paginator={false}` muestra todas las filas sin pie de paginación. */
 export const SinPaginador: Story = {
   name: "Sin paginador",

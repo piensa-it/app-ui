@@ -161,18 +161,32 @@ interface ColumnBase<TValue extends DataTableValue> {
   className?: string;
   /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
   headerClassName?: string;
+  /**
+   * De dónde sale el valor por el que se ordena y se busca, cuando no es un
+   * campo de la fila: una etiqueta traducida, dos campos concatenados, una
+   * longitud, un booleano como número.
+   *
+   * Es lo que hace ordenable una columna que no tiene `field`. Ordenar por
+   * `estado` cuando en la fila pone `"sent"` y en pantalla «Enviado» ordena
+   * por la palabra que el usuario ve, que es la que espera.
+   */
+  accessor?: (row: TValue) => unknown;
 }
 
 /**
- * Una columna es de una de dos clases, y la identidad no es lo mismo que el
+ * Una columna es de una de tres clases, y la identidad no es lo mismo que el
  * origen del dato:
  *
  * - **De campo**: lee un campo de la fila. Se puede ordenar y buscar por ella.
  *   Anota el tipo (`<Column<Movimiento> field="valor" />`) para que un campo
  *   mal escrito sea un error de compilación y no una columna vacía.
- * - **De presentación**: no corresponde a ningún campo —acciones de fila, un
- *   estado derivado de dos campos, un contacto que junta correo y teléfono—.
- *   Se identifica con `id` y pinta con `body`.
+ * - **Calculada**: no lee un campo sino que lo calcula —una etiqueta
+ *   traducida, dos campos concatenados, una longitud—. Se identifica con `id`
+ *   y ordena/busca por lo que devuelva `accessor`, no por ningún campo crudo.
+ *   `body` es opcional: sin él se pinta lo que devuelva `accessor`.
+ * - **De presentación**: no corresponde a ningún campo ni tiene por qué
+ *   ordenarse —acciones de fila, por ejemplo—. Se identifica con `id` y pinta
+ *   con `body`.
  */
 export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
   (
@@ -186,6 +200,16 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
         field?: undefined;
         /** Identidad de la columna. Obligatoria cuando no hay campo. */
         id: string;
+        /** De dónde sale el valor que se ordena y se busca, cuando no es un campo de la fila. */
+        accessor: (row: TValue) => unknown;
+        /** Sin `body`, la celda pinta lo que devuelva `accessor`. */
+        body?: (row: TValue) => React.ReactNode;
+      }
+    | {
+        field?: undefined;
+        /** Identidad de la columna. Obligatoria cuando no hay campo. */
+        id: string;
+        accessor?: undefined;
         /** Una columna sin campo tiene que pintar algo. */
         body: (row: TValue) => React.ReactNode;
       }
@@ -418,12 +442,16 @@ function DataTable<TValue extends DataTableValue>({
   }));
 
   // IDs de columna que aceptan orden: la misma condición que arma
-  // `enableSorting` más abajo en `columnDefs` (tiene campo, y `sortable`).
+  // `enableSorting` más abajo en `columnDefs` (tiene campo o `accessor`, y
+  // `sortable`). Sin `accessor` aquí, un orden persistido sobre una columna
+  // calculada se descartaría en cada recarga como si la columna no existiera
+  // —el mismo síntoma que resuelve `sortingEfectivo` para una columna oculta,
+  // pero por la razón equivocada—.
   const idsOrdenables = React.useMemo(
     () =>
       new Set(
         columnSpecs
-          .filter((spec) => Boolean(spec.props.field) && (spec.props.sortable ?? false))
+          .filter((spec) => Boolean(spec.props.field || spec.props.accessor) && (spec.props.sortable ?? false))
           .map((spec) => (spec.props.id ?? spec.props.field) as string),
       ),
     [columnSpecs],
@@ -482,11 +510,15 @@ function DataTable<TValue extends DataTableValue>({
       // Uno de los dos existe siempre: el tipo de `ColumnProps` exige `id`
       // cuando no hay `field`.
       id: (spec.props.id ?? spec.props.field) as string,
-      // Sin campo no hay valor que leer: la columna solo pinta lo que diga
-      // `body`, y no se puede ordenar ni buscar por ella.
-      ...(spec.props.field ? { accessorKey: spec.props.field } : {}),
+      // `accessor` gana a `field`: si la pantalla se molestó en calcular un
+      // valor, es ése el que se ordena y se busca.
+      ...(spec.props.accessor
+        ? { accessorFn: (row: TValue) => spec.props.accessor!(row) }
+        : spec.props.field
+          ? { accessorKey: spec.props.field }
+          : {}),
       header: () => spec.props.header,
-      enableSorting: Boolean(spec.props.field) && (spec.props.sortable ?? false),
+      enableSorting: Boolean(spec.props.field || spec.props.accessor) && (spec.props.sortable ?? false),
       enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
