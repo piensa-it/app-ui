@@ -96,22 +96,33 @@ const esObjetoPlano = (valor: unknown): valor is Record<string, unknown> =>
  *   una función como valor inicial: la llama como inicializador perezoso,
  *   sin el array como `this`, y `sort()` revienta con "Cannot convert
  *   undefined or null to object". La tabla ni monta.
- * - Un `pageSize` que no es número (`"muchas"`, un texto guardado por error o
- *   por otra mano) deja a TanStack calculando `NaN` para el tamaño de
- *   página: la tabla se ve vacía —"No hay datos para mostrar"— con filas
- *   reales adentro, y nada en la consola delata por qué.
+ * - Un `pageSize` que no es número entero (`"muchas"`, o un `2.5` que nadie
+ *   tecleó a mano) deja a TanStack calculando un tamaño de página roto: con
+ *   texto, `NaN` y la tabla vacía —"No hay datos para mostrar"— con filas
+ *   reales adentro; con un decimal, un pie que dice "1-2.5 de 30" que además
+ *   se reescribe tal cual en el siguiente guardado. Nada en la consola
+ *   delata por qué.
+ * - Dentro de `sort`, una entrada que no es un objeto (`[null]`, el mismo
+ *   array que sobrevive si solo se comprueba que es array) revienta en
+ *   cuanto algo le lee `.id` — mismo desenlace que el array top-level: la
+ *   tabla ni monta.
  *
- * Se sanea campo por campo para que un valor con la forma equivocada se
- * descarte solo a él, no arrastre a los demás.
+ * Por eso se sanea campo por campo, y en `sort` también entrada por entrada:
+ * un valor con la forma equivocada se descarta solo a él, no arrastra a los
+ * demás.
  */
 const sanearPrefs = (bruto: unknown): PrefsTabla => {
   if (!esObjetoPlano(bruto)) return {};
   const prefs: PrefsTabla = {};
   if (esObjetoPlano(bruto.columns)) prefs.columns = bruto.columns as ColumnVisibilityState;
-  if (typeof bruto.pageSize === "number" && Number.isFinite(bruto.pageSize) && bruto.pageSize > 0) {
+  if (typeof bruto.pageSize === "number" && Number.isInteger(bruto.pageSize) && bruto.pageSize > 0) {
     prefs.pageSize = bruto.pageSize;
   }
-  if (Array.isArray(bruto.sort)) prefs.sort = bruto.sort as SortingState;
+  if (Array.isArray(bruto.sort)) {
+    prefs.sort = bruto.sort.filter(
+      (entrada): entrada is { id: string; desc: boolean } => esObjetoPlano(entrada) && typeof entrada.id === "string",
+    ) as SortingState;
+  }
   return prefs;
 };
 
@@ -234,7 +245,10 @@ export interface DataTableProps<TValue extends DataTableValue> {
   striped?: boolean;
   /** Muestra el configurador de columnas en la barra superior. */
   configurableColumns?: boolean;
-  /** Clave de localStorage para recordar columnas visibles por tabla/usuario. */
+  /**
+   * Clave de localStorage para recordar, por tabla, las columnas visibles,
+   * el tamaño de página y el orden.
+   */
   preferencesKey?: string;
   /** Notifica cambios para persistencia externa en perfiles de usuario. */
   onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;

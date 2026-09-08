@@ -1056,8 +1056,9 @@ describe("DataTable — preferencias persistidas (tamaño de página y orden)", 
     expect(screen.getByText("1-5 de 12")).toBeInTheDocument();
   });
 
-  it("cuando solo existe la clave vieja `:columns`, su visibilidad de columnas se respeta al montar (ruta de migración)", () => {
-    window.localStorage.setItem("ui-table:migracion-test:columns", JSON.stringify({ extra: false }));
+  it("cuando solo existe la clave vieja `:columns`, su visibilidad de columnas se respeta al montar, la clave vieja sobrevive intacta y la nueva se escribe (ruta de migración)", async () => {
+    const columnasViejas = JSON.stringify({ extra: false });
+    window.localStorage.setItem("ui-table:migracion-test:columns", columnasViejas);
 
     render(
       <DataTable value={[{ nombre: "Ana" }] as Fila[]} preferencesKey="migracion-test">
@@ -1067,6 +1068,16 @@ describe("DataTable — preferencias persistidas (tamaño de página y orden)", 
     );
 
     expect(screen.queryByRole("columnheader", { name: "Extra" })).not.toBeInTheDocument();
+    // La migración es de lectura: la clave vieja no se toca...
+    expect(window.localStorage.getItem("ui-table:migracion-test:columns")).toBe(columnasViejas);
+    // ...pero a partir de aquí la tabla ya escribe bajo la clave nueva.
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:migracion-test:prefs")!);
+      // El objeto escrito trae también las columnas que no estaban en la
+      // clave vieja, con su valor por defecto: la escritura fusiona lo
+      // migrado con `defaultVisibility`, no lo copia tal cual.
+      expect(guardado.columns).toEqual({ nombre: true, extra: false });
+    });
   });
 
   it("la clave vieja `:columns` nunca se vuelve a escribir", async () => {
@@ -1142,6 +1153,44 @@ describe("DataTable — preferencias persistidas (tamaño de página y orden)", 
 
     expect(screen.queryByText("No hay datos para mostrar.")).not.toBeInTheDocument();
     expect(screen.getByText("1-10 de 15")).toBeInTheDocument();
+  });
+
+  // Comprobar que `sort` es un array no basta: una entrada que no es un
+  // objeto (`null`) revienta en cuanto algo intenta leer su `id`, con el
+  // mismo desenlace que el array top-level — la tabla ni monta.
+  it("un `sort` con una entrada nula se ignora y no rompe el montaje", () => {
+    window.localStorage.setItem("ui-table:sort-con-nulo:prefs", JSON.stringify({ sort: [null] }));
+    const value: Fila[] = [{ nombre: "Ana" }];
+
+    expect(() =>
+      render(
+        <DataTable value={value} preferencesKey="sort-con-nulo">
+          <Column<Fila> field="nombre" header="Nombre" sortable />
+        </DataTable>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByText("Ana")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /nombre/i })).toHaveAttribute("aria-sort", "none");
+  });
+
+  // Un `pageSize` fraccionario ("2.5") es JSON válido y numérico, pero no es
+  // un tamaño de página real: TanStack lo usa tal cual en el pie ("1-2.5 de
+  // 30") y, sin filtro, se reescribiría intacto en cada guardado siguiente.
+  it("un `pageSize` fraccionario se ignora y no queda escrito en el siguiente guardado", async () => {
+    window.localStorage.setItem("ui-table:pagesize-fraccionario:prefs", JSON.stringify({ pageSize: 2.5 }));
+    const value: Fila[] = Array.from({ length: 30 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
+
+    render(
+      <DataTable value={value} preferencesKey="pagesize-fraccionario" rows={10} rowsPerPageOptions={[10, 25, 50]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    expect(screen.getByText("1-10 de 30")).toBeInTheDocument();
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:pagesize-fraccionario:prefs")!);
+      expect(guardado.pageSize).toBe(10);
+    });
   });
 
   it("JSON foráneo (un array) bajo la clave nueva no rompe el montaje", () => {
