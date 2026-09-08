@@ -888,7 +888,126 @@ git commit -m "feat(data-table): recordar tamaño de página y orden, leyendo la
 
 ---
 
-## Tarea 7: publicar la 0.10.0
+## Tarea 7: `accessor` — la columna que se ordena por lo que muestra
+
+**Esta tarea no estaba en el plan original, y su ausencia lo invalidaba.** La
+revisión final midió el `DataTable` local de CoreLink: de sus **501 accessors,
+320 son lecturas de propiedad** que mapean a `field` sin más, pero **207 son
+calculados** y no tienen ningún campo que nombrar. Sin esta capacidad, el 41%
+de las columnas pierde ordenación y búsqueda al migrar, y las pantallas que las
+tienen se quedarían con la tabla local — que es exactamente lo que este plan
+existe para evitar.
+
+Las formas reales, contadas en el repositorio: 78 con `??` (`r.created_at ?? ""`),
+19 booleanos como número (`p.is_active ? 1 : 0`), 16 `.length`, 14 búsquedas en
+mapas de etiquetas (`ETIQUETA_CANAL[p.canal]` — la gente ordena por la etiqueta
+en español, no por el enum), 5 concatenaciones, y el resto lecturas anidadas,
+aritmética derivada y búsquedas cruzadas.
+
+TanStack ya lo soporta: es `accessorFn`. Aquí sólo hay que exponerlo.
+
+**Archivos:**
+- Modificar: `src/components/ui/data-table.tsx`
+- Probar: `src/__tests__/data-table.test.tsx`
+
+- [ ] **Paso 1: la prueba que falla**
+
+Una columna sin `field`, con `accessor`, tiene que poder ordenarse Y encontrarse
+por el buscador con el valor que el accessor devuelve, no con el que hay en la
+fila.
+
+```tsx
+  it("una columna con accessor se ordena y se busca por el valor calculado", async () => {
+    interface Doc { id: string; estado: "draft" | "sent" }
+    const ETIQUETA = { draft: "Borrador", sent: "Enviado" } as const;
+    const value: Doc[] = [
+      { id: "1", estado: "sent" },
+      { id: "2", estado: "draft" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} searchable>
+        <Column<Doc> id="estado" header="Estado" sortable
+          accessor={(d) => ETIQUETA[d.estado]}
+          body={(d) => <span>{ETIQUETA[d.estado]}</span>} />
+      </DataTable>,
+    );
+
+    // Se ordena por «Borrador»/«Enviado», no por «draft»/«sent».
+    await user.click(screen.getByRole("button", { name: /ordenar por estado/i }));
+    const celdas = () => screen.getAllByRole("cell").map((c) => c.textContent);
+    expect(celdas()).toEqual(["Borrador", "Enviado"]);
+
+    // Y se busca por lo mismo.
+    await user.type(screen.getByLabelText("Buscar en la tabla"), "Envi");
+    expect(celdas()).toEqual(["Enviado"]);
+  });
+```
+
+- [ ] **Paso 2: correrla y ver que falla**
+
+```bash
+npx vitest run src/__tests__/data-table.test.tsx -t "accessor"
+```
+
+Esperado: FAIL — hoy una columna sin `field` no es ordenable ni buscable, así
+que no hay ni botón de ordenar.
+
+- [ ] **Paso 3: el tipo**
+
+`ColumnProps` es hoy una unión de dos variantes: de campo (`field`) o de
+presentación (`id` + `body`). Se añade una tercera: **calculada** — `id`,
+`accessor`, y `body` opcional (sin `body` se pinta lo que devuelva el
+accessor). En `ColumnBase`, documentado:
+
+```tsx
+  /**
+   * De dónde sale el valor por el que se ordena y se busca, cuando no es un
+   * campo de la fila: una etiqueta traducida, dos campos concatenados, una
+   * longitud, un booleano como número.
+   *
+   * Es lo que hace ordenable una columna que no tiene `field`. Ordenar por
+   * `estado` cuando en la fila pone `"sent"` y en pantalla «Enviado» ordena
+   * por la palabra que el usuario ve, que es la que espera.
+   */
+  accessor?: (row: TValue) => unknown;
+```
+
+- [ ] **Paso 4: la construcción de la columna**
+
+En `columnDefs`, sustituir la línea de `accessorKey` y la de `enableSorting`:
+
+```tsx
+      // `accessor` gana a `field`: si la pantalla se molestó en calcular un
+      // valor, es ése el que se ordena y se busca.
+      ...(spec.props.accessor
+        ? { accessorFn: (row: TValue) => spec.props.accessor!(row) }
+        : spec.props.field
+          ? { accessorKey: spec.props.field }
+          : {}),
+      enableSorting: Boolean(spec.props.field || spec.props.accessor) && (spec.props.sortable ?? false),
+```
+
+- [ ] **Paso 5: correrla y ver que pasa**, y la suite entera
+
+```bash
+npx vitest run && npm run typecheck && npm run lint
+```
+
+- [ ] **Paso 6: una historia de Storybook** con una columna calculada, reusando
+      los datos que ya haya en el archivo.
+
+- [ ] **Paso 7: commit**
+
+```bash
+git add src/components/ui/data-table.tsx src/__tests__/data-table.test.tsx src/components/ui/data-table.stories.tsx
+git commit -m "feat(data-table): accessor, para ordenar y buscar por el valor calculado"
+```
+
+---
+
+## Tarea 8: publicar la 0.10.0
 
 **Archivos:**
 - Modificar: `package.json`, `CHANGELOG.md`
