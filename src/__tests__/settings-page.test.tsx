@@ -310,12 +310,32 @@ describe("SettingsPage · el pie de guardado", () => {
     expect(screen.getByRole("button", { name: "Guardando…" })).toBeInTheDocument();
   });
 
-  it("un `onSave` que rechaza no revienta la prueba (el pie absorbe el rechazo)", async () => {
+  it("un `onSave` que rechaza no escapa como `unhandledrejection`", async () => {
     const user = userEvent.setup();
-    const onSave = vi.fn().mockRejectedValue(new Error("network"));
-    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave }] });
-    await user.click(screen.getByRole("button", { name: "Guardar" }));
-    expect(onSave).toHaveBeenCalledTimes(1);
+    const onUnhandledRejection = vi.fn();
+    process.on("unhandledRejection", onUnhandledRejection);
+    let called = false;
+    // A propósito, no un `vi.fn()`: el `spy` de vitest engancha su propio
+    // `.then(onFulfilled, onRejected)` a lo que devuelve para llevar
+    // `mock.resolves` — eso ya vuelve "manejado" cualquier rechazo aunque
+    // `SectionFooter` no le pusiera ningún `catch`, y la prueba no probaría
+    // nada (se comprobó por mutación: con `vi.fn().mockRejectedValue`, esta
+    // prueba pasaba igual con el `catch` de la implementación quitado).
+    const onSave = () => {
+      called = true;
+      return Promise.reject(new Error("network"));
+    };
+    try {
+      montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave }] });
+      await user.click(screen.getByRole("button", { name: "Guardar" }));
+      // Margen de sobra: si el rechazo no se hubiera absorbido, es en algún
+      // punto de aquí cuando Node dispara el evento.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(called).toBe(true);
+      expect(onUnhandledRejection).not.toHaveBeenCalled();
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
   });
 
   it("Cancelar está deshabilitado sin `dirty`", () => {

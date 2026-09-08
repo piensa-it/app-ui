@@ -48,8 +48,11 @@ export interface SettingsSection {
    *
    * El armazón no espera la promesa que puede devolver: no se mete a poner
    * `saving` por su cuenta ni a capturar el resultado. `saving` es cosa de
-   * la aplicación (ver esa prop); el rechazo se absorbe para no filtrar un
-   * `unhandledrejection` sin contexto, pero no se reintenta ni se reporta.
+   * la aplicación (ver esa prop). Cualquier error que produzca —la promesa
+   * que rechaza o una excepción síncrona antes de devolverla— se absorbe en
+   * silencio, para no filtrar un `unhandledrejection` (o reventar el árbol
+   * de React) sin contexto de qué sección falló; no se reintenta ni se
+   * reporta.
    */
   onSave?: () => void | Promise<void>;
   /** Descarta los cambios. Sin él, no se pinta «Cancelar». */
@@ -84,31 +87,57 @@ interface SectionFooterProps {
   text: Required<SettingsPageLabels>;
 }
 
+// `disabledStyles` (`src/lib/recipes/interactive.ts`) solo sabe de
+// `disabled:`; con `aria-disabled` el botón se pintaría al 100% de opacidad
+// y seguiría iluminándose al pasar el mouse. Este es el mismo tratamiento,
+// escrito a mano y local al pie — la recipe compartida es de otra tarea,
+// porque también la usa `app-switcher.tsx`.
+const ARIA_DISABLED_LOOK = "aria-disabled:pointer-events-none aria-disabled:opacity-50 aria-disabled:cursor-default";
+
 /**
  * El pie de guardado de una sección: «Guardar» siempre, «Cancelar» si la
  * sección trae `onCancel`. No se exporta — nada fuera de `SettingsPage` lo
  * necesita.
  *
- * Mientras `saving`, «Guardar» sigue enfocable (`aria-disabled`, no
+ * Mientras `saving`, los dos botones siguen enfocables (`aria-disabled`, no
  * `disabled`): con `disabled` nativo, el navegador le quita el foco al
  * pulsarlo —quien navega con teclado pierde el punto de lectura, y el
  * lector de pantalla no anuncia el cambio de nombre a «Guardando…»—. El
- * clic en ese estado se descarta en el manejador, no en el atributo.
+ * clic en ese estado se descarta en el manejador, no en el atributo; el
+ * atractivo visual de "deshabilitado" lo pone `ARIA_DISABLED_LOOK`, porque
+ * `aria-disabled` no dispara `disabled:` por sí solo.
  */
 function SectionFooter({ onSave, onCancel, dirty, saving, text }: SectionFooterProps) {
   const handleSave = () => {
     if (saving) return;
-    // El rechazo se absorbe a propósito (ver el JSDoc de `onSave` en
-    // `SettingsSection`): sin este `catch`, una promesa rechazada llega como
-    // `unhandledrejection` a la aplicación consumidora, sin contexto de qué
-    // sección falló ni forma de manejarlo desde aquí.
-    void Promise.resolve(onSave()).catch(() => {});
+    try {
+      // Cualquier error se absorbe a propósito (ver el JSDoc de `onSave` en
+      // `SettingsSection`): sin esto, un `onSave` que rechaza llega como
+      // `unhandledrejection` a la aplicación consumidora, sin contexto de
+      // qué sección falló; y uno que lanza de forma síncrona (antes de
+      // devolver la promesa) reventaría el manejador de clic de React.
+      void Promise.resolve(onSave()).catch(() => {});
+    } catch {
+      // Ídem, para la excepción síncrona.
+    }
+  };
+
+  const handleCancel = () => {
+    if (saving) return;
+    onCancel?.();
   };
 
   return (
     <div className="mt-ui-lg flex flex-col-reverse gap-ui-xs border-t border-border pt-ui-md sm:flex-row sm:justify-end">
       {onCancel ? (
-        <Button type="button" variant="plain" onClick={onCancel} disabled={!dirty || saving}>
+        <Button
+          type="button"
+          variant="plain"
+          onClick={handleCancel}
+          disabled={!dirty && !saving}
+          aria-disabled={saving || undefined}
+          className={ARIA_DISABLED_LOOK}
+        >
           {text.cancel}
         </Button>
       ) : null}
@@ -118,6 +147,7 @@ function SectionFooter({ onSave, onCancel, dirty, saving, text }: SectionFooterP
         disabled={!dirty && !saving}
         aria-disabled={saving || undefined}
         aria-busy={saving || undefined}
+        className={ARIA_DISABLED_LOOK}
       >
         {saving ? text.saving : text.save}
       </Button>
@@ -194,24 +224,26 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     });
 
     // Cuando `active` se aleja de `candidate` (repliegue por una `sections`
-    // que cambió por debajo), hay que reconciliar quien manda: en modo
-    // propio, el estado interno —si no, la pestaña reaparecida saltaría sola
-    // de vuelta a donde ya no puede estar—; en modo controlado, avisar a la
-    // aplicación con `onSectionChange`, porque si no, se queda creyendo que
-    // sigue mostrando una `section` que el armazón ya abandonó en silencio.
+    // que cambió por debajo), hay que reconciliar quien manda. En modo
+    // propio, es ajustar estado a partir de una prop que cambió: se hace
+    // durante el render, no en un efecto — es el patrón que documenta React
+    // para esto, y ahorra un commit (React lo detecta y descarta el render a
+    // medias antes de pintar, en vez de pintar y corregir después). Si no,
+    // la pestaña reaparecida saltaría sola de vuelta a donde ya no puede
+    // estar.
+    if (section === undefined && active !== undefined && active !== candidate) {
+      setInternal(active);
+    }
+
+    // En modo controlado no hay ningún estado propio que ajustar: es avisar
+    // a la aplicación con `onSectionChange`, que sí es un efecto colateral
+    // de verdad —llama al `setState` de otro componente— y por eso no puede
+    // salir de aquí. Si no se avisara, la aplicación se quedaría creyendo
+    // que sigue mostrando una `section` que el armazón ya abandonó en
+    // silencio.
     React.useEffect(() => {
       if (active === undefined || active === candidate) return;
-      if (section === undefined) {
-        // `set-state-in-effect` marca esto como sincrónico y arriesgado, pero
-        // es justo la reconciliación que describe el comentario de arriba:
-        // sincroniza el estado interno con `sections`, no un efecto colateral
-        // evitable. Cambiarlo por otra forma resucita el bug que corrigió
-        // (ver Tarea 1) — no es un `setState` gratuito.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setInternal(active);
-      } else {
-        onSectionChangeRef.current?.(active);
-      }
+      if (section !== undefined) onSectionChangeRef.current?.(active);
     }, [active, candidate, section]);
 
     return (
