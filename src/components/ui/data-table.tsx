@@ -89,14 +89,20 @@ const esObjetoPlano = (valor: unknown): valor is Record<string, unknown> =>
   typeof valor === "object" && valor !== null && !Array.isArray(valor);
 
 /**
- * `localStorage` no tiene esquema: lo escrito por una versión futura, por
- * otra pestaña, o por cualquier mano ajena puede tener JSON válido con una
- * forma que no es la esperada — un array en vez de un objeto, un `pageSize`
- * de texto. Sin este filtro un array top-level (`prefsIniciales.sort`
- * resolviendo a `Array.prototype.sort` sin `this`) tumba el montaje, y un
- * `pageSize` no numérico deja la tabla vacía con "NaN-NaN" en el pie aunque
- * haya filas. Se sanea campo por campo: lo que no tiene la forma correcta se
- * descarta en vez de heredarse.
+ * Sin este filtro, dos JSON perfectamente válidos rompen la tabla:
+ *
+ * - Un array top-level (`[1,2,3]`) hace que `prefsIniciales.sort` resuelva a
+ *   `Array.prototype.sort` —un array tiene ese método—, y `useState` recibe
+ *   una función como valor inicial: la llama como inicializador perezoso,
+ *   sin el array como `this`, y `sort()` revienta con "Cannot convert
+ *   undefined or null to object". La tabla ni monta.
+ * - Un `pageSize` que no es número (`"muchas"`, un texto guardado por error o
+ *   por otra mano) deja a TanStack calculando `NaN` para el tamaño de
+ *   página: la tabla se ve vacía —"No hay datos para mostrar"— con filas
+ *   reales adentro, y nada en la consola delata por qué.
+ *
+ * Se sanea campo por campo para que un valor con la forma equivocada se
+ * descarte solo a él, no arrastre a los demás.
  */
 const sanearPrefs = (bruto: unknown): PrefsTabla => {
   if (!esObjetoPlano(bruto)) return {};
@@ -312,8 +318,11 @@ function DataTable<TValue extends DataTableValue>({
   // (`:prefs`) se prueba primero; si no existe se cae a la vieja
   // (`:columns`), que es todo lo que guardaban las versiones anteriores de
   // este componente y lo único que hay en el navegador de un usuario que
-  // todavía no vio esta versión. La vieja nunca se vuelve a escribir: es
-  // solo lectura, de migración.
+  // todavía no vio esta versión. La vieja nunca se vuelve a escribir —es
+  // solo lectura, de migración— ni se borra una vez que la nueva existe: un
+  // downgrade, o una pestaña que quedó con el bundle viejo abierto, la sigue
+  // necesitando. Se queda ahí para siempre; el costo es unos bytes por
+  // tabla, no una preferencia perdida.
   const leerPrefs = React.useCallback((): PrefsTabla => {
     if (!preferencesKey || typeof window === "undefined") return {};
     try {
@@ -395,8 +404,12 @@ function DataTable<TValue extends DataTableValue>({
   }));
 
   // Una sola escritura para las tres preferencias, bajo la clave nueva. La
-  // vieja (`:columns`) queda intacta y no se vuelve a tocar: es deliberado,
-  // ver el hallazgo sobre la migración en el informe de esta tarea.
+  // vieja (`:columns`) queda intacta y no se vuelve a tocar —ver el
+  // comentario de `leerPrefs`—. Aquí gana la última escritura: dos pestañas
+  // abiertas sobre la misma tabla se pisan la preferencia (la que escribe
+  // después borra lo que puso la otra). Ya pasaba con `:columns`, no es algo
+  // que esta tarea introduzca, y coordinar entre pestañas (evento `storage`,
+  // merge por campo) es complejidad real para un caso que nadie ha reportado.
   React.useEffect(() => {
     if (!preferencesKey || typeof window === "undefined") return;
     try {
