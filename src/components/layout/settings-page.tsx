@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { confirmAlert } from "@/components/ui/alert-dialog";
 import { Tabs, TabPanel } from "@/components/ui/tabs";
 import { PageHeader } from "./page-header";
 import { BellIcon, PaletteIcon, ShieldIcon, UserIcon } from "@/icons";
@@ -71,12 +72,24 @@ export interface SettingsPageLabels {
   cancel?: string;
   /** @default "Guardando…" */
   saving?: string;
+  /** @default "Hay cambios sin guardar" */
+  unsavedTitle?: string;
+  /** @default "Si sales de esta sección se perderán." */
+  unsavedDescription?: string;
+  /** @default "Descartar" */
+  unsavedConfirm?: string;
+  /** @default "Seguir aquí" */
+  unsavedCancel?: string;
 }
 
 const DEFAULT_LABELS: Required<SettingsPageLabels> = {
   save: "Guardar",
   cancel: "Cancelar",
   saving: "Guardando…",
+  unsavedTitle: "Hay cambios sin guardar",
+  unsavedDescription: "Si sales de esta sección se perderán.",
+  unsavedConfirm: "Descartar",
+  unsavedCancel: "Seguir aquí",
 };
 
 interface SectionFooterProps {
@@ -164,6 +177,18 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
   /** Sección abierta. Sin ella, el armazón la lleva solo. */
   section?: string;
   onSectionChange?: (id: string) => void;
+  /**
+   * Pide confirmación al salir de una sección con cambios sin guardar.
+   * Reutiliza `confirmAlert` —hace falta `UiProvider` montado— y no monta una
+   * capa modal propia.
+   *
+   * Solo cubre el cambio de pestaña dentro de este armazón: si la persona
+   * navega fuera de la pantalla (otra ruta, cerrar la pestaña del navegador),
+   * la librería no se entera y no hay aviso. Esa protección, si hace falta,
+   * es cosa de la aplicación (p. ej. un `beforeunload` o un guard de router).
+   * @default true
+   */
+  guardUnsaved?: boolean;
   /** Textos, para otro idioma o para decirlo de otra forma. */
   labels?: SettingsPageLabels;
 }
@@ -191,7 +216,10 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
  * ```
  */
 export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
-  ({ title, description, actions, sections, section, onSectionChange, labels, className, ...props }, ref) => {
+  (
+    { title, description, actions, sections, section, onSectionChange, guardUnsaved = true, labels, className, ...props },
+    ref,
+  ) => {
     const text = { ...DEFAULT_LABELS, ...labels };
 
     // La primera sección habilitada. Si no hay ninguna —todas deshabilitadas,
@@ -205,10 +233,36 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     // dos casos no puede seguir activa y se cae en la primera habilitada.
     const active = sections.some((item) => item.id === candidate && !item.disabled) ? candidate : first;
 
-    const change = (next: string) => {
+    const apply = (next: string) => {
       // Con `section`, la pestaña la lleva la aplicación: aquí solo se avisa.
       if (section === undefined) setInternal(next);
       onSectionChange?.(next);
+    };
+
+    // La sección que se abandona es la que está activa *antes* del cambio:
+    // solo su `dirty` importa. Que otra sección distinta también tenga
+    // cambios sin guardar no la hace preguntar por ella —no es la que se
+    // está dejando de ver— y es lo esperable: solo hay una sección visible
+    // (e interactuable) a la vez.
+    const change = (next: string) => {
+      if (next === active) return;
+      const leaving = sections.find((item) => item.id === active);
+      // Una sección `dirty` sin `onSave` no pinta pie, pero de todos modos
+      // avisa: `dirty` significa "hay cambios sin guardar" con independencia
+      // de quién los guarde (la aplicación puede tener su propio botón de
+      // guardado fuera del armazón), así que el aviso sigue teniendo sentido.
+      if (!guardUnsaved || !leaving?.dirty) {
+        apply(next);
+        return;
+      }
+      confirmAlert({
+        title: text.unsavedTitle,
+        description: text.unsavedDescription,
+        confirmLabel: text.unsavedConfirm,
+        cancelLabel: text.unsavedCancel,
+        variant: "destructive",
+        onConfirm: () => apply(next),
+      });
     };
 
     // `onSectionChange` va por ref, no por dependencia directa del efecto de
