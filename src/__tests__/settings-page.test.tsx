@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { UiProvider } from "../components/providers/UiProvider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
+import { ProfileForm } from "../components/ui/profile-form";
 
 const DEFAULT_SECTIONS: SettingsSection[] = [
   { id: "account", content: <p>Datos de la cuenta</p> },
@@ -472,5 +473,18 @@ describe("SettingsPage · salir de una sección con cambios", () => {
     expect(dialogo).toHaveTextContent("Changes will be lost.");
     expect(within(dialogo).getByRole("button", { name: "Discard" })).toBeInTheDocument();
     expect(within(dialogo).getByRole("button", { name: "Stay" })).toBeInTheDocument();
+  });
+});
+
+/**
+ * `SettingsPage` y `ProfileForm` (#124) son componentes exportados: tienen
+ * que salir por la raíz del paquete (ver `.claude/CLAUDE.md` > "Export
+ * único"), no solo estar disponibles vía su ruta interna.
+ */
+describe("SettingsPage · contrato público", () => {
+  it("se importa desde la raíz del paquete, con ProfileForm", async () => {
+    const barrel = await import("../index");
+    expect(barrel.SettingsPage).toBe(SettingsPage);
+    expect(barrel.ProfileForm).toBe(ProfileForm);
   });
 });
