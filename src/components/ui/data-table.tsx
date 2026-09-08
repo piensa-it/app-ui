@@ -417,6 +417,47 @@ function DataTable<TValue extends DataTableValue>({
     ...(prefsIniciales.columns ?? {}),
   }));
 
+  // IDs de columna que aceptan orden: la misma condición que arma
+  // `enableSorting` más abajo en `columnDefs` (tiene campo, y `sortable`).
+  const idsOrdenables = React.useMemo(
+    () =>
+      new Set(
+        columnSpecs
+          .filter((spec) => Boolean(spec.props.field) && (spec.props.sortable ?? false))
+          .map((spec) => (spec.props.id ?? spec.props.field) as string),
+      ),
+    [columnSpecs],
+  );
+
+  // Un orden sobre una columna que está oculta (o que ya no admite orden) se
+  // descarta al derivarlo, no con estado propio: `sanearPrefs` valida la
+  // forma del JSON, pero no sabe qué columnas existen ni cuáles están
+  // visibles —esa información solo vive aquí, junto a `columnVisibility`—,
+  // así que la integridad referencial se resuelve en esta derivación, no
+  // allá. Es un `useMemo`, no un efecto que llame `setSorting`: mutar
+  // `sorting` desde un efecto dispararía un render en cascada (el lint de
+  // hooks lo marca como error) por cada cambio de columnas, y encima la
+  // tabla pintaría un instante con el orden inválido antes de que el efecto
+  // corrigiera. Derivarlo evita las dos cosas — nunca hay un render, ni
+  // siquiera uno, con un orden sobre una columna que no está en pantalla.
+  //
+  // Antes de persistir el orden esto no importaba: una recarga lo borraba
+  // solo. Ahora sobrevive a la recarga, así que ordenar por «Nombre», ocultar
+  // la columna «Nombre» y recargar dejaba la tabla ordenada por una columna
+  // que ya no está en pantalla —sin ningún control ahí para deshacerlo—.
+  // `sortingEfectivo` (no `sorting`) es lo que ve la tabla y lo que se
+  // persiste, así que cubre los tres caminos por los que puede pasar eso: al
+  // montar con un `sort` heredado que apunta a una columna ya oculta, al
+  // ocultar una columna durante la sesión (el caso que atrapaba al usuario,
+  // ya que `columnVisibility` es una dependencia) y al restaurar las
+  // columnas por defecto. Se limpia de inmediato, no se conserva por si el
+  // usuario vuelve a mostrar la columna: un orden que no se ve y no se puede
+  // deshacer es peor que tener que volver a pedirlo.
+  const sortingEfectivo = React.useMemo(
+    () => sorting.filter((criterio) => idsOrdenables.has(criterio.id) && columnVisibility[criterio.id] !== false),
+    [sorting, idsOrdenables, columnVisibility],
+  );
+
   // Una sola escritura para las tres preferencias, bajo la clave nueva. La
   // vieja (`:columns`) queda intacta y no se vuelve a tocar —ver el
   // comentario de `leerPrefs`—. Aquí gana la última escritura: dos pestañas
@@ -429,12 +470,12 @@ function DataTable<TValue extends DataTableValue>({
     try {
       window.localStorage.setItem(
         `ui-table:${preferencesKey}:prefs`,
-        JSON.stringify({ columns: columnVisibility, pageSize: pagination.pageSize, sort: sorting }),
+        JSON.stringify({ columns: columnVisibility, pageSize: pagination.pageSize, sort: sortingEfectivo }),
       );
     } catch {
       // La tabla sigue funcionando cuando el navegador bloquea almacenamiento.
     }
-  }, [columnVisibility, pagination.pageSize, sorting, preferencesKey]);
+  }, [columnVisibility, pagination.pageSize, sortingEfectivo, preferencesKey]);
 
   const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
     return columnSpecs.map((spec) => ({
@@ -476,7 +517,10 @@ function DataTable<TValue extends DataTableValue>({
     data: value,
     columns: columnDefs,
     getRowId,
-    state: { sorting, pagination: effectivePagination, globalFilter, columnVisibility },
+    // La tabla ve `sortingEfectivo`, no el `sorting` crudo: así un clic de
+    // encabezado (que decide asc/desc/ninguno leyendo el estado actual de la
+    // tabla) nunca parte de un criterio fantasma sobre una columna oculta.
+    state: { sorting: sortingEfectivo, pagination: effectivePagination, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
@@ -493,7 +537,7 @@ function DataTable<TValue extends DataTableValue>({
   // pie de totales.
   const filteredRows = React.useMemo(
     () => table.getFilteredRowModel().rows.map((row) => row.original),
-    [table, globalFilter, value, sorting],
+    [table, globalFilter, value, sortingEfectivo],
   );
   const hasFooter = columnSpecs.some((spec) => spec.props.footer);
   const totalRows = table.getFilteredRowModel().rows.length;

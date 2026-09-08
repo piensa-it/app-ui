@@ -988,6 +988,33 @@ describe("DataTable — columnas de presentación", () => {
     expect(encabezados[0]).not.toHaveAttribute("aria-hidden");
     expect(encabezados[0]).toHaveAccessibleName(/detalle/i);
   });
+
+  // `onRowClick` y `renderExpanded` comparten el mismo `<tr>`, cada uno con su
+  // propio guardián (`naceEnUnControl` para uno, el botón de despliegue vive
+  // dentro de la fila para el otro). Ya se prueban por separado; esto fija
+  // que conviven sin pisarse, en las dos direcciones, para que un cambio
+  // futuro en cualquiera de los dos guardianes no rompa al otro en silencio.
+  it("onRowClick y renderExpanded conviven en la misma fila sin dispararse entre sí", async () => {
+    const value: Fila[] = [{ id: "a", nombre: "Ana" }];
+    const abrir = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} onRowClick={abrir} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    // El botón de despliegue vive dentro del <tr>: lo abre, pero no dispara onRowClick.
+    await user.click(screen.getByRole("button", { name: /desplegar/i }));
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+    expect(abrir).not.toHaveBeenCalled();
+
+    // Un clic en una celda normal sí abre la fila, y no toca el detalle ya desplegado.
+    await user.click(screen.getByText("Ana"));
+    expect(abrir).toHaveBeenCalledWith(value[0]);
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+  });
 });
 
 // Antes, `preferencesKey` solo recordaba qué columnas estaban visibles, bajo
@@ -1136,6 +1163,102 @@ describe("DataTable — preferencias persistidas (tamaño de página y orden)", 
     const filas = screen.getAllByRole("row").slice(1);
     expect(within(filas[0]).getByText("Beto")).toBeInTheDocument();
     expect(within(filas[1]).getByText("Ana")).toBeInTheDocument();
+  });
+
+  interface FilaOrdenOculto {
+    nombre: string;
+    correo: string;
+  }
+  const filasOrden: FilaOrdenOculto[] = [
+    { nombre: "Zoe", correo: "zoe@x.co" },
+    { nombre: "Luis", correo: "luis@x.co" },
+    { nombre: "Ana", correo: "ana@x.co" },
+  ];
+
+  // El caso distinto del anterior: aquí la columna sí existe, solo que está
+  // oculta. Un `sort` que la nombra —heredado de una sesión anterior, o de
+  // la migración desde `:columns`— no puede aplicarse al montar: no hay
+  // ningún control en pantalla para quitarlo si se aplicara mal.
+  //
+  // El orden de inserción es deliberadamente distinto del alfabético en
+  // cualquiera de los dos sentidos (ni ascendente ni descendente): si el
+  // `sort` heredado se llegara a aplicar iría a parar a Ana/Beto/Carla, así
+  // que confundirlo con el orden original (Beto/Ana/Carla) es imposible.
+  it("un `sort` persistido sobre una columna oculta no se aplica al montar", () => {
+    interface FilaOrdenNoAlfabetico {
+      nombre: string;
+      correo: string;
+    }
+    const value: FilaOrdenNoAlfabetico[] = [
+      { nombre: "Beto", correo: "beto@x.co" },
+      { nombre: "Ana", correo: "ana@x.co" },
+      { nombre: "Carla", correo: "carla@x.co" },
+    ];
+    window.localStorage.setItem(
+      "ui-table:sort-columna-oculta:prefs",
+      JSON.stringify({ columns: { nombre: false }, pageSize: 10, sort: [{ id: "nombre", desc: false }] }),
+    );
+
+    render(
+      <DataTable value={value} preferencesKey="sort-columna-oculta" configurableColumns>
+        <Column<FilaOrdenNoAlfabetico> field="nombre" header="Nombre" sortable />
+        <Column<FilaOrdenNoAlfabetico> field="correo" header="Correo" />
+      </DataTable>,
+    );
+
+    expect(screen.queryByRole("columnheader", { name: /^nombre$/i })).not.toBeInTheDocument();
+    const filas = screen.getAllByRole("row").slice(1);
+    // Orden original de `value` (Beto, Ana, Carla) — no el ascendente
+    // (Ana, Beto, Carla) que habría dado el `sort` heredado si se aplicara.
+    expect(within(filas[0]).getByText("beto@x.co")).toBeInTheDocument();
+    expect(within(filas[1]).getByText("ana@x.co")).toBeInTheDocument();
+    expect(within(filas[2]).getByText("carla@x.co")).toBeInTheDocument();
+  });
+
+  // El caso que atrapaba a un usuario en producción (midivisa): ordenar,
+  // ocultar la columna por la que se ordena, y quedar sin ningún control
+  // para deshacerlo — y con el orden persistiendo a la recarga, atrapado
+  // para siempre. Se limpia de inmediato al ocultar, no se espera a la
+  // siguiente recarga.
+  it("ocultar durante la sesión la columna por la que se ordena limpia el orden de inmediato, y la limpieza sobrevive a la recarga", async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(
+      <DataTable value={filasOrden} preferencesKey="orden-atrapado" configurableColumns>
+        <Column<FilaOrdenOculto> field="nombre" header="Nombre" sortable />
+        <Column<FilaOrdenOculto> field="correo" header="Correo" />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Ordenar por Nombre" }));
+    let filas = screen.getAllByRole("row").slice(1);
+    expect(within(filas[0]).getByText("Ana")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Configurar columnas" }));
+    // El botón del selector de columnas empieza por el nombre de la columna;
+    // el del encabezado empieza por "Ordenar por" — el ancla evita que el
+    // patrón alcance a los dos.
+    await user.click(screen.getByRole("button", { name: /^Nombre/i }));
+
+    expect(screen.queryByRole("columnheader", { name: /^nombre$/i })).not.toBeInTheDocument();
+    filas = screen.getAllByRole("row").slice(1);
+    expect(within(filas[0]).getByText("zoe@x.co")).toBeInTheDocument();
+
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:orden-atrapado:prefs")!);
+      expect(guardado.sort).toEqual([]);
+    });
+
+    unmount();
+
+    render(
+      <DataTable value={filasOrden} preferencesKey="orden-atrapado" configurableColumns>
+        <Column<FilaOrdenOculto> field="nombre" header="Nombre" sortable />
+        <Column<FilaOrdenOculto> field="correo" header="Correo" />
+      </DataTable>,
+    );
+    filas = screen.getAllByRole("row").slice(1);
+    expect(within(filas[0]).getByText("zoe@x.co")).toBeInTheDocument();
   });
 
   // JSON válido pero de forma ajena (un `pageSize` de texto, o el propio
