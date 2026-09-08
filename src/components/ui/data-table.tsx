@@ -161,16 +161,6 @@ interface ColumnBase<TValue extends DataTableValue> {
   className?: string;
   /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
   headerClassName?: string;
-  /**
-   * De dónde sale el valor por el que se ordena y se busca, cuando no es un
-   * campo de la fila: una etiqueta traducida, dos campos concatenados, una
-   * longitud, un booleano como número.
-   *
-   * Es lo que hace ordenable una columna que no tiene `field`. Ordenar por
-   * `estado` cuando en la fila pone `"sent"` y en pantalla «Enviado» ordena
-   * por la palabra que el usuario ve, que es la que espera.
-   */
-  accessor?: (row: TValue) => unknown;
 }
 
 /**
@@ -195,12 +185,29 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
         field: keyof TValue & string;
         /** Identidad de la columna. Por defecto, el propio campo. Úsalo para tener dos columnas del mismo campo. */
         id?: string;
+        /**
+         * No tiene sentido junto a `field`: `body` ya cubre la pintura y el
+         * `cell` de respaldo lee `getValue()`, que es el propio campo. Un
+         * `field` que gana un `accessor` a medio migrar sortearía y buscaría
+         * por otra cosa que la que su nombre sugiere — se prohíbe en el tipo
+         * para que sea un error de compilación, no una sorpresa en pantalla.
+         */
+        accessor?: undefined;
       }
     | {
         field?: undefined;
         /** Identidad de la columna. Obligatoria cuando no hay campo. */
         id: string;
-        /** De dónde sale el valor que se ordena y se busca, cuando no es un campo de la fila. */
+        /**
+         * De dónde sale el valor por el que se ordena y se busca, cuando no
+         * es un campo de la fila: una etiqueta traducida, dos campos
+         * concatenados, una longitud, un booleano como número.
+         *
+         * Es lo que hace ordenable una columna que no tiene `field`. Ordenar
+         * por `estado` cuando en la fila pone `"sent"` y en pantalla
+         * «Enviado» ordena por la palabra que el usuario ve, que es la que
+         * espera.
+         */
         accessor: (row: TValue) => unknown;
         /** Sin `body`, la celda pinta lo que devuelva `accessor`. */
         body?: (row: TValue) => React.ReactNode;

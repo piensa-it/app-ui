@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DataTable, Column } from "../components/ui/data-table";
+import { DataTable, Column, type ColumnProps } from "../components/ui/data-table";
 import { Menu, MenuTrigger, MenuContent, MenuItem } from "../components/ui/menu";
 import { Switch } from "../components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
@@ -489,6 +489,24 @@ describe("DataTable — columnas de presentación", () => {
 
     await user.type(screen.getByLabelText("Buscar en la tabla"), "Envi");
     expect(celdas()).toEqual(["Enviado"]);
+  });
+
+  // No hay archivo `*.test-d.ts` en este repo para pruebas de tipo puras, así
+  // que se sigue el único precedente existente (`tailwind-preset.test.ts`):
+  // un `@ts-expect-error` que hace fallar `tsc --noEmit` si la combinación
+  // que prohíbe vuelve a compilar. `it.skip` porque no hay nada que ejecutar
+  // —el chequeo lo hace `npm run typecheck`, no vitest— pero el cuerpo sigue
+  // typechequeándose igual que cualquier otro test.
+  it.skip("`field` y `accessor` juntos no compilan: no hay lectura coherente para los dos a la vez", () => {
+    interface Fila { estado: string }
+    // @ts-expect-error -- `field` fija qué campo leer y `accessor` qué calcular; juntos, cuál gana no lo dice el código. Ver el comentario en `ColumnProps`.
+    const columnaInvalida: ColumnProps<Fila> = {
+      field: "estado",
+      accessor: (fila: Fila) => fila.estado,
+      header: "Estado",
+      id: "estado",
+    };
+    void columnaInvalida;
   });
 
   it("usa getRowId para identificar las filas", () => {
