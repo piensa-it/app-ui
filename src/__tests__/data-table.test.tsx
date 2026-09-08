@@ -117,6 +117,26 @@ describe("DataTable", () => {
     expect(screen.getByLabelText("Buscar en la tabla")).toBeInTheDocument();
   });
 
+  it("puede pintar el título como encabezado real", () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+
+    const { unmount } = render(
+      <DataTable value={value} title="Canales registrados" titleAs="h3">
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.getByRole("heading", { name: "Canales registrados", level: 3 })).toBeInTheDocument();
+    unmount();
+
+    // Por defecto NO es encabezado: no se cambia lo ya publicado.
+    render(
+      <DataTable value={value} title="Canales registrados">
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.queryByRole("heading", { name: "Canales registrados" })).toBeNull();
+  });
+
   it("sin paginador muestra todas las filas, no solo la primera página", () => {
     const value: Fila[] = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
     const { rerender } = render(

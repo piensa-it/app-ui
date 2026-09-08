@@ -154,6 +154,12 @@ export interface DataTableProps<TValue extends DataTableValue> {
   /** Caption visible que describe el conjunto de datos. */
   caption?: React.ReactNode;
   title?: React.ReactNode;
+  /**
+   * Etiqueta con la que se pinta `title`. `"div"` por defecto para no
+   * inventar estructura donde la pantalla no la pidió; una pantalla que
+   * encabeza una sección con la tabla pasa el nivel que le toca.
+   */
+  titleAs?: "h2" | "h3" | "h4" | "div";
   description?: React.ReactNode;
   actions?: React.ReactNode;
   searchable?: boolean;
@@ -212,6 +218,7 @@ function DataTable<TValue extends DataTableValue>({
   "aria-label": ariaLabel = "Tabla de datos",
   caption,
   title,
+  titleAs = "div",
   description,
   actions,
   searchable = false,
@@ -335,13 +342,14 @@ function DataTable<TValue extends DataTableValue>({
     default: "px-4 py-3",
     comfortable: "px-4 py-4",
   }[activeDensity];
+  const TitleTag = titleAs;
 
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
       {title || description || actions || searchable || configurableColumns ? (
         <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            {title ? <div className="font-heading text-base font-semibold text-foreground">{title}</div> : null}
+            {title ? <TitleTag className="font-heading text-base font-semibold text-foreground">{title}</TitleTag> : null}
             {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
