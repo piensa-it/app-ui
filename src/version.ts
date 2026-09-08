@@ -13,13 +13,28 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.9.0";
+export const UI_LIBRARY_VERSION = "0.10.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés retirar si mantenías tu propia tabla, y el único cambio de comportamiento bajo un nombre que no cambia.",
+      "`preferencesKey` ahora recuerda tres cosas —columnas visibles, tamaño de página y orden— bajo `ui-table:<clave>:prefs`. La clave anterior se sigue leyendo y NO se borra, así que nadie pierde lo suyo; no hay nada que hacer salvo lo del punto siguiente.",
+      "Si construís `preferencesKey` con algo variable —la empresa activa, el módulo, una pestaña—, pasá `key={preferencesKey}` al `DataTable`: la tabla lee las preferencias una sola vez al montar, y sin remontarla escribiría las de la clave vieja sobre la nueva. Ya pasaba antes con las columnas; ahora se lleva también el orden.",
+      "Filas que abren un panel: retirá tu manejador de clic en `<tr>` y pasá `onRowClick`. El componente ya ignora los clics nacidos en un botón, un enlace o un ítem de menú portado, que es la parte que cuesta acertar.",
+      "Detalle desplegable bajo la fila: retirá tu implementación y pasá `renderExpanded`. Pasá también `getRowId`, o la fila abierta se identifica por su posición y el detalle salta de registro si los datos se reordenan.",
+      "Columnas que se ordenan por un valor calculado —una etiqueta traducida, dos campos concatenados, un booleano como número—: usá `accessor` en vez de `field`. Declarar los dos a la vez es error de compilación.",
+      "Si tus pruebas localizan el buscador de una tabla por su nombre accesible, pasá `searchLabel`: por defecto todas las tablas se llaman «Buscar en la tabla».",
+      "Si encabezabas la tabla con un `<h3>` propio, pasá `title` con `titleAs=\"h3\"` y retirá el tuyo: el componente ya pinta la tarjeta y su cabecera.",
+    ],
+  },
+  {
+    version: "0.9.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-07",
     migration: [
       "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar el armazón estándar.",
       "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",
