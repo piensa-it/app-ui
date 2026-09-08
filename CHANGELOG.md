@@ -6,6 +6,11 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`SettingsPage`: el destino estándar de «Mi perfil» y «Configuración»** (#124). Cabecera, secciones en pestañas y el pie de guardado siempre en el mismo sitio —cada aplicación lo escribía por su cuenta, con su propio orden de botones y su propio aviso (o ninguno) al salir con cambios sin guardar. El pie de guardado es opcional por sección: solo pinta si la sección declara `onSave`, así que seguridad o notificaciones pueden no traerlo. Con `dirty` en la sección activa, cambiar de pestaña reutiliza `confirmAlert` para pedir confirmación (`guardUnsaved`, activo por defecto) — pero solo cubre el cambio de pestaña dentro del propio componente, no la navegación fuera de la pantalla. `saving` imita el estado deshabilitado con `aria-disabled` y una clase en vez de `disabled` nativo, para no perder el foco de quien navega con teclado ni el anuncio del lector de pantalla. El catálogo de secciones conocidas (`account`, `appearance`, `security`, `notifications`) trae rótulo e icono sin pasarlos; una sección propia de la aplicación necesita su `label`. `section`/`onSectionChange` deja la pestaña activa en manos de la aplicación —típicamente atada a la ruta— en vez de llevarla `SettingsPage` sola.
+- **`ProfileForm`: el avatar y los datos de la persona** (#124). Nombre, correo, teléfono y cargo, con el mismo `AvatarPicker` de foto o iniciales sobre color que ya usaba `UserMenu`, y hueco (`children`) para los campos propios de cada aplicación —documento, sede— tras los estándar. `avatarFile` solo aparece en el cambio cuando el evento es justo eso —subir o quitar la foto—; en cualquier otro cambio no viaja, porque no es parte del valor del perfil sino del evento de subida: reenviarlo en cada `onChange` habría vuelto a subir el mismo archivo con cada letra tecleada.
+
 ## [0.9.0] - 2026-09-07
 
 El armazón estándar y la forma elegible: salió de evaluar tres plantillas de referencia y de lo que CoreLink, Lynx y MiDivisa terminaban resolviendo cada una a su manera.
