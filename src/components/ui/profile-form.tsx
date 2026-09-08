@@ -76,11 +76,15 @@ export interface ProfileFormProps {
   avatarLabels?: AvatarPickerLabels;
   labels?: ProfileFormLabels;
   /**
-   * Disposición de los campos: `horizontal` pone el rótulo a la izquierda y
-   * el control a la derecha (ver `Field`), pensada para la pantalla de
-   * ajustes que es el destino de este componente; `vertical` es la
-   * disposición de 0.10.0, para quien la prefiera.
-   * @default "horizontal"
+   * Disposición de los campos: `vertical` es la de 0.10.0 (rótulo arriba del
+   * control), sin cambios. `horizontal` pone el rótulo a la izquierda y el
+   * control a la derecha (ver `Field`), pero **solo merece la pena si le
+   * pasás `descriptions`**: sin ellas, la columna izquierda no lleva más que
+   * el rótulo y el bloque rótulo+control queda viendo lejos uno del otro —se
+   * ve como un fallo de alineación, no como un diseño—. Con `descriptions`,
+   * esa columna gana el peso que la justifica y el resultado se lee
+   * intencionado.
+   * @default "vertical"
    */
   orientation?: "vertical" | "horizontal";
   className?: string;
@@ -121,13 +125,13 @@ const INPUT_ATTRS: Record<ProfileField, { type: string; autoComplete: string }> 
  * cambio —el avatar incluido— llama a `onChange` con el objeto completo.
  * Va como contenido de la sección `account` de `SettingsPage`.
  *
- * Horizontal de fábrica (#132): rótulo a la izquierda, control a la derecha
- * con tope de ancho —es la mejor disposición para una pantalla de ajustes,
- * que es para lo que existe este componente—. `orientation="vertical"`
- * devuelve la disposición de 0.10.0, para quien la prefiera. `descriptions`
- * agrega el texto de ayuda de cada campo bajo su rótulo, a la izquierda; sin
- * él la columna izquierda solo lleva el rótulo, porque la librería no inventa
- * copia de producto.
+ * `orientation="horizontal"` (#132) pone el rótulo a la izquierda y el
+ * control a la derecha con tope de ancho —rótulo y tope viven en `Field`—,
+ * pero solo se ve bien acompañada de `descriptions`: es lo que le da peso a
+ * la columna izquierda. Sin `descriptions` esa columna queda casi vacía y el
+ * bloque rótulo+control se ve descuadrado; en ese caso, mejor `vertical`
+ * (el valor de fábrica, la disposición de 0.10.0). `descriptions` no trae
+ * valores por defecto: la librería no inventa copia de producto.
  *
  * @example
  * ```tsx
@@ -153,7 +157,7 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
       avatarMaxSizeMb,
       avatarLabels,
       labels,
-      orientation = "horizontal",
+      orientation = "vertical",
       className,
     },
     ref,
@@ -209,7 +213,16 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
             como un bloque suelto sobre un formulario. */}
         {orientation === "vertical" ? avatarPicker : null}
         <FormGrid columns={orientation === "horizontal" ? 1 : 2}>
-          {orientation === "horizontal" ? <Field label={text.avatar}>{avatarPicker}</Field> : null}
+          {orientation === "horizontal" ? (
+            // `orientation` también viaja aquí: sin ella, `Field` caía en su
+            // propio valor por defecto (`vertical`) y esta fila —a
+            // diferencia de las de abajo— quedaba con el rótulo *encima* del
+            // avatar en vez de al lado, rompiendo el ritmo de dos columnas
+            // que se supone que comparte con el resto de campos.
+            <Field label={text.avatar} orientation={orientation}>
+              {avatarPicker}
+            </Field>
+          ) : null}
           {uniqueFields.map((field) => (
             <Field
               key={field}

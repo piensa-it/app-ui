@@ -170,12 +170,14 @@ test.describe("Storybook browser gate", () => {
   // #132: la incidencia medía 959 px fijos de contenido de 1280 a 1920 px de
   // ventana, y ensanchar el `PageContainer` a `wide` solo estiraba cada
   // control de ~470 a ~780 px —peor, no mejor—. Esta story usa `width="wide"`
-  // (`layout-settingspage--ancho-completo`) y una ventana de 1920: es la
-  // combinación exacta que exponía el bug. Medir el DOM en vez de comparar
-  // solo capturas es a propósito (ver el criterio de aceptación de la
-  // incidencia): una captura no falla de forma legible cuando un control se
-  // estira un poco, un `toBeLessThanOrEqual` sí.
-  test("el control de un campo horizontal no crece más allá de su tope aunque la ventana sea de 1920 px", async ({
+  // (`layout-settingspage--ancho-completo`, `ProfileForm` en horizontal con
+  // `descriptions`) y una ventana de 1920: es la combinación exacta que
+  // exponía el bug, tanto en el control como en la columna del rótulo (la
+  // segunda ronda de revisión: `0.4fr` sin tope estiraba «Nombre» a ~590 px
+  // de ancho). Medir el DOM en vez de comparar solo capturas es a propósito
+  // (ver el criterio de aceptación de la incidencia): una captura no falla de
+  // forma legible cuando algo se estira un poco, un `toBeLessThanOrEqual` sí.
+  test("el control y la columna del rótulo de un campo horizontal no crecen más allá de su tope aunque la ventana sea de 1920 px", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1920, height: 1000 });
@@ -193,6 +195,22 @@ test.describe("Storybook browser gate", () => {
     expect(caja!.width).toBeLessThanOrEqual(468);
     // Cota inferior de cordura: que el tope no haya colapsado el control.
     expect(caja!.width).toBeGreaterThan(300);
+
+    // La columna del rótulo (rótulo + descripción) es el nodo que ocupa el
+    // primer track de la rejilla de `Field`: medirla a ella, no solo al
+    // `<label>`, es lo que refleja el tope real del track (20rem = 320 px).
+    const columnaDelRotulo = await nombre.evaluate((input) => {
+      // `input` → el `div` que envuelve el control (columna 2) → la raíz de
+      // `Field` (la rejilla de dos columnas) → su primer hijo, la columna
+      // del rótulo (columna 1).
+      const raizDelField = input.parentElement!.parentElement as HTMLElement;
+      const columna = raizDelField.firstElementChild as HTMLElement;
+      return columna.getBoundingClientRect().width;
+    });
+    // Tope real: 20rem = 320 px. Mismo margen de 20 px que arriba; antes del
+    // arreglo, esta columna medía ~590 px para una sola palabra.
+    expect(columnaDelRotulo).toBeLessThanOrEqual(340);
+    expect(columnaDelRotulo).toBeGreaterThan(150);
   });
 
   for (const theme of ["light", "dark"] as const) {

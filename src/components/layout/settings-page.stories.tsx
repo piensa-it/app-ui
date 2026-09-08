@@ -47,7 +47,9 @@ type Story = StoryObj<typeof meta>;
 
 type CabeceraArgs = Pick<SettingsPageProps, "title" | "description">;
 
-const PerfilDemo = ({ title, description }: CabeceraArgs) => {
+type PerfilDemoProps = CabeceraArgs & Pick<React.ComponentProps<typeof ProfileForm>, "orientation" | "descriptions">;
+
+const PerfilDemo = ({ title, description, orientation, descriptions }: PerfilDemoProps) => {
   const [value, setValue] = React.useState<ProfileFormValue>({
     name: "Andrés Montoya",
     email: "andres@piensait.com",
@@ -67,7 +69,9 @@ const PerfilDemo = ({ title, description }: CabeceraArgs) => {
           // `account` es del catálogo conocido: rótulo «Cuenta» e icono ya
           // vienen puestos, sin pasar `label` ni `icon` aquí.
           id: "account",
-          content: <ProfileForm value={value} onChange={setValue} />,
+          content: (
+            <ProfileForm value={value} onChange={setValue} orientation={orientation} descriptions={descriptions} />
+          ),
           dirty,
           onSave: () => setGuardado(value),
           onCancel: () => setValue(guardado),
@@ -93,7 +97,7 @@ const PerfilDemo = ({ title, description }: CabeceraArgs) => {
  * «Mi perfil»: la sección de cuenta (`ProfileForm`, controlado por esta
  * story) trae pie de guardado propio porque declara `onSave`; seguridad no
  * lo trae, porque no lo declara — ese pie es opcional por sección, no de toda
- * la pantalla.
+ * la pantalla. `ProfileForm` va con su disposición de fábrica —vertical—.
  */
 export const Default: Story = {
   name: "Mi perfil",
@@ -297,17 +301,31 @@ export const SinAvisoAlSalir: Story = {
 
 /**
  * `PageContainer` con `width="wide"` (#132): la misma pantalla de «Mi
- * perfil», en un contenedor de 1.536 px en vez de los 959 px de `default`.
- * Antes de esta HU, ensanchar así solo estiraba cada control de ~470 px a
- * ~780 px —un cuadro de esas dimensiones para un teléfono se ve peor, no
- * mejor—. Ahora `Field` (en horizontal, el que trae `ProfileForm` de
- * fábrica) topa el control en ~28 rem sin importar cuánto ancho sobre, y ese
- * ancho sobrante lo ocupa la columna de rótulo y descripción, no el input.
- * Es la prueba visual de que ensanchar `PageContainer` sin este tope —lo que
- * medía la incidencia— no arreglaba nada; el tope, sí.
+ * perfil», en un contenedor de 1.536 px en vez de los 959 px de `default`,
+ * con `ProfileForm` en `orientation="horizontal"` y `descriptions` —la
+ * combinación que de verdad vale la pena en horizontal (ver el JSDoc de la
+ * prop)—. Antes de esta HU, ensanchar así solo estiraba cada control de
+ * ~470 px a ~780 px —un cuadro de esas dimensiones para un teléfono se ve
+ * peor, no mejor—. Ahora `Field`, en horizontal, topa el control en ~28 rem
+ * y la columna de rótulo en ~20 rem sin importar cuánto ancho sobre, y ese
+ * ancho sobrante queda como margen a la derecha, no estirando ni el input ni
+ * la etiqueta. Es la prueba visual de que ensanchar `PageContainer` sin este
+ * tope —lo que medía la incidencia— no arreglaba nada; el tope, sí.
  */
 export const AnchoCompleto: Story = {
   name: "A lo ancho (PageContainer wide)",
   parameters: { width: "wide" },
-  render: (args) => <PerfilDemo title={args.title} description={args.description} />,
+  render: (args) => (
+    <PerfilDemo
+      title={args.title}
+      description={args.description}
+      orientation="horizontal"
+      descriptions={{
+        name: "Como aparece para el resto del equipo.",
+        email: "Lo usamos para avisos de la cuenta, nunca para mercadeo.",
+        phone: "Solo para contacto en caso de una alerta operativa.",
+        jobTitle: "El mismo que se ve en el menú de usuario.",
+      }}
+    />
+  ),
 };

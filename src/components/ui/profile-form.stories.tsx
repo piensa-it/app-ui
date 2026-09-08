@@ -13,7 +13,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Los datos de la persona en la pantalla de perfil (#124): el avatar y el nombre, correo, teléfono y cargo. Es lo único del perfil que de verdad se repite entre aplicaciones; lo demás —documento, sede, contraseña— es negocio y entra por `children`, tras los campos estándar. Controlado y sin persistencia: cualquier cambio, el avatar incluido, llama a `onChange` con el objeto completo. Horizontal de fábrica (#132) —rótulo a la izquierda, control con tope de ancho a la derecha—, pensada para la pantalla de ajustes que es su destino; `orientation=\"vertical\"` devuelve la disposición de 0.10.0.",
+          "Los datos de la persona en la pantalla de perfil (#124): el avatar y el nombre, correo, teléfono y cargo. Es lo único del perfil que de verdad se repite entre aplicaciones; lo demás —documento, sede, contraseña— es negocio y entra por `children`, tras los campos estándar. Controlado y sin persistencia: cualquier cambio, el avatar incluido, llama a `onChange` con el objeto completo. `orientation=\"horizontal\"` (#132) pone el rótulo a la izquierda y el control con tope de ancho a la derecha, pero solo se ve bien acompañada de `descriptions` —es lo que le da peso a esa columna—; sin ellas, mejor `vertical` (el valor de fábrica, la disposición de 0.10.0).",
       },
     },
   },
@@ -53,35 +53,28 @@ const ControladoDemo = ({ value, onChange: _onChange, ...rest }: ProfileFormProp
 
 /**
  * Los cuatro campos estándar y la elección del avatar (foto o iniciales con
- * color), en la disposición de fábrica: rótulo a la izquierda, control con
- * tope de ancho a la derecha, avatar incluido en la misma rejilla con su
- * propio rótulo («Foto», sustituible con `labels.avatar`).
+ * color), en la disposición de fábrica: rótulo arriba del control, avatar
+ * como bloque suelto encima del formulario. Es exactamente lo que había en
+ * 0.10.0 —`orientation="vertical"` no cambia nada—.
  */
 export const Default: Story = {
-  name: "Horizontal (por defecto)",
+  name: "Vertical (por defecto)",
   render: (args) => <ControladoDemo {...args} />,
 };
 
 /**
- * `orientation="vertical"`: la disposición de 0.10.0, para quien la
- * prefiera —rótulo arriba del control, avatar como bloque suelto encima del
- * formulario—. El cambio de orientación no toca ningún otro comportamiento:
- * mismos campos, misma fusión de `onChange`.
+ * `orientation="horizontal"` con `descriptions`: rótulo y ayuda a la
+ * izquierda, control con tope de ancho a la derecha, avatar integrado en la
+ * misma rejilla con su propio rótulo («Foto», sustituible con
+ * `labels.avatar`). Las dos props van juntas a propósito —es la combinación
+ * que documenta el JSDoc de `orientation`—: `descriptions` es lo que le da
+ * peso a la columna izquierda; sin ella, el rótulo queda viendo lejos del
+ * control y el bloque se ve descuadrado en vez de intencionado (podés
+ * comprobarlo quitando `descriptions` de los args, a modo de contraejemplo).
  */
-export const Vertical: Story = {
-  args: { orientation: "vertical" },
-  render: (args) => <ControladoDemo {...args} />,
-};
-
-/**
- * `descriptions` agrega el texto de ayuda de cada campo bajo su rótulo, a la
- * izquierda —es lo que le da peso a esa columna en horizontal—. Sin esta
- * prop no se pinta nada ahí: la librería no inventa copia de producto, así
- * que cada aplicación escribe la suya.
- */
-export const ConDescripciones: Story = {
-  name: "Con descripciones",
+export const Horizontal: Story = {
   args: {
+    orientation: "horizontal",
     descriptions: {
       name: "Como aparece para el resto del equipo.",
       email: "Lo usamos para avisos de la cuenta, nunca para mercadeo.",

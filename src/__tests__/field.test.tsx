@@ -261,5 +261,25 @@ describe("Field · integración con los controles de formulario", () => {
       const columnaDeControlVertical = container.querySelector("input")?.parentElement;
       expect(columnaDeControlVertical?.className).not.toContain("max-w-md");
     });
+
+    /**
+     * La columna del rótulo también topa (#132, segunda ronda): con
+     * `minmax(10rem, 0.4fr)` una sola palabra se estiraba a ~590 px a
+     * 1920 px de contenido. `20rem` la mantiene junto al control en vez de
+     * separarlos por medio contenedor de sobra. El valor exacto se
+     * comprueba aquí (contra un cambio que lo borre o lo cambie sin darse
+     * cuenta); que a 1920 px eso de verdad se traduzca en un bloque
+     * compacto se comprueba midiendo el DOM en `tests/browser`.
+     */
+    it("la columna del rótulo topa en 20rem, no en una fracción del contenedor", () => {
+      const { container } = render(
+        <Field orientation="horizontal" label="Teléfono">
+          <Input />
+        </Field>,
+      );
+      const raiz = container.firstElementChild;
+      expect(raiz?.className).toContain("minmax(10rem,20rem)");
+      expect(raiz?.className).not.toContain("0.4fr");
+    });
   });
 });

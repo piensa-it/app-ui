@@ -72,7 +72,12 @@ export function Field({
         variant === "outline" && "rounded-xl border border-border bg-raised p-inset-compact",
         variant === "surface" && "rounded-xl border border-surface-border bg-surface p-inset-compact shadow-sm",
         variant === "subtle" && "rounded-xl border border-transparent bg-subtle p-inset-compact",
-        orientation === "horizontal" && "sm:grid-cols-[minmax(10rem,0.4fr)_minmax(0,1fr)] sm:gap-x-6",
+        // La columna del rótulo topa en 20rem (antes `0.4fr`, un 40% del
+        // contenedor sin límite: a 1920 px eso son ~590 px para una sola
+        // palabra). Con el tope, el bloque rótulo+control se mantiene junto
+        // y proporcionado —el ancho que sobra en un contenedor amplio queda
+        // como margen a la derecha del control, no estirando la etiqueta.
+        orientation === "horizontal" && "sm:grid-cols-[minmax(10rem,20rem)_minmax(0,1fr)] sm:gap-x-6",
         className,
       )}
     >
