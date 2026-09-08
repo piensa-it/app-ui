@@ -6,7 +6,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [0.10.0] - 2026-09-08
+## [0.11.0] - 2026-09-08
 
 Siete capacidades del `DataTable`, todas para que una aplicación pueda dejar de mantener su propia tabla. Salieron de medir la de CoreLink —588 líneas, 55 pantallas, 544 columnas— contra ésta, columna por columna y prop por prop (piensa-it/app-corelink#68). Nada de lo que usaba la 0.9.0 cambia de comportamiento.
 
@@ -26,6 +26,19 @@ Siete capacidades del `DataTable`, todas para que una aplicación pueda dejar de
 ### Notas para quien actualice
 
 - El único cambio de comportamiento bajo un nombre que no cambia es el de `preferencesKey`. Si una pantalla construye esa clave con algo variable —la empresa activa, el módulo, una pestaña—, hay que forzar el remontaje con `key={preferencesKey}`: la tabla lee las preferencias una vez al montar y luego escribiría las viejas sobre la clave nueva. Ya ocurría con `:columns`; ahora se lleva por delante también el orden y el tamaño de página.
+
+## [0.10.0] - 2026-09-08
+
+El destino de «Mi perfil» y «Configuración». `UserMenu` (#97) ya fijaba las dos entradas, pero eran callbacks: lo que había al otro lado lo escribía cada aplicación a su manera, con su propio orden, su propio guardado y su propio aviso —o ninguno— al salir con cambios sin guardar.
+
+### Added
+
+- **`SettingsPage`: el destino estándar de «Mi perfil» y «Configuración»** (#124). Cabecera, secciones en pestañas y el pie de guardado siempre en el mismo sitio —cada aplicación lo escribía por su cuenta, con su propio orden de botones y su propio aviso (o ninguno) al salir con cambios sin guardar. El pie de guardado es opcional por sección: solo pinta si la sección declara `onSave`, así que seguridad o notificaciones pueden no traerlo. Con `dirty` en la sección activa, cambiar de pestaña reutiliza `confirmAlert` para pedir confirmación (`guardUnsaved`, activo por defecto) — pero solo cubre el cambio de pestaña dentro del propio componente, no la navegación fuera de la pantalla. `saving` imita el estado deshabilitado con `aria-disabled` y una clase en vez de `disabled` nativo, para no perder el foco de quien navega con teclado ni el anuncio del lector de pantalla. El catálogo de secciones conocidas (`account`, `appearance`, `security`, `notifications`) trae rótulo e icono sin pasarlos; una sección propia de la aplicación necesita su `label`. `section`/`onSectionChange` deja la pestaña activa en manos de la aplicación —típicamente atada a la ruta— en vez de llevarla `SettingsPage` sola.
+- **`ProfileForm`: el avatar y los datos de la persona** (#124). Nombre, correo, teléfono y cargo, con el mismo `AvatarPicker` de foto o iniciales sobre color que ya usaba `UserMenu`, y hueco (`children`) para los campos propios de cada aplicación —documento, sede— tras los estándar. `avatarFile` solo aparece en el cambio cuando el evento es justo eso —subir o quitar la foto—; en cualquier otro cambio no viaja, porque no es parte del valor del perfil sino del evento de subida: reenviarlo en cada `onChange` habría vuelto a subir el mismo archivo con cada letra tecleada.
+
+### Fixed
+
+- **`Tabs`: el indicador de la pestaña activa no se pintaba** (#124). Zag posiciona `Tabs.Indicator` con `position:absolute` y `left`/`top` por estilo en línea, y expone `--width`/`--height` como variables CSS, pero deja el ancho y el alto en manos de quien tematiza — nuestra clase traía `bottom-0 h-0.5 bg-primary` sin `width`, así que el indicador medía 0 px y la pestaña activa solo se distinguía por el color del texto. Es justo el bug que `.claude/CLAUDE.md` advierte sobre adivinar la anatomía de Ark en vez de verificarla; lo destapó la auditoría visual de `SettingsPage` (#124), que convierte `Tabs` en la navegación estándar de las tres aplicaciones. El arreglo toma `--width` en horizontal y `--height` en vertical con `data-[orientation=...]`, condicionado a `data-orientation` (que Zag ya pone en el propio indicador) porque en vertical el indicador es una barra lateral, no inferior; no hizo falta agregar `position: absolute` por clase, porque Zag ya lo trae en línea.
 
 ## [0.9.0] - 2026-09-07
 

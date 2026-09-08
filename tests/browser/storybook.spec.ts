@@ -123,6 +123,50 @@ test.describe("Storybook browser gate", () => {
     await expect(motion).toHaveCSS("animation-name", "none");
   });
 
+  test("keeps the settings page shell visually stable", async ({ page }) => {
+    await page.goto(storyUrl("layout-settingspage--default"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+    await expect(story).toHaveScreenshot("settings-page.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  // El pie «Guardando…» imita el estado deshabilitado con una clase en vez de
+  // `disabled` nativo (ver el JSDoc de `Guardando` en settings-page.stories.tsx):
+  // un cambio de clase que se equivoque de tono no lo vería ninguna otra prueba.
+  test("keeps the settings page saving footer visually stable", async ({ page }) => {
+    await page.goto(storyUrl("layout-settingspage--guardando"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Guardando…" })).toBeVisible();
+    await expect(story).toHaveScreenshot("settings-page-saving.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  // Ninguna de las stories de SettingsPage/ProfileForm (#124) tenía captura en
+  // oscuro; el precedente es UserMenu/AppearanceSettings, que resuelven el
+  // tema con el global `theme` en vez de una story dedicada. Esta reutiliza
+  // la misma story "default" —trae `ProfileForm` en la pestaña «Cuenta»,
+  // activa de entrada— así que una sola captura cubre los dos archivos.
+  test("keeps the settings page shell visually stable in dark theme", async ({ page }) => {
+    await page.goto(storyUrl("layout-settingspage--default", "theme:dark;palette:indigo;fontFamily:geist"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+    await expect(story).toHaveScreenshot("settings-page-dark.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
   test("keeps the animated banner visually stable", async ({ page }) => {
     await page.goto(storyUrl("contenedores-animatedbanner--exito"));
     await stabilize(page);

@@ -89,7 +89,20 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
               {panel.header}
             </ArkTabs.Trigger>
           ))}
-          <ArkTabs.Indicator className="bottom-0 h-0.5 rounded-full bg-primary transition-all duration-normal ease-standard motion-reduce:transition-none" />
+          <ArkTabs.Indicator
+            className={cn(
+              "rounded-full bg-primary transition-all duration-normal ease-standard motion-reduce:transition-none",
+              // Zag pone `position:absolute`, `left`/`top` y las variables CSS `--width`/`--height` en el
+              // estilo en línea del indicador, pero NO fija `width`/`height`: eso le toca al consumidor. Si
+              // se quitan las clases `w-[var(--width)]` / `h-[var(--height)]` de abajo, el indicador vuelve
+              // a medir 0px y desaparece en silencio — la pestaña activa solo se distinguiría por el color
+              // del texto (`data-[selected]:text-foreground`). jsdom no resuelve estas variables CSS, así
+              // que no hay prueba unitaria que lo cubra; la captura comparada de Storybook (settings-page*)
+              // es la que detecta una regresión aquí.
+              "data-[orientation=horizontal]:bottom-0 data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:w-[var(--width)]",
+              "data-[orientation=vertical]:left-0 data-[orientation=vertical]:w-0.5 data-[orientation=vertical]:h-[var(--height)]",
+            )}
+          />
         </ArkTabs.List>
         {withValues.map((panel) => (
           <ArkTabs.Content key={panel.value} value={panel.value} className={cn("pt-5 outline-hidden", panel.contentClassName)}>
