@@ -411,8 +411,12 @@ Antes del `return (`:
    * evento sintético de React sigue burbujeando hasta el `<tr>`. Pulsar
    * «Eliminar» en el kebab borraba Y abría el detalle. Por eso el guardián
    * estructural va ANTES, en los dos manejadores: lo que no está dentro de la
-   * fila no pasó en la fila. Y `label` entra en la lista porque el radio y el
-   * interruptor tapan su `<input>`, y el clic aterriza en la etiqueta. */
+   * fila no pasó en la fila. Y `label` entra en la lista por DOS mecanismos
+   * distintos: `RadioGroupItem` recorta su `<input>` a 1px (`peer sr-only`),
+   * así que en producción el clic aterriza siempre en la etiqueta; `Switch` y
+   * `Checkbox` hacen lo contrario —`hidden-input.ts` estira el input al 100%
+   * para tapar el control— y sólo se escapan bajo Testing Library, que
+   * dispara el clic sobre el `<span>` sin calcular superposiciones. */
   const naceEnUnControl = (target: EventTarget | null) =>
     target instanceof globalThis.Element
     && Boolean(target.closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"));
