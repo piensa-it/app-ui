@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createPortal } from "react-dom";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -902,6 +903,23 @@ describe("DataTable — columnas de presentación", () => {
     advertir.mockRestore();
   });
 
+  // `React.StrictMode` invoca los efectos dos veces al montar en desarrollo.
+  // CoreLink no lo usa hoy, pero el comentario junto al `useEffect` dice "una
+  // sola vez al montar" sin matices — si algún día se activa StrictMode, esa
+  // frase tiene que seguir siendo cierta.
+  it("el aviso sigue siendo uno solo incluso bajo React.StrictMode", () => {
+    const advertir = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <React.StrictMode>
+        <DataTable value={[{ nombre: "Ana" }] as Fila[]} renderExpanded={(f: Fila) => <p>{f.nombre}</p>}>
+          <Column<Fila> field="nombre" header="Nombre" />
+        </DataTable>
+      </React.StrictMode>,
+    );
+    expect(advertir).toHaveBeenCalledTimes(1);
+    advertir.mockRestore();
+  });
+
   it("renderExpanded con getRowId no avisa en consola", () => {
     const advertir = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(
@@ -955,5 +973,19 @@ describe("DataTable — columnas de presentación", () => {
     await user.click(botones[0]);
     const detalle = screen.getByText("Detalle de Ana").closest("td")!;
     expect(detalle).toHaveAttribute("id", controlaId);
+  });
+
+  // La celda del cuerpo trae un botón enfocable, así que su columna necesita
+  // encabezado: un `<th>` con `aria-hidden` dejaría esa columna sin nombre
+  // para quien navega celda por celda con lector de pantalla.
+  it("la columna del detalle tiene un encabezado accesible, no aria-hidden", () => {
+    render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]} renderExpanded={(f: Fila) => <p>{f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    const encabezados = screen.getAllByRole("columnheader");
+    expect(encabezados[0]).not.toHaveAttribute("aria-hidden");
+    expect(encabezados[0]).toHaveAccessibleName(/detalle/i);
   });
 });

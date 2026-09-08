@@ -302,6 +302,10 @@ export const DetalleEnLinea: Story = {
       description="Despliega una fila para ver su ficha completa sin salir de la tabla."
       searchable
       rows={10}
+      // `renderExpanded` rastrea la fila abierta por `row.id`: sin `getRowId`
+      // sería la posición de TanStack, no el correo. El correo es único por
+      // fila en este arreglo (viene del nombre), así que sirve de identidad.
+      getRowId={(usuario: Usuario) => usuario.correo}
       renderExpanded={(usuario: Usuario) => (
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
           <div>

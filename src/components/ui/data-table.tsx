@@ -286,16 +286,27 @@ function DataTable<TValue extends DataTableValue>({
   // `getRowId` rastrea la fila abierta por la posición de TanStack, no por su
   // identidad. Ver el JSDoc de `renderExpanded` para el porqué. Se recorta en
   // producción igual que hace `@tanstack/table-core` con sus propios avisos.
+  //
+  // El array de deps vacío es deliberado, no un descuido: con `renderExpanded`
+  // y `getRowId` como deps reales, el aviso se dispararía en cada render para
+  // quien pasa una función flecha en línea —el caso más común—, que es peor
+  // que el problema que resuelve. La contrapartida: una pantalla que empieza
+  // sin `renderExpanded` y lo activa después —detrás de un feature flag, o
+  // tras una carga que decide si hay detalle que mostrar— nunca ve el aviso,
+  // porque el montaje ya pasó. Vale la pena para el caso común.
+  const avisoDisparado = React.useRef(false);
   React.useEffect(() => {
+    if (avisoDisparado.current) return;
     if (process.env.NODE_ENV === "production") return;
     if (!renderExpanded || getRowId) return;
+    avisoDisparado.current = true;
     console.warn(
       "DataTable: `renderExpanded` sin `getRowId` rastrea la fila abierta por la posición de TanStack, no por su identidad. " +
         "Ordenar desde el encabezado de columna es seguro, pero si el padre vuelve a renderizar con `value` en otro orden " +
         "(p. ej. una recarga que trae los mismos registros reordenados), el detalle abierto se queda en la posición y termina " +
         "mostrando otro registro. Pasa `getRowId` a `DataTable` para evitarlo.",
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- se avisa una sola vez al montar, no en cada cambio de props.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ver el comentario de arriba: deliberadamente solo al montar.
   }, []);
 
   const columnSpecs = React.useMemo(
@@ -609,7 +620,16 @@ function DataTable<TValue extends DataTableValue>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-border bg-muted/50">
-                {renderExpanded ? <th className="w-10" aria-hidden="true" /> : null}
+                {renderExpanded ? (
+                  <th className="w-14 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {/* La celda del cuerpo trae un botón enfocable: un `<th>`
+                        con `aria-hidden` deja esa columna sin encabezado para
+                        quien navega celda por celda con lector de pantalla.
+                        `sr-only` la mantiene fuera de la vista sin sacarla del
+                        árbol de accesibilidad. */}
+                    <span className="sr-only">Detalle</span>
+                  </th>
+                ) : null}
                 {headerGroup.headers.map((header) => {
                   const sortDir = header.column.getIsSorted();
                   return (
@@ -688,6 +708,14 @@ function DataTable<TValue extends DataTableValue>({
                 // tabla conoce de toda fila, así que es lo que distingue un
                 // botón «Desplegar» del de al lado para quien navega con
                 // lector de pantalla.
+                // A propósito distinto de `filaAbierta`: ese guarda `row.id`
+                // porque necesita identidad de dato (sobrevivir a un
+                // reordenamiento, o no — ver el aviso de arriba). Este `id`
+                // solo necesita ser único en el DOM mientras existe, así que
+                // la posición en pantalla alcanza y evita tener que sanear un
+                // `row.id` arbitrario (el de `getRowId`) para usarlo como
+                // atributo `id`. No son el mismo espacio de coordenadas —no
+                // deberían compararse entre sí.
                 const detalleId = `${detalleIdBase}-fila-${rowIndex}`;
                 return (
                   <React.Fragment key={row.id}>
