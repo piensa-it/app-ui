@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
@@ -987,5 +987,174 @@ describe("DataTable — columnas de presentación", () => {
     const encabezados = screen.getAllByRole("columnheader");
     expect(encabezados[0]).not.toHaveAttribute("aria-hidden");
     expect(encabezados[0]).toHaveAccessibleName(/detalle/i);
+  });
+});
+
+// Antes, `preferencesKey` solo recordaba qué columnas estaban visibles, bajo
+// `ui-table:<key>:columns`. Ahora todo va a una sola clave nueva,
+// `ui-table:<key>:prefs`, que además del tamaño de página y el orden. La
+// clave vieja se sigue leyendo cuando la nueva no existe —así nadie pierde lo
+// que ya tenía guardado un navegador real—, pero nunca se vuelve a escribir.
+describe("DataTable — preferencias persistidas (tamaño de página y orden)", () => {
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("un orden elegido por el usuario se escribe en la clave nueva y se restaura en un montaje posterior", async () => {
+    const user = userEvent.setup();
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+
+    const { unmount } = render(
+      <DataTable value={value} preferencesKey="orden-test">
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ordenar por nombre/i }));
+
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:orden-test:prefs")!);
+      expect(guardado.sort).toEqual([{ id: "nombre", desc: false }]);
+    });
+
+    unmount();
+
+    render(
+      <DataTable value={value} preferencesKey="orden-test">
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    expect(screen.getByRole("columnheader", { name: /nombre/i })).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("un tamaño de página elegido por el usuario se escribe y se restaura", async () => {
+    const value: Fila[] = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
+
+    const { unmount } = render(
+      <DataTable value={value} preferencesKey="pagesize-test" rowsPerPageOptions={[5, 10]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Filas por página" }));
+    fireEvent.click(await screen.findByRole("option", { name: "5" }));
+
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:pagesize-test:prefs")!);
+      expect(guardado.pageSize).toBe(5);
+    });
+
+    unmount();
+
+    render(
+      <DataTable value={value} preferencesKey="pagesize-test" rowsPerPageOptions={[5, 10]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    expect(screen.getByText("1-5 de 12")).toBeInTheDocument();
+  });
+
+  it("cuando solo existe la clave vieja `:columns`, su visibilidad de columnas se respeta al montar (ruta de migración)", () => {
+    window.localStorage.setItem("ui-table:migracion-test:columns", JSON.stringify({ extra: false }));
+
+    render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]} preferencesKey="migracion-test">
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila> id="extra" header="Extra" body={() => "x"} />
+      </DataTable>,
+    );
+
+    expect(screen.queryByRole("columnheader", { name: "Extra" })).not.toBeInTheDocument();
+  });
+
+  it("la clave vieja `:columns` nunca se vuelve a escribir", async () => {
+    const user = userEvent.setup();
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+
+    render(
+      <DataTable value={value} preferencesKey="no-reescribe-vieja">
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ordenar por nombre/i }));
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("ui-table:no-reescribe-vieja:prefs")).not.toBeNull();
+    });
+    expect(window.localStorage.getItem("ui-table:no-reescribe-vieja:columns")).toBeNull();
+  });
+
+  it("sin preferencesKey no se escribe nada en localStorage", async () => {
+    const user = userEvent.setup();
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+    const clavesAntes = window.localStorage.length;
+
+    render(
+      <DataTable value={value}>
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ordenar por nombre/i }));
+
+    expect(window.localStorage.length).toBe(clavesAntes);
+  });
+
+  // Las columnas cambian entre versiones: un `sort` guardado puede nombrar
+  // una que ya no existe. TanStack la ignora sin más — no ordena por ella, no
+  // lanza, y no deja el encabezado real con un indicador de orden encendido
+  // que mienta sobre el estado real de la tabla.
+  it("un `sort` guardado que nombra una columna que ya no existe no lanza y no deja indicador de orden encendido", () => {
+    window.localStorage.setItem(
+      "ui-table:sort-obsoleto:prefs",
+      JSON.stringify({ sort: [{ id: "vendedor", desc: false }] }),
+    );
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+
+    render(
+      <DataTable value={value} preferencesKey="sort-obsoleto">
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    expect(screen.getByRole("columnheader", { name: /nombre/i })).toHaveAttribute("aria-sort", "none");
+    // El orden original de `value` se conserva: no se aplicó ningún orden.
+    const filas = screen.getAllByRole("row").slice(1);
+    expect(within(filas[0]).getByText("Beto")).toBeInTheDocument();
+    expect(within(filas[1]).getByText("Ana")).toBeInTheDocument();
+  });
+
+  // JSON válido pero de forma ajena (un `pageSize` de texto, o el propio
+  // valor guardado siendo un array) no debe romper el montaje ni dejar la
+  // tabla con datos reales escondidos tras un `pageSize` inválido.
+  it("un `pageSize` guardado con forma ajena se ignora y no deja la tabla vacía", () => {
+    window.localStorage.setItem("ui-table:pagesize-ajeno:prefs", JSON.stringify({ pageSize: "muchas" }));
+    const value: Fila[] = Array.from({ length: 15 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
+
+    render(
+      <DataTable value={value} preferencesKey="pagesize-ajeno" rowsPerPageOptions={[10, 25, 50]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    expect(screen.queryByText("No hay datos para mostrar.")).not.toBeInTheDocument();
+    expect(screen.getByText("1-10 de 15")).toBeInTheDocument();
+  });
+
+  it("JSON foráneo (un array) bajo la clave nueva no rompe el montaje", () => {
+    window.localStorage.setItem("ui-table:json-ajeno:prefs", JSON.stringify([1, 2, 3]));
+    const value: Fila[] = [{ nombre: "Ana" }];
+
+    expect(() =>
+      render(
+        <DataTable value={value} preferencesKey="json-ajeno">
+          <Column<Fila> field="nombre" header="Nombre" />
+        </DataTable>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByText("Ana")).toBeInTheDocument();
   });
 });

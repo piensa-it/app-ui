@@ -72,6 +72,43 @@ interface ColumnMeta<TValue extends DataTableValue> {
   footer?: (rows: TValue[]) => React.ReactNode;
 }
 
+/**
+ * Lo que se persiste bajo `ui-table:<preferencesKey>:prefs`. Antes solo se
+ * recordaban las columnas visibles (`ui-table:<key>:columns`); esta forma
+ * añade el tamaño de página y el orden, que son los dos que un usuario nota
+ * de inmediato cuando desaparecen. A nivel de módulo porque no depende de
+ * ningún genérico del componente ni de `preferencesKey` en sí.
+ */
+interface PrefsTabla {
+  columns?: ColumnVisibilityState;
+  pageSize?: number;
+  sort?: SortingState;
+}
+
+const esObjetoPlano = (valor: unknown): valor is Record<string, unknown> =>
+  typeof valor === "object" && valor !== null && !Array.isArray(valor);
+
+/**
+ * `localStorage` no tiene esquema: lo escrito por una versión futura, por
+ * otra pestaña, o por cualquier mano ajena puede tener JSON válido con una
+ * forma que no es la esperada — un array en vez de un objeto, un `pageSize`
+ * de texto. Sin este filtro un array top-level (`prefsIniciales.sort`
+ * resolviendo a `Array.prototype.sort` sin `this`) tumba el montaje, y un
+ * `pageSize` no numérico deja la tabla vacía con "NaN-NaN" en el pie aunque
+ * haya filas. Se sanea campo por campo: lo que no tiene la forma correcta se
+ * descarta en vez de heredarse.
+ */
+const sanearPrefs = (bruto: unknown): PrefsTabla => {
+  if (!esObjetoPlano(bruto)) return {};
+  const prefs: PrefsTabla = {};
+  if (esObjetoPlano(bruto.columns)) prefs.columns = bruto.columns as ColumnVisibilityState;
+  if (typeof bruto.pageSize === "number" && Number.isFinite(bruto.pageSize) && bruto.pageSize > 0) {
+    prefs.pageSize = bruto.pageSize;
+  }
+  if (Array.isArray(bruto.sort)) prefs.sort = bruto.sort as SortingState;
+  return prefs;
+};
+
 const ALIGNMENTS = {
   left: "",
   center: "text-center",
@@ -271,8 +308,35 @@ function DataTable<TValue extends DataTableValue>({
   renderExpanded,
   className,
 }: DataTableProps<TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: rows });
+  // Lee las preferencias persistidas de esta tabla. La clave nueva
+  // (`:prefs`) se prueba primero; si no existe se cae a la vieja
+  // (`:columns`), que es todo lo que guardaban las versiones anteriores de
+  // este componente y lo único que hay en el navegador de un usuario que
+  // todavía no vio esta versión. La vieja nunca se vuelve a escribir: es
+  // solo lectura, de migración.
+  const leerPrefs = React.useCallback((): PrefsTabla => {
+    if (!preferencesKey || typeof window === "undefined") return {};
+    try {
+      const nuevas = window.localStorage.getItem(`ui-table:${preferencesKey}:prefs`);
+      if (nuevas) return sanearPrefs(JSON.parse(nuevas));
+      const viejas = window.localStorage.getItem(`ui-table:${preferencesKey}:columns`);
+      return viejas ? sanearPrefs({ columns: JSON.parse(viejas) }) : {};
+    } catch {
+      return {};
+    }
+  }, [preferencesKey]);
+
+  // Se lee una sola vez al montar: `useState` con una función de
+  // inicialización perezosa ignora `leerPrefs` en renders posteriores, que es
+  // lo que se quiere — la tabla no debe releer localStorage por su cuenta
+  // mientras el usuario interactúa con ella.
+  const [prefsIniciales] = React.useState(leerPrefs);
+
+  const [sorting, setSorting] = React.useState<SortingState>(prefsIniciales.sort ?? []);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: prefsIniciales.pageSize ?? rows,
+  });
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnQuery, setColumnQuery] = React.useState("");
   const [activeDensity, setActiveDensity] = React.useState(density);
@@ -325,24 +389,25 @@ function DataTable<TValue extends DataTableValue>({
       ),
     [columnSpecs],
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(() => {
-    if (!preferencesKey || typeof window === "undefined") return defaultVisibility;
-    try {
-      const stored = window.localStorage.getItem(`ui-table:${preferencesKey}:columns`);
-      return stored ? { ...defaultVisibility, ...JSON.parse(stored) } : defaultVisibility;
-    } catch {
-      return defaultVisibility;
-    }
-  });
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(() => ({
+    ...defaultVisibility,
+    ...(prefsIniciales.columns ?? {}),
+  }));
 
+  // Una sola escritura para las tres preferencias, bajo la clave nueva. La
+  // vieja (`:columns`) queda intacta y no se vuelve a tocar: es deliberado,
+  // ver el hallazgo sobre la migración en el informe de esta tarea.
   React.useEffect(() => {
     if (!preferencesKey || typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(`ui-table:${preferencesKey}:columns`, JSON.stringify(columnVisibility));
+      window.localStorage.setItem(
+        `ui-table:${preferencesKey}:prefs`,
+        JSON.stringify({ columns: columnVisibility, pageSize: pagination.pageSize, sort: sorting }),
+      );
     } catch {
       // La tabla sigue funcionando cuando el navegador bloquea almacenamiento.
     }
-  }, [columnVisibility, preferencesKey]);
+  }, [columnVisibility, pagination.pageSize, sorting, preferencesKey]);
 
   const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
     return columnSpecs.map((spec) => ({
