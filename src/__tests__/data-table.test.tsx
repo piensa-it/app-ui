@@ -1098,6 +1098,47 @@ describe("DataTable — preferencias persistidas (tamaño de página y orden)", 
     expect(screen.getByRole("columnheader", { name: /nombre/i })).toHaveAttribute("aria-sort", "ascending");
   });
 
+  // El mismo caso que la prueba anterior, pero sobre una columna calculada:
+  // sin `accessor` reconocido en `idsOrdenables` este orden se descartaría en
+  // el montaje posterior como si la columna fuera oculta o no existiera —el
+  // bug que motivó extraer `esOrdenable`—. La prueba de arriba no lo cubre:
+  // pasa igual con o sin `accessor` en el filtro, porque usa una columna de
+  // `field`.
+  it("un orden por accessor (columna calculada) se escribe en la clave nueva y se restaura en un montaje posterior", async () => {
+    interface Doc { id: string; estado: "draft" | "sent" }
+    const ETIQUETA = { draft: "Borrador", sent: "Enviado" } as const;
+    const value: Doc[] = [
+      { id: "1", estado: "sent" },
+      { id: "2", estado: "draft" },
+    ];
+    const user = userEvent.setup();
+
+    const columnas = (
+      <Column<Doc> id="estado" header="Estado" sortable
+        accessor={(d) => ETIQUETA[d.estado]}
+        body={(d) => <span>{ETIQUETA[d.estado]}</span>} />
+    );
+
+    const { unmount } = render(
+      <DataTable value={value} preferencesKey="orden-accessor-test">{columnas}</DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ordenar por estado/i }));
+
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:orden-accessor-test:prefs")!);
+      expect(guardado.sort).toEqual([{ id: "estado", desc: false }]);
+    });
+
+    unmount();
+
+    render(<DataTable value={value} preferencesKey="orden-accessor-test">{columnas}</DataTable>);
+
+    expect(screen.getByRole("columnheader", { name: /estado/i })).toHaveAttribute("aria-sort", "ascending");
+    const celdas = screen.getAllByRole("cell").map((c) => c.textContent);
+    expect(celdas).toEqual(["Borrador", "Enviado"]);
+  });
+
   it("un tamaño de página elegido por el usuario se escribe y se restaura", async () => {
     const value: Fila[] = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
 

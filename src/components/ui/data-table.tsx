@@ -209,7 +209,13 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
          * espera.
          */
         accessor: (row: TValue) => unknown;
-        /** Sin `body`, la celda pinta lo que devuelva `accessor`. */
+        /**
+         * Sin `body`, la celda pinta lo que devuelva `accessor`, convertido a
+         * texto (`String(...)`). Vale para una etiqueta, un número, una
+         * fecha ya formateada — no para un objeto ni un arreglo: eso pinta
+         * literalmente `[object Object]` sin ningún error que lo delate. Si
+         * `accessor` devuelve algo que no es ya texto plano, pon `body`.
+         */
         body?: (row: TValue) => React.ReactNode;
       }
     | {
@@ -229,6 +235,16 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
 function Column<TValue extends DataTableValue>(_props: ColumnProps<TValue>): null {
   return null;
 }
+
+/**
+ * Si una columna acepta orden: tiene de dónde leer un valor —`field` o
+ * `accessor`— y lo pidió con `sortable`. Una sola definición para que
+ * `idsOrdenables` y `enableSorting` (en `columnDefs`) nunca puedan volver a
+ * decir cosas distintas — ya ocurrió una vez, cuando `accessor` llegó y solo
+ * uno de los dos se actualizó.
+ */
+const esOrdenable = <TValue extends DataTableValue>(props: ColumnProps<TValue>): boolean =>
+  Boolean(props.field || props.accessor) && (props.sortable ?? false);
 
 export interface DataTableProps<TValue extends DataTableValue> {
   value: TValue[];
@@ -448,17 +464,16 @@ function DataTable<TValue extends DataTableValue>({
     ...(prefsIniciales.columns ?? {}),
   }));
 
-  // IDs de columna que aceptan orden: la misma condición que arma
-  // `enableSorting` más abajo en `columnDefs` (tiene campo o `accessor`, y
-  // `sortable`). Sin `accessor` aquí, un orden persistido sobre una columna
-  // calculada se descartaría en cada recarga como si la columna no existiera
-  // —el mismo síntoma que resuelve `sortingEfectivo` para una columna oculta,
-  // pero por la razón equivocada—.
+  // IDs de columna que aceptan orden: `esOrdenable`, la misma que arma
+  // `enableSorting` más abajo en `columnDefs`. Sin ella aquí, un orden
+  // persistido sobre una columna calculada se descartaría en cada recarga
+  // como si la columna no existiera —el mismo síntoma que resuelve
+  // `sortingEfectivo` para una columna oculta, pero por la razón equivocada—.
   const idsOrdenables = React.useMemo(
     () =>
       new Set(
         columnSpecs
-          .filter((spec) => Boolean(spec.props.field || spec.props.accessor) && (spec.props.sortable ?? false))
+          .filter((spec) => esOrdenable(spec.props))
           .map((spec) => (spec.props.id ?? spec.props.field) as string),
       ),
     [columnSpecs],
@@ -485,9 +500,14 @@ function DataTable<TValue extends DataTableValue>({
   // montar con un `sort` heredado que apunta a una columna ya oculta, al
   // ocultar una columna durante la sesión (el caso que atrapaba al usuario,
   // ya que `columnVisibility` es una dependencia) y al restaurar las
-  // columnas por defecto. Se limpia de inmediato, no se conserva por si el
-  // usuario vuelve a mostrar la columna: un orden que no se ve y no se puede
-  // deshacer es peor que tener que volver a pedirlo.
+  // columnas por defecto. Lo que se limpia es la vista y lo persistido —el
+  // criterio desaparece de `sortingEfectivo` y, con él, de la siguiente
+  // escritura a `localStorage`—, no el `sorting` crudo que vive en React: si
+  // el usuario vuelve a mostrar la misma columna en la misma sesión, el
+  // criterio reaparece solo (`idsOrdenables` vuelve a incluirla) y se
+  // repersiste. Solo una recarga —con la columna ya oculta al montar— lo
+  // pierde de verdad, porque entonces no hay `sorting` en memoria del que
+  // resucitarlo.
   const sortingEfectivo = React.useMemo(
     () => sorting.filter((criterio) => idsOrdenables.has(criterio.id) && columnVisibility[criterio.id] !== false),
     [sorting, idsOrdenables, columnVisibility],
@@ -517,15 +537,18 @@ function DataTable<TValue extends DataTableValue>({
       // Uno de los dos existe siempre: el tipo de `ColumnProps` exige `id`
       // cuando no hay `field`.
       id: (spec.props.id ?? spec.props.field) as string,
-      // `accessor` gana a `field`: si la pantalla se molestó en calcular un
-      // valor, es ése el que se ordena y se busca.
+      // Dos casos mutuamente excluyentes, no una prioridad: el tipo de
+      // `ColumnProps` ya prohíbe declarar `field` y `accessor` a la vez, así
+      // que nunca hay que decidir cuál gana. El orden del ternario es el que
+      // queda por escribir el spread una sola vez — no es alcanzable que
+      // ambas ramas compitan por la misma columna.
       ...(spec.props.accessor
         ? { accessorFn: (row: TValue) => spec.props.accessor!(row) }
         : spec.props.field
           ? { accessorKey: spec.props.field }
           : {}),
       header: () => spec.props.header,
-      enableSorting: Boolean(spec.props.field || spec.props.accessor) && (spec.props.sortable ?? false),
+      enableSorting: esOrdenable(spec.props),
       enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
       meta: {
