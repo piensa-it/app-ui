@@ -146,7 +146,13 @@ Esperado: FAIL — `Failed to resolve import "../components/layout/settings-page
 
 - [ ] **Step 3: Escribir la implementación mínima**
 
-Crear `src/components/layout/settings-page.tsx`:
+Crear `src/components/layout/settings-page.tsx`. El borrador de abajo se quedó
+corto: dos rondas de revisión de calidad encontraron bugs de conducta
+—pestaña activa huérfana cuando `sections` cambia por debajo, sección
+deshabilitada abierta al montar, repliegue mudo en modo controlado, estado
+interno obsoleto resucitando una pestaña ya ausente, `className`/`id`/`data-*`
+que el consumidor no podía pasar—. Este es el código que quedó en disco tras
+resolverlos, no el primer borrador; tómalo como punto de partida real:
 
 ```tsx
 import * as React from "react";
@@ -156,20 +162,41 @@ import { Tabs, TabPanel } from "@/components/ui/tabs";
 import { PageHeader } from "./page-header";
 import { BellIcon, PaletteIcon, ShieldIcon, UserIcon } from "@/icons";
 
+/**
+ * El catálogo de secciones conocidas: lo que hace que «Cuenta» se llame igual,
+ * lleve el mismo icono y esté en el mismo sitio en las tres aplicaciones. Fijar
+ * estos cuatro identificadores es justo el objetivo de la HU. Una sección
+ * propia trae su `label` y, si quiere, su `icon`.
+ */
+const KNOWN_SECTIONS = {
+  account: { label: "Cuenta", icon: UserIcon },
+  appearance: { label: "Apariencia", icon: PaletteIcon },
+  security: { label: "Seguridad", icon: ShieldIcon },
+  notifications: { label: "Notificaciones", icon: BellIcon },
+} satisfies Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }>;
+
+type KnownSection = (typeof KNOWN_SECTIONS)[keyof typeof KNOWN_SECTIONS];
+
+/** Sentinel que no coincide con ningún `id` real: fuerza a `Tabs` a quedarse
+ * sin pestaña seleccionada en vez de caer en su propio modo no controlado
+ * (que elegiría la primera pestaña de la lista, deshabilitada o no). */
+const NONE = "__settings-page-none__";
+
 /** Una sección de la pantalla: una pestaña y lo que hay debajo. */
 export interface SettingsSection {
   /**
    * `account`, `appearance`, `security` o `notifications` —de ellos salen el
-   * rótulo y el icono— o uno propio, que entonces necesita `label`.
+   * rótulo y el icono, con autocompletado— o uno propio, que entonces
+   * necesita `label`.
    */
-  id: string;
+  id: keyof typeof KNOWN_SECTIONS | (string & {});
   label?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   content: React.ReactNode;
   disabled?: boolean;
 }
 
-export interface SettingsPageProps {
+export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;
   description?: React.ReactNode;
   /** Acciones de la pantalla, a la derecha del título. */
@@ -178,20 +205,7 @@ export interface SettingsPageProps {
   /** Sección abierta. Sin ella, el armazón la lleva solo. */
   section?: string;
   onSectionChange?: (id: string) => void;
-  className?: string;
 }
-
-/**
- * El catálogo de secciones conocidas: lo que hace que «Cuenta» se llame igual,
- * lleve el mismo icono y esté en el mismo sitio en las tres aplicaciones. Una
- * sección propia trae su `label` y, si quiere, su `icon`.
- */
-const KNOWN_SECTIONS: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  account: { label: "Cuenta", icon: UserIcon },
-  appearance: { label: "Apariencia", icon: PaletteIcon },
-  security: { label: "Seguridad", icon: ShieldIcon },
-  notifications: { label: "Notificaciones", icon: BellIcon },
-};
 
 /**
  * El destino estándar de «Mi perfil» y «Configuración» (#124): cabecera,
@@ -209,17 +223,24 @@ const KNOWN_SECTIONS: Record<string, { label: string; icon: React.ComponentType<
  * ```tsx
  * <PageContainer>
  *   <SettingsPage title="Mi perfil" sections={[
- *     { id: "account", content: <ProfileForm value={p} onChange={setP} />, dirty, onSave: guardar },
+ *     { id: "account", content: <ProfileForm value={p} onChange={setP} /> },
  *     { id: "security", content: <CambioDeClave /> },
  *   ]} />
  * </PageContainer>
  * ```
  */
 export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
-  ({ title, description, actions, sections, section, onSectionChange, className }, ref) => {
-    const first = sections[0]?.id;
+  ({ title, description, actions, sections, section, onSectionChange, className, ...props }, ref) => {
+    // La primera sección habilitada. Si no hay ninguna —todas deshabilitadas,
+    // o la lista está vacía— no hay nada que abrir: no se cae en
+    // `sections[0]` a costa de abrir una deshabilitada.
+    const first = sections.find((item) => !item.disabled)?.id;
     const [internal, setInternal] = React.useState(first);
-    const active = section ?? internal;
+    const candidate = section ?? internal;
+    // La sección candidata puede haber desaparecido de `sections` (carga
+    // diferida, permisos) o haber quedado deshabilitada: en cualquiera de los
+    // dos casos no puede seguir activa y se cae en la primera habilitada.
+    const active = sections.some((item) => item.id === candidate && !item.disabled) ? candidate : first;
 
     const change = (next: string) => {
       // Con `section`, la pestaña la lleva la aplicación: aquí solo se avisa.
@@ -227,12 +248,29 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       onSectionChange?.(next);
     };
 
+    // Cuando `active` se aleja de `candidate` (repliegue por una `sections`
+    // que cambió por debajo), hay que reconciliar quien manda: en modo
+    // propio, el estado interno —si no, la pestaña reaparecida saltaría sola
+    // de vuelta a donde ya no puede estar—; en modo controlado, avisar a la
+    // aplicación con `onSectionChange`, porque si no, se queda creyendo que
+    // sigue mostrando una `section` que el armazón ya abandonó en silencio.
+    React.useEffect(() => {
+      if (active === undefined || active === candidate) return;
+      if (section === undefined) {
+        setInternal(active);
+      } else {
+        onSectionChange?.(active);
+      }
+    }, [active, candidate, section, onSectionChange]);
+
     return (
-      <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)}>
+      <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
         <PageHeader title={title} description={description} actions={actions} />
-        <Tabs value={active} onValueChange={change}>
+        <Tabs value={active ?? NONE} onValueChange={change}>
           {sections.map((item) => {
-            const known = KNOWN_SECTIONS[item.id];
+            const known: KnownSection | undefined = Object.prototype.hasOwnProperty.call(KNOWN_SECTIONS, item.id)
+              ? KNOWN_SECTIONS[item.id as keyof typeof KNOWN_SECTIONS]
+              : undefined;
             const Icon = item.icon ?? known?.icon;
             // Una sección propia sin rótulo cae en su identificador: es feo,
             // pero se ve, y es mejor que una pestaña en blanco.
@@ -248,7 +286,6 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
                     {label}
                   </span>
                 }
-                contentClassName="pt-ui-lg"
               >
                 {item.content}
               </TabPanel>
@@ -265,9 +302,18 @@ SettingsPage.displayName = "SettingsPage";
 - [ ] **Step 4: Correr las pruebas y ver que pasan**
 
 Ejecutar: `npm run test:run -- src/__tests__/settings-page.test.tsx`
-Esperado: PASS, 9 pruebas.
+Esperado: PASS. Este bloque de Step 1 basta para 9, pero la Tarea 1 terminó
+con 19: dos rondas de revisión de calidad encontraron bugs de conducta reales
+—pestaña activa huérfana cuando `sections` cambia por debajo, sección
+deshabilitada que se abría sola, repliegue mudo en modo controlado, estado
+interno obsoleto que resucitaba una pestaña ya ausente— y cada uno se cerró
+con su propia prueba. Ver el archivo en disco para el conjunto completo.
 
-Si `data-selected` no es el atributo que pinta el `Tabs` de este repo, comprobar la anatomía real antes de tocar la prueba —es el error que la guía del repo señala—:
+`Tabs` pinta `aria-selected` (no `data-selected`, que es el gancho de estilo,
+no el contrato) para marcar la pestaña activa —es lo que ya usa
+`src/__tests__/tabs.test.tsx`—. Si hace falta comprobar la anatomía real de
+otro atributo antes de tocar una prueba, es el error que la guía del repo
+señala:
 
 ```bash
 grep -rho "data-[a-z-]*" node_modules/@zag-js/tabs/dist/*.js | sort -u
@@ -398,17 +444,23 @@ const DEFAULT_LABELS: Required<SettingsPageLabels> = {
 };
 ```
 
-Añadir a `SettingsPageProps`, antes de `className`:
+Añadir a `SettingsPageProps`, después de `onSectionChange` (la interfaz ya no
+declara `className` como campo propio: lo trae `extends
+Omit<React.HTMLAttributes<HTMLDivElement>, "title">`, junto con `id`,
+`data-testid`, `aria-labelledby`... y todo lo demás que un consumidor pueda
+necesitar pasar):
 
 ```tsx
   /** Textos, para otro idioma o para decirlo de otra forma. */
   labels?: SettingsPageLabels;
 ```
 
-En el cuerpo del componente, aceptar `labels` en la desestructuración y resolver los textos:
+En el cuerpo del componente, aceptar `labels` en la desestructuración y
+resolver los textos —sin perder el resto de atributos HTML (`...props`), que
+siguen yendo al `<div>` raíz:
 
 ```tsx
-  ({ title, description, actions, sections, section, onSectionChange, labels, className }, ref) => {
+  ({ title, description, actions, sections, section, onSectionChange, labels, className, ...props }, ref) => {
     const text = { ...DEFAULT_LABELS, ...labels };
 ```
 
@@ -612,10 +664,11 @@ Añadir a `SettingsPageProps`, antes de `labels`:
   guardUnsaved?: boolean;
 ```
 
-Aceptarlo en la desestructuración con su valor por defecto:
+Aceptarlo en la desestructuración con su valor por defecto —sin perder
+`...props`, que sigue yendo al `<div>` raíz:
 
 ```tsx
-  ({ title, description, actions, sections, section, onSectionChange, guardUnsaved = true, labels, className }, ref) => {
+  ({ title, description, actions, sections, section, onSectionChange, guardUnsaved = true, labels, className, ...props }, ref) => {
 ```
 
 Y sustituir la función `change` por esta:
@@ -684,8 +737,6 @@ import { Field } from "../components/ui/field";
 import { Input } from "../components/ui/input";
 import { ProfileForm } from "../components/ui/profile-form";
 
-const user = userEvent.setup();
-
 const valor = { name: "Andrés Montoya", email: "andres@piensait.com", phone: "3001234567", jobTitle: "Cajera" };
 
 const montar = (props: Partial<React.ComponentProps<typeof ProfileForm>> = {}) => {
@@ -715,6 +766,7 @@ describe("ProfileForm", () => {
   });
 
   it("escribir en un campo entrega el objeto completo, no solo el campo", async () => {
+    const user = userEvent.setup();
     const { onChange } = montar();
     await user.type(screen.getByLabelText("Nombre"), "!");
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -726,6 +778,7 @@ describe("ProfileForm", () => {
   });
 
   it("elegir un color del avatar también entrega el objeto completo", async () => {
+    const user = userEvent.setup();
     const { onChange } = montar();
     const colores = screen.getAllByRole("radio");
     await user.click(colores[1]);

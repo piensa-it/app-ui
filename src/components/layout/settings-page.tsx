@@ -18,6 +18,13 @@ const KNOWN_SECTIONS = {
   notifications: { label: "Notificaciones", icon: BellIcon },
 } satisfies Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }>;
 
+type KnownSection = (typeof KNOWN_SECTIONS)[keyof typeof KNOWN_SECTIONS];
+
+/** Sentinel que no coincide con ningún `id` real: fuerza a `Tabs` a quedarse
+ * sin pestaña seleccionada en vez de caer en su propio modo no controlado
+ * (que elegiría la primera pestaña de la lista, deshabilitada o no). */
+const NONE = "__settings-page-none__";
+
 /** Una sección de la pantalla: una pestaña y lo que hay debajo. */
 export interface SettingsSection {
   /**
@@ -67,9 +74,10 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
  */
 export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
   ({ title, description, actions, sections, section, onSectionChange, className, ...props }, ref) => {
-    // La primera sección habilitada: una deshabilitada no puede abrirse sola,
-    // ni al montar ni como destino de repliegue.
-    const first = sections.find((item) => !item.disabled)?.id ?? sections[0]?.id;
+    // La primera sección habilitada. Si no hay ninguna —todas deshabilitadas,
+    // o la lista está vacía— no hay nada que abrir: no se cae en
+    // `sections[0]` a costa de abrir una deshabilitada.
+    const first = sections.find((item) => !item.disabled)?.id;
     const [internal, setInternal] = React.useState(first);
     const candidate = section ?? internal;
     // La sección candidata puede haber desaparecido de `sections` (carga
@@ -83,14 +91,29 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       onSectionChange?.(next);
     };
 
+    // Cuando `active` se aleja de `candidate` (repliegue por una `sections`
+    // que cambió por debajo), hay que reconciliar quien manda: en modo
+    // propio, el estado interno —si no, la pestaña reaparecida saltaría sola
+    // de vuelta a donde ya no puede estar—; en modo controlado, avisar a la
+    // aplicación con `onSectionChange`, porque si no, se queda creyendo que
+    // sigue mostrando una `section` que el armazón ya abandonó en silencio.
+    React.useEffect(() => {
+      if (active === undefined || active === candidate) return;
+      if (section === undefined) {
+        setInternal(active);
+      } else {
+        onSectionChange?.(active);
+      }
+    }, [active, candidate, section, onSectionChange]);
+
     return (
       <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
         <PageHeader title={title} description={description} actions={actions} />
-        <Tabs value={active} onValueChange={change}>
+        <Tabs value={active ?? NONE} onValueChange={change}>
           {sections.map((item) => {
-            const known = KNOWN_SECTIONS[item.id as keyof typeof KNOWN_SECTIONS] as
-              | (typeof KNOWN_SECTIONS)[keyof typeof KNOWN_SECTIONS]
-              | undefined;
+            const known: KnownSection | undefined = Object.prototype.hasOwnProperty.call(KNOWN_SECTIONS, item.id)
+              ? KNOWN_SECTIONS[item.id as keyof typeof KNOWN_SECTIONS]
+              : undefined;
             const Icon = item.icon ?? known?.icon;
             // Una sección propia sin rótulo cae en su identificador: es feo,
             // pero se ve, y es mejor que una pestaña en blanco.

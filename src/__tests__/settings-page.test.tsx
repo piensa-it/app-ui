@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -94,10 +94,24 @@ describe("SettingsPage · cabecera y pestañas", () => {
 
   it("un clic en una pestaña deshabilitada no cambia de sección", async () => {
     const user = userEvent.setup();
-    montar({ sections: [{ id: "account", content: <p>A</p> }, { id: "appearance", content: <p>B</p>, disabled: true }] });
+    const onSectionChange = vi.fn();
+    montar({
+      sections: [{ id: "account", content: <p>A</p> }, { id: "appearance", content: <p>B</p>, disabled: true }],
+      onSectionChange,
+    });
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("A")).toBeVisible();
+    // El `disabled` nativo del botón ya impide la navegación en jsdom; lo que
+    // prueba el comportamiento del armazón es que tampoco avisa del cambio.
+    expect(onSectionChange).not.toHaveBeenCalled();
+  });
+
+  it("con todas las secciones deshabilitadas, ninguna pestaña queda activa", () => {
+    montar({ sections: [{ id: "account", content: <p>A</p>, disabled: true }, { id: "appearance", content: <p>B</p>, disabled: true }] });
+    expect(screen.getAllByRole("tab").every((tab) => tab.getAttribute("aria-selected") === "false")).toBe(true);
+    expect(screen.getByText("A")).not.toBeVisible();
+    expect(screen.getByText("B")).not.toBeVisible();
   });
 });
 
@@ -148,6 +162,63 @@ describe("SettingsPage · `sections` que cambia por debajo", () => {
     rerender(
       <UiProvider>
         <SettingsPage title="Mi perfil" sections={[{ id: "account", content: <p>Datos de la cuenta</p> }]} />
+      </UiProvider>,
+    );
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Datos de la cuenta")).toBeVisible();
+  });
+});
+
+/**
+ * El repliegue de `active` a la primera sección habilitada no puede quedar
+ * mudo: en modo controlado, la aplicación se queda creyendo que sigue
+ * mostrando una `section` que el armazón ya abandonó; en modo propio, el
+ * estado interno obsoleto puede resucitar una pestaña que ya no debería
+ * volver sola.
+ */
+describe("SettingsPage · avisa del repliegue", () => {
+  it("con `section` apuntando a algo inexistente, avisa a qué se repliega", async () => {
+    const onSectionChange = vi.fn();
+    montar({ section: "security", onSectionChange });
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    await waitFor(() => expect(onSectionChange).toHaveBeenCalledWith("account"));
+  });
+
+  it("con `section` apuntando a una sección deshabilitada, avisa a qué se repliega", async () => {
+    const onSectionChange = vi.fn();
+    montar({
+      sections: [{ id: "account", content: <p>A</p> }, { id: "appearance", content: <p>B</p>, disabled: true }],
+      section: "appearance",
+      onSectionChange,
+    });
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    await waitFor(() => expect(onSectionChange).toHaveBeenCalledWith("account"));
+  });
+
+  it("sin `section`, el estado interno obsoleto no resucita una pestaña que ya no está", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={DEFAULT_SECTIONS} />
+      </UiProvider>,
+    );
+    await user.click(screen.getByRole("tab", { name: "Apariencia" }));
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
+
+    // "appearance" desaparece: el armazón repliega a "account" y reconcilia
+    // el estado interno (no solo la vista).
+    rerender(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={[{ id: "account", content: <p>Datos de la cuenta</p> }]} />
+      </UiProvider>,
+    );
+    await waitFor(() => expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true"));
+
+    // "appearance" reaparece: si el estado interno no se hubiera reconciliado
+    // arriba, seguiría apuntando a "appearance" y la pestaña saltaría sola.
+    rerender(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={DEFAULT_SECTIONS} />
       </UiProvider>,
     );
     expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
