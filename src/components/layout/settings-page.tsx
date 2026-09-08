@@ -38,13 +38,23 @@ export interface SettingsSection {
   icon?: React.ComponentType<{ className?: string }>;
   content: React.ReactNode;
   /**
-   * Guarda lo de esta sección. Con él, el armazón pinta el pie; sin él, la
-   * sección no tiene pie y la aplicación pone sus botones donde quiera.
+   * Guarda lo de esta sección. Con él, el armazón pinta el pie *fuera* de
+   * `content`; sin él, la sección no tiene pie y la aplicación pone sus
+   * botones donde quiera.
+   *
+   * Si la aplicación envuelve `content` en un `<form>`, este pie queda fuera
+   * de ese formulario: pulsar Enter en un campo no llama a `onSave` — hace
+   * falta que la aplicación cablee su propio `onSubmit`.
+   *
+   * El armazón no espera la promesa que puede devolver: no se mete a poner
+   * `saving` por su cuenta ni a capturar el resultado. `saving` es cosa de
+   * la aplicación (ver esa prop); el rechazo se absorbe para no filtrar un
+   * `unhandledrejection` sin contexto, pero no se reintenta ni se reporta.
    */
   onSave?: () => void | Promise<void>;
   /** Descarta los cambios. Sin él, no se pinta «Cancelar». */
   onCancel?: () => void;
-  /** Hay cambios sin guardar: habilita «Guardar». */
+  /** Hay cambios sin guardar. Sin él, «Guardar» nunca se habilita. */
   dirty?: boolean;
   /** Se está guardando: el pie lo dice y no admite otro clic. */
   saving?: boolean;
@@ -65,6 +75,55 @@ const DEFAULT_LABELS: Required<SettingsPageLabels> = {
   cancel: "Cancelar",
   saving: "Guardando…",
 };
+
+interface SectionFooterProps {
+  onSave: () => void | Promise<void>;
+  onCancel?: () => void;
+  dirty?: boolean;
+  saving?: boolean;
+  text: Required<SettingsPageLabels>;
+}
+
+/**
+ * El pie de guardado de una sección: «Guardar» siempre, «Cancelar» si la
+ * sección trae `onCancel`. No se exporta — nada fuera de `SettingsPage` lo
+ * necesita.
+ *
+ * Mientras `saving`, «Guardar» sigue enfocable (`aria-disabled`, no
+ * `disabled`): con `disabled` nativo, el navegador le quita el foco al
+ * pulsarlo —quien navega con teclado pierde el punto de lectura, y el
+ * lector de pantalla no anuncia el cambio de nombre a «Guardando…»—. El
+ * clic en ese estado se descarta en el manejador, no en el atributo.
+ */
+function SectionFooter({ onSave, onCancel, dirty, saving, text }: SectionFooterProps) {
+  const handleSave = () => {
+    if (saving) return;
+    // El rechazo se absorbe a propósito (ver el JSDoc de `onSave` en
+    // `SettingsSection`): sin este `catch`, una promesa rechazada llega como
+    // `unhandledrejection` a la aplicación consumidora, sin contexto de qué
+    // sección falló ni forma de manejarlo desde aquí.
+    void Promise.resolve(onSave()).catch(() => {});
+  };
+
+  return (
+    <div className="mt-ui-lg flex flex-col-reverse gap-ui-xs border-t border-border pt-ui-md sm:flex-row sm:justify-end">
+      {onCancel ? (
+        <Button type="button" variant="plain" onClick={onCancel} disabled={!dirty || saving}>
+          {text.cancel}
+        </Button>
+      ) : null}
+      <Button
+        type="button"
+        onClick={handleSave}
+        disabled={!dirty && !saving}
+        aria-disabled={saving || undefined}
+        aria-busy={saving || undefined}
+      >
+        {saving ? text.saving : text.save}
+      </Button>
+    </div>
+  );
+}
 
 export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;
@@ -143,6 +202,12 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     React.useEffect(() => {
       if (active === undefined || active === candidate) return;
       if (section === undefined) {
+        // `set-state-in-effect` marca esto como sincrónico y arriesgado, pero
+        // es justo la reconciliación que describe el comentario de arriba:
+        // sincroniza el estado interno con `sections`, no un efecto colateral
+        // evitable. Cambiarlo por otra forma resucita el bug que corrigió
+        // (ver Tarea 1) — no es un `setState` gratuito.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInternal(active);
       } else {
         onSectionChangeRef.current?.(active);
@@ -175,25 +240,13 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
               >
                 {item.content}
                 {item.onSave ? (
-                  <div className="mt-ui-lg flex justify-end gap-ui-xs border-t border-border pt-ui-md">
-                    {item.onCancel ? (
-                      <Button
-                        type="button"
-                        variant="plain"
-                        onClick={item.onCancel}
-                        disabled={!item.dirty || item.saving || item.disabled}
-                      >
-                        {text.cancel}
-                      </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      onClick={() => void item.onSave?.()}
-                      disabled={!item.dirty || item.saving || item.disabled}
-                    >
-                      {item.saving ? text.saving : text.save}
-                    </Button>
-                  </div>
+                  <SectionFooter
+                    onSave={item.onSave}
+                    onCancel={item.onCancel}
+                    dirty={item.dirty}
+                    saving={item.saving}
+                    text={text}
+                  />
                 ) : null}
               </TabPanel>
             );

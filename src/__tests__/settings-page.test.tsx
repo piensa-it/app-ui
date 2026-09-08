@@ -166,7 +166,11 @@ describe("SettingsPage · `sections` que cambia por debajo", () => {
       </UiProvider>,
     );
     expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Datos de la cuenta")).toBeVisible();
+    // `@zag-js/presence` conmuta el `hidden` del panel por `raf`, no en el
+    // mismo commit que `aria-selected`: sin `waitFor` esto es intermitente
+    // bajo carga (mismo origen que el `waitFor` de «el pie es solo de la
+    // sección abierta», más abajo).
+    await waitFor(() => expect(screen.getByText("Datos de la cuenta")).toBeVisible());
   });
 });
 
@@ -287,9 +291,36 @@ describe("SettingsPage · el pie de guardado", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it("mientras guarda, lo dice y no admite otro clic", () => {
-    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, saving: true, onSave: vi.fn() }] });
-    expect(screen.getByRole("button", { name: "Guardando…" })).toBeDisabled();
+  it("mientras guarda, lo dice y no admite otro clic", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, saving: true, onSave }] });
+    const button = screen.getByRole("button", { name: "Guardando…" });
+    // No es `disabled` nativo: perdería el foco al pulsarlo (ver el JSDoc de
+    // `SectionFooter`). Es `aria-disabled`, y el clic se descarta a mano.
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(button).toHaveAttribute("aria-busy", "true");
+    await user.click(button);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("con `saving` pero sin `dirty` —la aplicación limpia `dirty` al empezar a guardar—, sigue diciendo «Guardando…»", () => {
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: false, saving: true, onSave: vi.fn() }] });
+    expect(screen.getByRole("button", { name: "Guardando…" })).toBeInTheDocument();
+  });
+
+  it("un `onSave` que rechaza no revienta la prueba (el pie absorbe el rechazo)", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockRejectedValue(new Error("network"));
+    montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave }] });
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("Cancelar está deshabilitado sin `dirty`", () => {
+    montar({ sections: [{ id: "account", content: <p>A</p>, onSave: vi.fn(), onCancel: vi.fn() }] });
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
   });
 
   it("los textos del pie se pueden sustituir", () => {
