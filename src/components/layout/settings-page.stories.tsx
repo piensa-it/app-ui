@@ -1,13 +1,13 @@
 import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { SettingsPage } from "./settings-page";
+import { SettingsPage, type SettingsPageProps } from "./settings-page";
 import { PageContainer } from "./page-container";
 import { UiProvider } from "@/components/providers/UiProvider";
 import { AppearanceSettings, type AppearanceValue } from "@/components/ui/appearance-settings";
 import { ProfileForm, type ProfileFormValue } from "@/components/ui/profile-form";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ShieldIcon } from "@/icons";
+import { ShieldIcon, ReceiptIcon } from "@/icons";
 
 const meta = {
   title: "Layout/SettingsPage",
@@ -33,6 +33,7 @@ const meta = {
   ],
   args: {
     title: "Mi perfil",
+    description: "Tus datos y cómo te ven los demás.",
     sections: [{ id: "account", content: null }],
   },
 } satisfies Meta<typeof SettingsPage>;
@@ -40,7 +41,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const PerfilDemo = () => {
+type CabeceraArgs = Pick<SettingsPageProps, "title" | "description">;
+
+const PerfilDemo = ({ title, description }: CabeceraArgs) => {
   const [value, setValue] = React.useState<ProfileFormValue>({
     name: "Andrés Montoya",
     email: "andres@piensait.com",
@@ -53,8 +56,8 @@ const PerfilDemo = () => {
 
   return (
     <SettingsPage
-      title="Mi perfil"
-      description="Tus datos y cómo te ven los demás."
+      title={title}
+      description={description}
       sections={[
         {
           // `account` es del catálogo conocido: rótulo «Cuenta» e icono ya
@@ -90,10 +93,109 @@ const PerfilDemo = () => {
  */
 export const Default: Story = {
   name: "Mi perfil",
-  render: () => <PerfilDemo />,
+  render: (args) => <PerfilDemo title={args.title} description={args.description} />,
 };
 
-const ConfiguracionDemo = () => {
+const ConSeccionPropiaDemo = ({ title, description }: CabeceraArgs) => (
+  <SettingsPage
+    title={title}
+    description={description}
+    sections={[
+      {
+        // Conocida: ni `label` ni `icon` — «Cuenta» y su icono salen del
+        // catálogo (`account`, `appearance`, `security`, `notifications`).
+        id: "account",
+        content: <p className="text-ui-body-sm">Nombre, correo, teléfono y cargo.</p>,
+      },
+      {
+        // Propia de la aplicación: el catálogo no sabe de «facturación», así
+        // que hacen falta `label` (si no, la pestaña cae en el `id` crudo)
+        // e, igual que con cualquier sección propia, `icon` si se quiere uno.
+        id: "facturacion",
+        label: "Facturación",
+        icon: ReceiptIcon,
+        content: <p className="text-ui-body-sm">Plan, método de pago e historial. Negocio puro: no vive en la librería.</p>,
+      },
+    ]}
+  />
+);
+
+/**
+ * El contraste que importa: una sección del catálogo (`account`, sin
+ * `label` ni `icon`) junto a una propia (`facturacion`, con los dos) —el
+ * mismo armazón sirve para ambas.
+ */
+export const ConSeccionPropia: Story = {
+  name: "Con sección propia",
+  render: (args) => <ConSeccionPropiaDemo title={args.title} description={args.description} />,
+};
+
+const GuardandoDemo = ({ title, description }: CabeceraArgs) => (
+  <SettingsPage
+    title={title}
+    description={description}
+    sections={[
+      {
+        id: "account",
+        content: <p className="text-ui-body-sm">El pie de abajo está guardando —no cambia nada al hacer clic.</p>,
+        dirty: true,
+        saving: true,
+        onSave: () => {},
+        onCancel: () => {},
+      },
+    ]}
+  />
+);
+
+/**
+ * `saving`: el pie dice «Guardando…», `aria-busy` en el botón y los dos
+ * botones dejan de reaccionar al clic —pero sin `disabled` nativo—. Con
+ * `disabled` el navegador les quita el foco al pulsar: quien navega con
+ * teclado pierde el punto de lectura, y el lector de pantalla no llega a
+ * anunciar el cambio de nombre a «Guardando…». Por eso `SectionFooter` usa
+ * `aria-disabled` (que no bloquea el clic por sí solo, así que el manejador
+ * también lo comprueba) más una clase que solo imita visualmente lo
+ * deshabilitado.
+ */
+export const Guardando: Story = {
+  render: (args) => <GuardandoDemo title={args.title} description={args.description} />,
+};
+
+const ControladaDemo = ({ title }: CabeceraArgs) => {
+  // El caso real de las tres aplicaciones: la sección abierta viaja en la
+  // URL. Aquí no hay router —solo el mismo patrón, con `section` en el
+  // estado del padre y `onSectionChange` como si fuera `navigate`—.
+  const [section, setSection] = React.useState("account");
+  return (
+    <div className="flex flex-col gap-ui-sm">
+      <p className="text-ui-caption text-muted-foreground">
+        Sección actual (la llevaría la URL): <code>{section}</code>
+      </p>
+      <SettingsPage
+        title={title}
+        section={section}
+        onSectionChange={setSection}
+        sections={[
+          { id: "account", content: <p className="text-ui-body-sm">Datos de la cuenta.</p> },
+          { id: "appearance", content: <p className="text-ui-body-sm">Tema, color, tipografía y densidad.</p> },
+        ]}
+      />
+    </div>
+  );
+};
+
+/**
+ * Con `section` + `onSectionChange`, la pestaña activa la lleva la
+ * aplicación —típicamente atada a la ruta— en vez de `SettingsPage`. Sin
+ * `section`, el armazón la lleva solo.
+ */
+export const Controlada: Story = {
+  name: "Sección controlada",
+  args: { title: "Configuración" },
+  render: (args) => <ControladaDemo title={args.title} />,
+};
+
+const ConfiguracionDemo = ({ title, description }: CabeceraArgs) => {
   const [value, setValue] = React.useState<AppearanceValue>({
     theme: "system",
     palette: "indigo",
@@ -102,8 +204,8 @@ const ConfiguracionDemo = () => {
   });
   return (
     <SettingsPage
-      title="Configuración"
-      description="Cómo se ve y cómo te avisa la aplicación."
+      title={title}
+      description={description}
       sections={[
         { id: "appearance", content: <AppearanceSettings value={value} onChange={setValue} /> },
         {
@@ -127,23 +229,58 @@ const ConfiguracionDemo = () => {
  */
 export const Configuracion: Story = {
   name: "Configuración",
-  render: () => <ConfiguracionDemo />,
+  args: { title: "Configuración", description: "Cómo se ve y cómo te avisa la aplicación." },
+  render: (args) => <ConfiguracionDemo title={args.title} description={args.description} />,
 };
+
+const ConCambiosSinGuardarDemo = ({ title }: CabeceraArgs) => (
+  <SettingsPage
+    title={title}
+    sections={[
+      {
+        id: "account",
+        content: <p className="text-ui-body-sm">Cambia algo y prueba a irte a Apariencia.</p>,
+        dirty: true,
+        onSave: () => {},
+        onCancel: () => {},
+      },
+      { id: "appearance", content: <p className="text-ui-body-sm">Tema, color, tipografía y densidad.</p> },
+    ]}
+  />
+);
 
 /**
  * Con `dirty` en la sección activa, salir de ella —clic en «Apariencia»—
  * pide confirmación antes de cambiar de pestaña (`guardUnsaved`, activo por
- * defecto). Reutiliza `confirmAlert`, por eso el decorador monta `UiProvider`.
+ * defecto). Reutiliza `confirmAlert`, por eso el decorador monta
+ * `UiProvider`.
+ *
+ * Ojo con lo que este aviso **no** cubre: solo el cambio de pestaña dentro de
+ * `SettingsPage`. Si la persona navega fuera de esta pantalla —otra ruta,
+ * cerrar la pestaña del navegador— la librería no se entera y no hay aviso;
+ * esa protección, si hace falta, es cosa de la aplicación (un `beforeunload`
+ * o un guard de router). Confiar en que este diálogo cubre "cualquier
+ * salida" es el error fácil de cometer.
  */
 export const ConCambiosSinGuardar: Story = {
   name: "Con cambios sin guardar",
-  render: () => (
+  render: (args) => <ConCambiosSinGuardarDemo title={args.title} />,
+};
+
+/**
+ * `guardUnsaved={false}`: cambiar de pestaña con cambios sin guardar ya no
+ * pregunta nada. Misma pantalla que la anterior, sin la prop activada.
+ */
+export const SinAvisoAlSalir: Story = {
+  name: "Sin aviso al salir",
+  render: (args) => (
     <SettingsPage
-      title="Mi perfil"
+      title={args.title}
+      guardUnsaved={false}
       sections={[
         {
           id: "account",
-          content: <p className="text-ui-body-sm">Cambia algo y prueba a irte a Apariencia.</p>,
+          content: <p className="text-ui-body-sm">Cambia algo y vete a Apariencia: aquí no se pregunta nada.</p>,
           dirty: true,
           onSave: () => {},
           onCancel: () => {},

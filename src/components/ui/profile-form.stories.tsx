@@ -6,7 +6,7 @@ import { Field } from "./field";
 import { Input } from "./input";
 
 const meta = {
-  title: "Formularios/ProfileForm",
+  title: "UI/ProfileForm",
   component: ProfileForm,
   tags: ["autodocs"],
   parameters: {
@@ -39,21 +39,22 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const VALOR_INICIAL: ProfileFormValue = meta.args.value;
-
 /**
- * `ProfileForm` es controlado: sin este envoltorio con estado propio, los
- * campos se verían pero no admitirían tecleo (`args` estáticos no bastan).
+ * `ProfileForm` es controlado: unos `args` estáticos no dejarían escribir en
+ * los campos —cada tecleo llamaría a `onChange`, pero nada volvería a pasar
+ * `value`—. Este envoltorio sí ejerce los `args` (`value` como semilla,
+ * `errors`/`children`/etc. reenviados tal cual) y lleva el estado con
+ * `useState`, como hace `AppearanceSettings` en su propia story.
  */
-const Controlado = (props: Partial<ProfileFormProps>) => {
-  const [value, setValue] = React.useState<ProfileFormValue>(props.value ?? VALOR_INICIAL);
-  return <ProfileForm {...props} value={value} onChange={setValue} />;
+const ControladoDemo = ({ value, onChange: _onChange, ...rest }: ProfileFormProps) => {
+  const [current, setCurrent] = React.useState<ProfileFormValue>(value);
+  return <ProfileForm {...rest} value={current} onChange={setCurrent} />;
 };
 
 /** Los cuatro campos estándar y la elección del avatar (foto o iniciales con color). */
 export const Default: Story = {
   name: "Completo",
-  render: () => <Controlado />,
+  render: (args) => <ControladoDemo {...args} />,
 };
 
 /**
@@ -63,16 +64,19 @@ export const Default: Story = {
  */
 export const ConCamposPropios: Story = {
   name: "Con campos propios",
-  render: () => (
-    <Controlado>
-      <Field label="Documento">
-        <Input defaultValue="1020304050" />
-      </Field>
-      <Field label="Sede">
-        <Input defaultValue="Medellín" />
-      </Field>
-    </Controlado>
-  ),
+  args: {
+    children: (
+      <>
+        <Field label="Documento">
+          <Input defaultValue="1020304050" />
+        </Field>
+        <Field label="Sede">
+          <Input defaultValue="Medellín" />
+        </Field>
+      </>
+    ),
+  },
+  render: (args) => <ControladoDemo {...args} />,
 };
 
 /**
@@ -81,5 +85,6 @@ export const ConCamposPropios: Story = {
  */
 export const ConError: Story = {
   name: "Con error de validación",
-  render: () => <Controlado errors={{ email: "Ese correo ya está en uso." }} />,
+  args: { errors: { email: "Ese correo ya está en uso." } },
+  render: (args) => <ControladoDemo {...args} />,
 };
