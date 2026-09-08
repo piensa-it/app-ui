@@ -1,3 +1,4 @@
+import * as React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -223,5 +224,38 @@ describe("SettingsPage · avisa del repliegue", () => {
     );
     expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Datos de la cuenta")).toBeVisible();
+  });
+
+  it("con un `onSectionChange` en línea que re-renderiza al padre, avisa una sola vez", async () => {
+    // La causa real del bucle: casi ninguna aplicación envuelve su manejador
+    // en `useCallback`, así que su identidad cambia en cada render del
+    // padre. Un `vi.fn()` estable en un padre que nunca se re-renderiza no
+    // lo habría detectado — hace falta reproducir las dos condiciones a la
+    // vez: identidad nueva en cada llamada, y un padre que de verdad vuelva
+    // a renderizar cuando la recibe.
+    const llamadas: string[] = [];
+    const Padre = () => {
+      const [, forzar] = React.useReducer((n: number) => n + 1, 0);
+      return (
+        <SettingsPage
+          title="Mi perfil"
+          section="security"
+          sections={DEFAULT_SECTIONS}
+          onSectionChange={(id) => {
+            llamadas.push(id);
+            forzar();
+          }}
+        />
+      );
+    };
+    render(
+      <UiProvider>
+        <Padre />
+      </UiProvider>,
+    );
+    await waitFor(() => expect(llamadas).toEqual(["account"]));
+    // Un margen para confirmar que no sigue creciendo, no solo que llegó una vez.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(llamadas).toEqual(["account"]);
   });
 });

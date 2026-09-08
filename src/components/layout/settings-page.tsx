@@ -91,6 +91,18 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       onSectionChange?.(next);
     };
 
+    // `onSectionChange` va por ref, no por dependencia directa del efecto de
+    // abajo: la mayoría de las aplicaciones pasan un manejador en línea, cuya
+    // identidad cambia en cada render. Si el efecto dependiera de la función
+    // en sí, cada render dispararía el efecto de nuevo y, al llamar a
+    // `onSectionChange`, el padre volvería a renderizar con otra identidad de
+    // función — un bucle sin fin. La ref siempre apunta a la versión más
+    // reciente sin forzar al efecto a re-ejecutarse por eso.
+    const onSectionChangeRef = React.useRef(onSectionChange);
+    React.useEffect(() => {
+      onSectionChangeRef.current = onSectionChange;
+    });
+
     // Cuando `active` se aleja de `candidate` (repliegue por una `sections`
     // que cambió por debajo), hay que reconciliar quien manda: en modo
     // propio, el estado interno —si no, la pestaña reaparecida saltaría sola
@@ -102,9 +114,9 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       if (section === undefined) {
         setInternal(active);
       } else {
-        onSectionChange?.(active);
+        onSectionChangeRef.current?.(active);
       }
-    }, [active, candidate, section, onSectionChange]);
+    }, [active, candidate, section]);
 
     return (
       <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)} {...props}>

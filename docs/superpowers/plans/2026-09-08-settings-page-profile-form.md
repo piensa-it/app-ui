@@ -64,8 +64,6 @@ import { describe, expect, it, vi } from "vitest";
 import { UiProvider } from "../components/providers/UiProvider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
 
-const user = userEvent.setup();
-
 const montar = (props: Partial<React.ComponentProps<typeof SettingsPage>> = {}) => {
   const secciones: SettingsSection[] = props.sections ?? [
     { id: "account", content: <p>Datos de la cuenta</p> },
@@ -113,12 +111,14 @@ describe("SettingsPage · cabecera y pestañas", () => {
   });
 
   it("sin `section`, la pestaña la lleva el armazón", async () => {
+    const user = userEvent.setup();
     montar();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(await screen.findByText("Tema y color")).toBeVisible();
   });
 
   it("con `section`, manda la aplicación: el clic avisa pero no cambia solo", async () => {
+    const user = userEvent.setup();
     const onSectionChange = vi.fn();
     montar({ section: "appearance", onSectionChange });
     expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
@@ -353,6 +353,7 @@ describe("SettingsPage · el pie de guardado", () => {
   });
 
   it("con `dirty`, Guardar se habilita y llama a `onSave`", async () => {
+    const user = userEvent.setup();
     const onSave = vi.fn();
     montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave }] });
     await user.click(screen.getByRole("button", { name: "Guardar" }));
@@ -360,6 +361,7 @@ describe("SettingsPage · el pie de guardado", () => {
   });
 
   it("Cancelar solo aparece con `onCancel`, y devuelve el control a la aplicación", async () => {
+    const user = userEvent.setup();
     const onCancel = vi.fn();
     montar({ sections: [{ id: "account", content: <p>A</p>, dirty: true, onSave: vi.fn(), onCancel }] });
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
@@ -381,6 +383,7 @@ describe("SettingsPage · el pie de guardado", () => {
   });
 
   it("el pie es solo de la sección abierta", async () => {
+    const user = userEvent.setup();
     montar({
       sections: [
         { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
@@ -532,6 +535,7 @@ const conCambios = (onSectionChange?: (id: string) => void) => {
 
 describe("SettingsPage · salir de una sección con cambios", () => {
   it("pide confirmación antes de cambiar de pestaña", async () => {
+    const user = userEvent.setup();
     conCambios();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     const dialogo = await screen.findByRole("alertdialog");
@@ -541,6 +545,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("al cancelar, la pestaña no cambia", async () => {
+    const user = userEvent.setup();
     conCambios();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     const dialogo = await screen.findByRole("alertdialog");
@@ -550,6 +555,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("al confirmar, se pierde el cambio y se abre la otra sección", async () => {
+    const user = userEvent.setup();
     conCambios();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     const dialogo = await screen.findByRole("alertdialog");
@@ -558,6 +564,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("con `section` controlado, solo avisa a la aplicación tras confirmar", async () => {
+    const user = userEvent.setup();
     const onSectionChange = vi.fn();
     conCambios(onSectionChange);
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
@@ -568,6 +575,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("`guardUnsaved={false}` lo desactiva", async () => {
+    const user = userEvent.setup();
     montar({
       guardUnsaved: false,
       sections: [
@@ -581,6 +589,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("sin cambios, no pregunta nada", async () => {
+    const user = userEvent.setup();
     montar();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(await screen.findByText("Tema y color")).toBeVisible();
@@ -588,6 +597,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   });
 
   it("los textos del aviso se pueden sustituir", async () => {
+    const user = userEvent.setup();
     montar({
       labels: { unsavedTitle: "Unsaved changes", unsavedConfirm: "Discard", unsavedCancel: "Stay" },
       sections: [
@@ -699,8 +709,10 @@ Y sustituir la función `change` por esta:
 ```
 
 En modo no controlado el `Tabs` sigue mandando su propio valor, así que hay que
-atarlo: `Tabs` ya recibe `value={active}`, y como `active` solo cambia cuando
-`apply` corre, cancelar el aviso deja la pestaña donde estaba sin trabajo extra.
+atarlo: `Tabs` ya recibe `value={active ?? NONE}` (el sentinel que lo deja sin
+pestaña seleccionada cuando no hay ninguna habilitada), y como `active` solo
+cambia cuando `apply` corre, cancelar el aviso deja la pestaña donde estaba
+sin trabajo extra.
 
 - [ ] **Step 4: Correr las pruebas y ver que pasan**
 
