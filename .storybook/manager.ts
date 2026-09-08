@@ -16,7 +16,7 @@ const uiLibraryTheme = create({
   base: "dark",
 
   brandTitle: "UI Library · Componentes",
-  brandUrl: "https://piensait-ui.netlify.app",
+  brandUrl: "https://ui.piensait.com",
   brandTarget: "_self",
 
   colorPrimary: "#FFFFFF",

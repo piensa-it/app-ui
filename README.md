@@ -3,7 +3,7 @@
 An accessible React component library and design-system foundation built by
 [Piensa IT](https://github.com/piensa-it).
 
-[Explore the live Storybook](https://piensait-ui.netlify.app)
+[Explore the live Storybook](https://ui.piensait.com)
 
 The library provides reusable UI components, design tokens, layouts, data
 visualization, and motion primitives without coupling applications to a router,
