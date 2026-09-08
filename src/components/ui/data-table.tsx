@@ -158,6 +158,12 @@ export interface DataTableProps<TValue extends DataTableValue> {
   actions?: React.ReactNode;
   searchable?: boolean;
   searchPlaceholder?: string;
+  /**
+   * Nombre accesible del buscador. Por defecto «Buscar en la tabla»; se
+   * cambia cuando la pantalla tiene un nombre mejor —y cuando una prueba lo
+   * localiza por él—.
+   */
+  searchLabel?: string;
   loading?: boolean;
   /** Densidad vertical de las filas. @default "default" */
   density?: "compact" | "default" | "comfortable";
@@ -205,6 +211,7 @@ function DataTable<TValue extends DataTableValue>({
   actions,
   searchable = false,
   searchPlaceholder = "Buscar en la tabla…",
+  searchLabel = "Buscar en la tabla",
   loading = false,
   density = "default",
   striped = false,
@@ -337,7 +344,7 @@ function DataTable<TValue extends DataTableValue>({
               <div className="relative min-w-0 sm:w-64">
                 <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  aria-label="Buscar en la tabla"
+                  aria-label={searchLabel}
                   className="pl-9"
                   placeholder={searchPlaceholder}
                   value={globalFilter}

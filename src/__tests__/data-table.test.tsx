@@ -98,6 +98,25 @@ describe("DataTable", () => {
     await waitFor(() => expect(settings).toHaveAttribute("aria-expanded", "false"));
   });
 
+  it("permite nombrar el buscador y mantiene el nombre por defecto", () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+
+    const { unmount } = render(
+      <DataTable value={value} searchable searchLabel="Buscar canal por nombre">
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.getByLabelText("Buscar canal por nombre")).toBeInTheDocument();
+    unmount();
+
+    render(
+      <DataTable value={value} searchable>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.getByLabelText("Buscar en la tabla")).toBeInTheDocument();
+  });
+
   it("sin paginador muestra todas las filas, no solo la primera página", () => {
     const value: Fila[] = Array.from({ length: 12 }, (_, i) => ({ nombre: `Persona ${i + 1}` }));
     const { rerender } = render(
