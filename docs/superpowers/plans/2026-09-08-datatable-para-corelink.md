@@ -88,15 +88,21 @@ En la desestructuración de props (junto a `onColumnVisibilityChange`):
 En `useTable({ … })`, junto a `columns: columnDefs`:
 
 ```tsx
-    getRowId: getRowId ? (row, index) => getRowId(row, index) : undefined,
+    getRowId,
 ```
 
-Y en el `<tr>` del `tbody` (el que hoy sólo lleva `key={row.id}`), añade el atributo:
+Y en el `<tr>` del `tbody` (el que hoy sólo lleva `key={row.id}`), añade el atributo.
+
+Va **condicionado a que haya `getRowId`**: sin él, `row.id` es el índice
+posicional de TanStack, y un atributo que se llama «row-id» con un número de
+fila dentro es una invitación a que alguien escriba `[data-row-id="3"]` y le
+funcione hasta el día que se ordena la tabla. Que el atributo exista o no
+exista es la señal de si se puede confiar en él.
 
 ```tsx
                 <tr
                   key={row.id}
-                  data-row-id={row.id}
+                  data-row-id={getRowId ? row.id : undefined}
                   className={cn(
 ```
 
@@ -409,7 +415,7 @@ Y sustituye el `<tr>` del `tbody` por:
 ```tsx
                 <tr
                   key={row.id}
-                  data-row-id={row.id}
+                  data-row-id={getRowId ? row.id : undefined}
                   tabIndex={onRowClick ? 0 : undefined}
                   onClick={
                     onRowClick
@@ -598,7 +604,7 @@ En el `<tbody>`, sustituye el `map` de filas para que cada fila pueda ir acompa�
                 return (
                   <React.Fragment key={row.id}>
                     <tr
-                      data-row-id={row.id}
+                      data-row-id={getRowId ? row.id : undefined}
                       tabIndex={onRowClick ? 0 : undefined}
                       onClick={
                         onRowClick
