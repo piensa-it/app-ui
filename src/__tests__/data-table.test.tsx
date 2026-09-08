@@ -436,4 +436,59 @@ describe("DataTable — columnas de presentación", () => {
     expect(filas[0].getAttribute("data-row-id")).toBe("ch_web");
     expect(filas[1].getAttribute("data-row-id")).toBe("ch_mostrador");
   });
+
+  it("sin getRowId no escribe data-row-id (el índice de TanStack no es una identidad)", () => {
+    const { container } = render(
+      <DataTable value={[{ nombre: "Ana" }, { nombre: "Luis" }]}>
+        <Column field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    const filas = container.querySelectorAll("tbody tr");
+    expect(filas[0]).not.toHaveAttribute("data-row-id");
+    expect(filas[1]).not.toHaveAttribute("data-row-id");
+  });
+
+  it("con getRowId el estado no controlado de una fila sigue al registro al reordenar", async () => {
+    const user = userEvent.setup();
+    interface Canal { id: string; nombre: string }
+    const value: Canal[] = [
+      { id: "ch_web", nombre: "Web" },
+      { id: "ch_mostrador", nombre: "Mostrador" },
+    ];
+    // Las columnas se fijan una sola vez y se reutilizan en el `rerender`: si
+    // se reconstruyeran en cada llamada (JSX nuevo cada vez), `columnDefs`
+    // recalcularía sus `cell` con identidad distinta y TanStack/React
+    // remontarían la celda igual con o sin `getRowId` — la prueba dejaría de
+    // distinguir el caso que interesa, que es solo el de las filas.
+    const columnas = [
+      <Column<Canal> key="nombre" field="nombre" header="Nombre" />,
+      <Column<Canal>
+        key="nota"
+        id="nota"
+        header="Nota"
+        body={() => <input aria-label="Nota" defaultValue="" />}
+      />,
+    ];
+    const { rerender } = render(
+      <DataTable value={value} getRowId={(c) => c.id}>
+        {columnas}
+      </DataTable>,
+    );
+
+    // Se marca la nota de la fila "Web", un estado que React no puede
+    // reconstruir a partir de las props: solo sobrevive si la fila conserva
+    // el mismo nodo del DOM entre renders.
+    const filaWeb = screen.getByText("Web").closest("tr")!;
+    await user.type(within(filaWeb).getByRole("textbox", { name: "Nota" }), "marcada");
+
+    // Se invierte el orden: "Web" pasa de la primera posición a la segunda.
+    rerender(
+      <DataTable value={[value[1], value[0]]} getRowId={(c) => c.id}>
+        {columnas}
+      </DataTable>,
+    );
+
+    const filaWebDespues = screen.getByText("Web").closest("tr")!;
+    expect(within(filaWebDespues).getByRole("textbox", { name: "Nota" })).toHaveValue("marcada");
+  });
 });

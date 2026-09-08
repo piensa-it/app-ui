@@ -294,7 +294,7 @@ function DataTable<TValue extends DataTableValue>({
     features: dataTableFeatures,
     data: value,
     columns: columnDefs,
-    getRowId: getRowId ? (row, index) => getRowId(row, index) : undefined,
+    getRowId,
     state: { sorting, pagination: effectivePagination, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
@@ -551,7 +551,7 @@ function DataTable<TValue extends DataTableValue>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  data-row-id={row.id}
+                  data-row-id={getRowId ? row.id : undefined}
                   className={cn(
                     "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
                     striped && "even:bg-muted/30",
