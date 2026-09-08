@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 
 interface Fila {
   nombre: string;
+  id?: string;
 }
 
 describe("DataTable", () => {
@@ -740,5 +741,124 @@ describe("DataTable — columnas de presentación", () => {
     );
     const fila = screen.getByText("Ana").closest("tr")!;
     expect(fila).not.toHaveAttribute("tabindex");
+  });
+
+  it("renderExpanded despliega y repliega el detalle de una fila", async () => {
+    const value: Fila[] = [
+      { id: "a", nombre: "Ana" },
+      { id: "b", nombre: "Luis" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    expect(screen.queryByText("Detalle de Ana")).toBeNull();
+
+    const abrir = screen.getAllByRole("button", { name: /desplegar/i })[0];
+    await user.click(abrir);
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+    expect(screen.queryByText("Detalle de Luis")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /replegar/i }));
+    expect(screen.queryByText("Detalle de Ana")).toBeNull();
+  });
+
+  it("sin renderExpanded no aparece la columna de despliegue", () => {
+    render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(screen.queryByRole("button", { name: /desplegar/i })).toBeNull();
+  });
+
+  it("solo una fila a la vez: abrir Luis repliega el detalle de Ana", async () => {
+    const value: Fila[] = [
+      { id: "a", nombre: "Ana" },
+      { id: "b", nombre: "Luis" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    const botones = screen.getAllByRole("button", { name: /desplegar/i });
+    await user.click(botones[0]);
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+
+    // Al abrir Luis, el detalle de Ana debe replegarse: no es una lista de
+    // detalles acumulados, es una fila a la vez.
+    await user.click(screen.getByRole("button", { name: /desplegar/i }));
+    expect(screen.getByText("Detalle de Luis")).toBeInTheDocument();
+    expect(screen.queryByText("Detalle de Ana")).toBeNull();
+  });
+
+  // Ordenar es una transformación interna de TanStack: reordena el
+  // `sortedRowModel` para pintar, pero el `row.id` posicional por defecto se
+  // asigna sobre el índice del arreglo `data` tal como lo recibió la tabla,
+  // no sobre el orden ya ordenado. Así que ordenar, por sí solo, no debería
+  // mover `filaAbierta` de registro — se verifica antes de ir al caso real.
+  it("sin getRowId, ordenar con el botón de la columna no mueve el detalle abierto de registro", async () => {
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" sortable />
+      </DataTable>,
+    );
+
+    const abrir = screen.getAllByRole("button", { name: /desplegar/i })[0];
+    await user.click(abrir);
+    expect(screen.getByText("Detalle de Beto")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Ordenar por Nombre" }));
+
+    expect(screen.getByText("Detalle de Beto")).toBeInTheDocument();
+    expect(screen.queryByText("Detalle de Ana")).toBeNull();
+  });
+
+  // La misma exposición que `getRowId` vino a resolver, pero por la puerta
+  // de `filaAbierta`: sin identidad estable, `row.id` es el índice posicional
+  // del arreglo `value` tal como llega en cada render. Si el padre vuelve a
+  // renderizar con el arreglo reordenado —una recarga que trae los mismos
+  // registros en otro orden, algo que sí ocurre en el ERP—, la posición 0
+  // pasa a ser otro registro y `filaAbierta` la sigue apuntando.
+  it("sin getRowId, el detalle abierto SÍ salta a otro registro si el padre reordena `value`", async () => {
+    const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
+    const user = userEvent.setup();
+    const columnas = [<Column<Fila> key="nombre" field="nombre" header="Nombre" />];
+
+    const { rerender } = render(
+      <DataTable value={value} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        {columnas}
+      </DataTable>,
+    );
+
+    // Se abre el detalle de la fila en la posición 0 (Beto).
+    const abrir = screen.getAllByRole("button", { name: /desplegar/i })[0];
+    await user.click(abrir);
+    expect(screen.getByText("Detalle de Beto")).toBeInTheDocument();
+
+    // El padre reordena el arreglo — mismos registros, otro orden. Ana pasa
+    // a ocupar la posición 0.
+    rerender(
+      <DataTable value={[value[1], value[0]]} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        {columnas}
+      </DataTable>,
+    );
+
+    // `filaAbierta` sigue guardando "0": el detalle ahora muestra a Ana, no
+    // a Beto. La comparación entre filas se rompe igual que sin `getRowId`
+    // se rompía el estado no controlado de una fila.
+    expect(screen.queryByText("Detalle de Beto")).toBeNull();
+    expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
   });
 });

@@ -20,7 +20,16 @@ import {
   type ColumnVisibilityState,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Search, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronDown,
+  ChevronRight,
+  RotateCcw,
+  Search,
+  Settings2,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -200,6 +209,15 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * además el detalle.
    */
   onRowClick?: (row: TValue) => void;
+  /**
+   * Detalle en línea bajo la fila. Cuando se pasa, la tabla añade al
+   * principio una columna estrecha con el botón que lo abre y lo cierra.
+   *
+   * Se despliega una fila cada vez: dos detalles abiertos a la vez convierten
+   * la tabla en una lista y se pierde la comparación entre filas, que es para
+   * lo que existe una tabla.
+   */
+  renderExpanded?: (row: TValue) => React.ReactNode;
   className?: string;
 }
 
@@ -241,6 +259,7 @@ function DataTable<TValue extends DataTableValue>({
   onColumnVisibilityChange,
   getRowId,
   onRowClick,
+  renderExpanded,
   className,
 }: DataTableProps<TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -248,6 +267,7 @@ function DataTable<TValue extends DataTableValue>({
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnQuery, setColumnQuery] = React.useState("");
   const [activeDensity, setActiveDensity] = React.useState(density);
+  const [filaAbierta, setFilaAbierta] = React.useState<string | null>(null);
 
   const columnSpecs = React.useMemo(
     () =>
@@ -560,6 +580,7 @@ function DataTable<TValue extends DataTableValue>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-border bg-muted/50">
+                {renderExpanded ? <th className="w-10" aria-hidden="true" /> : null}
                 {headerGroup.headers.map((header) => {
                   const sortDir = header.column.getIsSorted();
                   return (
@@ -622,56 +643,83 @@ function DataTable<TValue extends DataTableValue>({
               ))
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={table.getVisibleLeafColumns().length} className="px-4 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={table.getVisibleLeafColumns().length + (renderExpanded ? 1 : 0)}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  data-row-id={getRowId ? row.id : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  onClick={
-                    onRowClick
-                      ? (event) => {
-                          if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
-                          if (naceEnUnControl(event.target)) return;
-                          onRowClick(row.original);
-                        }
-                      : undefined
-                  }
-                  onKeyDown={
-                    onRowClick
-                      ? (event) => {
-                          if (event.key !== "Enter" && event.key !== " ") return;
-                          if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
-                          if (naceEnUnControl(event.target)) return;
-                          // El Espacio desplaza la página si se le deja.
-                          event.preventDefault();
-                          onRowClick(row.original);
-                        }
-                      : undefined
-                  }
-                  className={cn(
-                    "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
-                    striped && "even:bg-muted/30",
-                    onRowClick && "cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
+              table.getRowModel().rows.map((row) => {
+                const abierta = filaAbierta === row.id;
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr
+                      data-row-id={getRowId ? row.id : undefined}
+                      tabIndex={onRowClick ? 0 : undefined}
+                      onClick={
+                        onRowClick
+                          ? (event) => {
+                              if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
+                              if (naceEnUnControl(event.target)) return;
+                              onRowClick(row.original);
+                            }
+                          : undefined
+                      }
+                      onKeyDown={
+                        onRowClick
+                          ? (event) => {
+                              if (event.key !== "Enter" && event.key !== " ") return;
+                              if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
+                              if (naceEnUnControl(event.target)) return;
+                              // El Espacio desplaza la página si se le deja.
+                              event.preventDefault();
+                              onRowClick(row.original);
+                            }
+                          : undefined
+                      }
                       className={cn(
-                        cellPadding,
-                        (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
+                        "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
+                        striped && "even:bg-muted/30",
+                        onRowClick && "cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                       )}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+                      {renderExpanded ? (
+                        <td className={cellPadding}>
+                          <button
+                            type="button"
+                            aria-expanded={abierta}
+                            aria-label={abierta ? "Replegar el detalle" : "Desplegar el detalle"}
+                            className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                            onClick={() => setFilaAbierta(abierta ? null : row.id)}
+                          >
+                            {abierta ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                          </button>
+                        </td>
+                      ) : null}
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className={cn(
+                            cellPadding,
+                            (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
+                          )}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                    {renderExpanded && abierta ? (
+                      <tr className="border-b border-border bg-muted/20">
+                        <td colSpan={table.getVisibleLeafColumns().length + 1} className={cellPadding}>
+                          {renderExpanded(row.original)}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </React.Fragment>
+                );
+              })
             )}
           </tbody>
           {/* El pie solo existe si alguna columna declara `footer`. Se calcula
@@ -680,6 +728,7 @@ function DataTable<TValue extends DataTableValue>({
           {hasFooter && !loading ? (
             <tfoot aria-label="Totales" className="border-t-2 border-border bg-muted/40 font-medium">
               <tr>
+                {renderExpanded ? <td className={cellPadding} /> : null}
                 {table.getVisibleLeafColumns().map((column) => {
                   const footer = (column.columnDef.meta as ColumnMeta<TValue> | undefined)?.footer;
                   return (

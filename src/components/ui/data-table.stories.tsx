@@ -287,3 +287,52 @@ export const FilaClicable: Story = {
     </DataTable>
   ),
 };
+
+/**
+ * `renderExpanded` añade al principio la columna estrecha con el botón que
+ * despliega el detalle bajo la fila. Una sola fila abierta a la vez: abrir
+ * otra repliega la anterior, para no convertir la tabla en una lista.
+ */
+export const DetalleEnLinea: Story = {
+  name: "Detalle en línea bajo la fila",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="Despliega una fila para ver su ficha completa sin salir de la tabla."
+      searchable
+      rows={10}
+      renderExpanded={(usuario: Usuario) => (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cargo</dt>
+            <dd className="text-sm">{usuario.cargo}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sede</dt>
+            <dd className="text-sm">{usuario.sede}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supervisor</dt>
+            <dd className="text-sm">{usuario.supervisor}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Costo mensual</dt>
+            <dd className="text-sm">${usuario.costoMensual?.toLocaleString("es-CO")}</dd>
+          </div>
+        </dl>
+      )}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};
