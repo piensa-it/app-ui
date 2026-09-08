@@ -355,6 +355,16 @@ function DataTable<TValue extends DataTableValue>({
   const TitleTag = titleAs;
 
   /*
+   * `target` nunca se comprueba con `instanceof Element`/`instanceof Node`:
+   * un portal puede montar en otro documento (otra ventana, un iframe), y ahí
+   * la clase `Element` no es la misma que la de este realm — `instanceof`
+   * daría `false` para un elemento perfectamente real. Comprobar que tiene
+   * forma de elemento (`closest` como función) funciona en cualquier realm.
+   */
+  const comoElemento = (target: EventTarget | null): Element | null =>
+    target && typeof (target as Element).closest === "function" ? (target as Element) : null;
+
+  /*
    * El kebab de acciones de una fila (`MenuTrigger` + `MenuContent`) pinta su
    * `MenuItem` en un `Portal`, igual que `Select` — en el DOM ese ítem cuelga
    * de `document.body`, no del `<tr>`. `closest()` viaja por el DOM: un clic
@@ -363,24 +373,34 @@ function DataTable<TValue extends DataTableValue>({
    * React sí entrega el evento al `onClick` del `<tr>` porque su árbol de
    * bubbling es el de React, no el del DOM — por eso el primer filtro no es
    * "¿hay un control en el camino?" sino "¿el clic nació siquiera dentro de
-   * este `<tr>`?": si no, es de un portal y no es de la fila.
+   * este `<tr>`?": si no, es de un portal y no es de la fila. Aplica igual al
+   * `onKeyDown`: un Enter sobre un ítem de menú portado también burbujea por
+   * el árbol de React hasta la fila.
    */
-  const naceFueraDeLaFila = (currentTarget: HTMLTableRowElement, target: EventTarget | null) =>
-    !(target instanceof Node) || !currentTarget.contains(target);
+  const naceFueraDeLaFila = (currentTarget: HTMLTableRowElement, target: EventTarget | null) => {
+    const element = comoElemento(target);
+    return !element || !currentTarget.contains(element);
+  };
 
   /*
-   * Ya dentro de la fila, un control real tampoco la dispara. `RadioGroupItem`
-   * y `Switch` envuelven su `<input>` (clip a 1px, sin geometría) en un
-   * `<label>` que pinta el círculo/interruptor visible: el clic aterriza en
-   * ese `<label>` o en su texto, nunca en el input, así que hace falta
-   * nombrar el `label` explícitamente o el clic se cuela igual.
+   * Ya dentro de la fila, un control real tampoco la dispara — por dos
+   * mecanismos distintos, que llegan al mismo `label` en la lista:
+   *
+   * - `RadioGroupItem` (radio-group.tsx) deja su `<input>` real recortado a
+   *   1px (`peer sr-only`, sin geometría): en producción el clic siempre
+   *   aterriza en el `<label>` que envuelve el círculo, o en su texto —
+   *   nunca en el input.
+   * - `Switch`/`Checkbox` sí cubren el control entero (hidden-input.ts: el
+   *   input al 100% de ancho/alto, `clip: auto`), así que en un navegador
+   *   real el clic cae en ese input aunque el usuario apunte al texto. Pero
+   *   Testing Library no hace ese cálculo de superposición: `getByText`
+   *   dispara el clic directo sobre el `<span>` que encontró, sin pasar por
+   *   el input que lo cubre — el mismo hueco, solo que producido por la
+   *   herramienta de prueba y no por el navegador.
    */
   const naceEnUnControl = (target: EventTarget | null) => {
-    const element = target as { closest?: unknown } | null;
-    return (
-      typeof element?.closest === "function"
-      && Boolean((element as Element).closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"))
-    );
+    const element = comoElemento(target);
+    return Boolean(element?.closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"));
   };
 
   return (

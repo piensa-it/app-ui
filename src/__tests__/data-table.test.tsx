@@ -1,9 +1,11 @@
+import { createPortal } from "react-dom";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
 import { Menu, MenuTrigger, MenuContent, MenuItem } from "../components/ui/menu";
 import { Switch } from "../components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 
 interface Fila {
   nombre: string;
@@ -619,10 +621,95 @@ describe("DataTable — columnas de presentación", () => {
     expect(abrir).not.toHaveBeenCalled();
   });
 
-  // `RadioGroupItem` y `Switch` envuelven su `<input>` real (clip a 1px) en un
-  // `<label>` que pinta el control visible: el click aterriza en ese `label`
-  // o en su texto, nunca en el input — por eso hace falta nombrar `label` en
-  // el selector, no solo los roles de formulario.
+  // El equivalente por teclado de la prueba anterior NO sirve con `Menu`: su
+  // `Content` (zag-js) ya intercepta Enter/Espacio con su propio
+  // `stopPropagation` antes de que salgan del menú — abrir con Enter tras
+  // resaltar "Eliminar" nunca llega al `onKeyDown` de la fila, con o sin
+  // `naceFueraDeLaFila`. Eso no prueba nada del guardián: probaría el
+  // `stopPropagation` de Ark, no el nuestro. Para pinchar el guardián de
+  // verdad hace falta un control portado que SÍ deje burbujear el evento
+  // —un doble mínimo, sin la protección propia de Ark— tal como cualquier
+  // control futuro que un desarrollador de CoreLink meta en una celda sin
+  // saber que replica el mecanismo de Ark.
+  it("onRowClick NO se dispara con Enter nacido en un control portado", () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const activar = vi.fn();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila>
+          id="portal"
+          header="Portal"
+          body={() =>
+            createPortal(
+              // `role="menuitem"` y no un `<button>`: así el clic no lo
+              // detiene `naceEnUnControl` (no está en su lista) y lo único
+              // que puede pararlo es el guardián estructural.
+              <div
+                role="menuitem"
+                tabIndex={-1}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") activar();
+                }}
+              >
+                Eliminar
+              </div>,
+              document.body,
+            )
+          }
+        />
+      </DataTable>,
+    );
+
+    const item = screen.getByRole("menuitem", { name: "Eliminar" });
+    fireEvent.keyDown(item, { key: "Enter" });
+
+    expect(activar).toHaveBeenCalledTimes(1);
+    expect(abrir).not.toHaveBeenCalled();
+  });
+
+  // `RadioGroupItem` (radio-group.tsx) deja su `<input>` real recortado a 1px
+  // (`peer sr-only`, sin geometría): el clic aterriza siempre en el `<label>`
+  // que envuelve el círculo, o en su texto — nunca en el input. A diferencia
+  // de `Switch`, aquí el hueco es real en cualquier navegador, no solo bajo
+  // Testing Library.
+  it("onRowClick NO se dispara al elegir un RadioGroupItem de la fila", async () => {
+    const value: Fila[] = [{ nombre: "Ana" }];
+    const abrir = vi.fn();
+    const elegir = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} onRowClick={abrir}>
+        <Column<Fila> field="nombre" header="Nombre" />
+        <Column<Fila>
+          id="prioridad"
+          header="Prioridad"
+          body={() => (
+            <RadioGroup onValueChange={elegir}>
+              <RadioGroupItem value="alta" label="Alta" />
+            </RadioGroup>
+          )}
+        />
+      </DataTable>,
+    );
+
+    // El texto de la etiqueta, no el input oculto — el mismo caso que Switch,
+    // pero aquí el hueco existe también fuera de las pruebas.
+    await user.click(screen.getByText("Alta"));
+    expect(elegir).toHaveBeenCalledWith("alta");
+    expect(abrir).not.toHaveBeenCalled();
+  });
+
+  // `Switch` (switch.tsx + hidden-input.ts) SÍ cubre el input entero (100% de
+  // ancho/alto, `clip: auto`): en un navegador real el clic siempre cae en
+  // ese input, incluso apuntando al texto. El hueco que prueba este caso lo
+  // produce Testing Library, no el navegador: `getByText` dispara el clic
+  // directo sobre el `<span>` de la etiqueta, sin el cálculo de superposición
+  // que haría un clic real — por eso `label` también hace falta aquí, aunque
+  // el mecanismo de fondo sea distinto al de `RadioGroupItem`.
   it("onRowClick NO se dispara al marcar un Switch de la fila", async () => {
     const value: Fila[] = [{ nombre: "Ana" }];
     const abrir = vi.fn();
@@ -640,8 +727,6 @@ describe("DataTable — columnas de presentación", () => {
       </DataTable>,
     );
 
-    // El click cae sobre el texto visible de la etiqueta, no sobre el input
-    // oculto — es justo el caso que un click de ratón real produce.
     await user.click(screen.getByText("Activo"));
     expect(marcar).toHaveBeenCalledTimes(1);
     expect(abrir).not.toHaveBeenCalled();
