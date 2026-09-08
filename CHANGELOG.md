@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-08
+
 La pantalla de ajustes que trajo #124 desaprovechaba el ancho: medido sobre `Layout/SettingsPage`, el contenido se quedaba en 959 px fijos de 1280 a 1920 px de ventana, porque el límite lo ponía el `max-w-5xl` del `PageContainer` de la aplicación, no `SettingsPage`. Pero ensanchar ese contenedor no arreglaba nada —a 959 px cada campo ya medía ~470 px, y con `width="wide"` habría pasado a ~780 px, un cuadro peor, no mejor, para un teléfono o un cargo—. El problema real era que nada detenía a los campos, y la mitad izquierda de cada fila no decía nada.
 
 ### Added

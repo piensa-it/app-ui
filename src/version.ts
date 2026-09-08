@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.10.0";
+export const UI_LIBRARY_VERSION = "0.11.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
@@ -21,7 +21,11 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
     version: UI_LIBRARY_VERSION,
     channel: "current",
     migration: [
-      "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar la pantalla estándar de perfil y configuración.",
+      "Todo es aditivo: subir no requiere cambios. `ProfileForm` sigue en vertical, exactamente como en 0.10.0.",
+      "Ancho de la pantalla de ajustes: NO ensanches su `PageContainer` para llenar la ventana. `default` es el correcto, y el tope nuevo de `Field` ya evita que un campo se estire. Reservá `wide` para cuando alguna sección traiga una tabla o una rejilla que de verdad aproveche el ancho.",
+      "Disposición horizontal, opcional: si la querés en el perfil —rótulo y ayuda a la izquierda, control acotado a la derecha—, pasá `orientation=\"horizontal\"` **junto con** `descriptions`. Sin las descripciones no la actives: la columna izquierda se queda con solo el rótulo y el bloque se ve descuadrado, como un fallo de alineación. Los textos son tuyos; la librería no los inventa.",
+      "Controles compuestos: si armaste una fila propia con `Field` envolviendo algo que no es un único control enfocable —un `AvatarPicker`, un grupo de radios a mano—, pasale `compositeControl`. Sin él, su `<label for>` apunta a un elemento que no existe: al pulsarlo no pasa nada y no hay asociación accesible.",
+      "Si parcheaste la fila del avatar de `ProfileForm` porque el rótulo salía encima en vez de al lado, quitá el parche: era un defecto nuestro y está corregido.",
       "Perfil y configuración: sustituí el armazón de tus dos pantallas por `SettingsPage`, dentro de tu `PageContainer`. Va `title`, `description` y `sections`; cada sección lleva `id` y `content`. Los `id` conocidos —`account`, `appearance`, `security`, `notifications`— ya traen rótulo e icono, así que no les pases `label`; una sección propia tuya sí necesita el suyo.",
       "Guardado: dale a cada sección `onSave`, `dirty` y `saving` y `SettingsPage` le pinta el pie con Guardar y Cancelar. Una sección sin `onSave` no lleva pie. El guardado es por sección, no global: cada una resuelve su error por su cuenta. Ojo, sin `dirty` el botón nunca se habilita.",
       "Cambios sin guardar: con `dirty` puesto, cambiar de pestaña pide confirmación sola (`guardUnsaved`, activo de fábrica) y reutiliza `confirmAlert`, así que necesitás `UiProvider` montado. Cubre solo el cambio de pestaña: si querés proteger también la salida de la pantalla, eso sigue siendo tuyo —tu router o `beforeunload`—.",
@@ -36,6 +40,21 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
       "Indicadores: dale a cada `Stat` un `icon` del catálogo y un `tone` solo cuando la cifra sea noticia. No pongas botón de ocultar: si una pantalla los muestra lo decide tu configuración técnica.",
       "Tablas: usá la `DataTable` de la librería sin envolverla en `Card` ni en un `div` con borde; columnas numéricas con `align=\"right\"`; badges de estado con las variantes de `Badge`, sin grises crudos.",
       "Paletas: Océano, Esmeralda y Ámbar se oscurecen 4–5 puntos en claro para cumplir AA; si usás una de las tres, tus botones salen un pelo más oscuros. Nada que hacer.",
+    ],
+  },
+  {
+    version: "0.10.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-08",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es cómo adoptar la pantalla estándar de perfil y configuración.",
+      "Perfil y configuración: sustituí el armazón de tus dos pantallas por `SettingsPage`, dentro de tu `PageContainer`. Va `title`, `description` y `sections`; cada sección lleva `id` y `content`. Los `id` conocidos —`account`, `appearance`, `security`, `notifications`— ya traen rótulo e icono, así que no les pases `label`; una sección propia tuya sí necesita el suyo.",
+      "Guardado: dale a cada sección `onSave`, `dirty` y `saving` y `SettingsPage` le pinta el pie con Guardar y Cancelar. Una sección sin `onSave` no lleva pie. El guardado es por sección, no global: cada una resuelve su error por su cuenta. Ojo, sin `dirty` el botón nunca se habilita.",
+      "Cambios sin guardar: con `dirty` puesto, cambiar de pestaña pide confirmación sola (`guardUnsaved`, activo de fábrica) y reutiliza `confirmAlert`, así que necesitás `UiProvider` montado. Cubre solo el cambio de pestaña: si querés proteger también la salida de la pantalla, eso sigue siendo tuyo —tu router o `beforeunload`—.",
+      "Datos de la persona: sustituí tu formulario de perfil por `ProfileForm` como contenido de la sección `account`. Trae avatar, nombre, correo, teléfono y cargo; lo tuyo —documento, sede, contraseña— entra por `children` y hereda la rejilla, con `span=\"full\"` si lo querés a lo ancho. Guardá `avatarFile` solo cuando venga: aparece nada más cuando el cambio fue subir o quitar la foto.",
+      "Apariencia: no estrena componente. Poné tu `AppearanceSettings` de siempre como contenido de la sección `appearance` y ganás su rótulo, su icono y su sitio.",
+      "Sección atada a la URL: si querés que la pestaña abierta viva en la ruta, pasá `section` y `onSectionChange`. Sin ellas `SettingsPage` la lleva sola.",
+      "Pestañas: el indicador de la pestaña activa no se pintaba y ahora sí. Si parcheaste eso en tu aplicación, quitá el parche.",
     ],
   },
   {
