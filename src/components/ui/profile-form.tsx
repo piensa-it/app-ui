@@ -173,7 +173,7 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
         />
         <FormGrid>
           {uniqueFields.map((field) => (
-            <Field key={field} label={text[field]} error={errors?.[field]}>
+            <Field key={field} label={text[field]} error={errors?.[field]} required={field === "name"}>
               <Input
                 type={INPUT_ATTRS[field].type}
                 name={field}

@@ -33,7 +33,7 @@ const imagen = (nombre = "foto.png", tipo = "image/png") => new File([new Uint8A
 describe("ProfileForm", () => {
   it("ofrece el avatar y los cuatro campos, rellenos", () => {
     montar();
-    expect(screen.getByLabelText("Nombre")).toHaveValue("Andrés Montoya");
+    expect(screen.getByLabelText(/^Nombre/)).toHaveValue("Andrés Montoya");
     expect(screen.getByLabelText("Correo")).toHaveValue("andres@piensait.com");
     expect(screen.getByLabelText("Teléfono")).toHaveValue("3001234567");
     expect(screen.getByLabelText("Cargo")).toHaveValue("Cajera");
@@ -48,7 +48,7 @@ describe("ProfileForm", () => {
   it("escribir en un campo entrega el objeto completo, no solo el campo", async () => {
     const user = userEvent.setup();
     const { onChange } = montar();
-    await user.type(screen.getByLabelText("Nombre"), "!");
+    await user.type(screen.getByLabelText(/^Nombre/), "!");
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({
       name: "Andrés Montoya!",
       email: "andres@piensait.com",
@@ -70,7 +70,7 @@ describe("ProfileForm", () => {
 
   it("`fields` decide qué campos se ofrecen", () => {
     montar({ fields: ["name", "email"] });
-    expect(screen.getByLabelText("Nombre")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Nombre/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Teléfono")).not.toBeInTheDocument();
   });
 
@@ -83,7 +83,7 @@ describe("ProfileForm", () => {
       </ProfileForm>,
     );
     const etiquetas = Array.from(container.querySelectorAll("label")).map((n) => n.textContent);
-    expect(etiquetas).toEqual(["Nombre", "Correo", "Teléfono", "Cargo", "Documento"]);
+    expect(etiquetas).toEqual(["Nombre*", "Correo", "Teléfono", "Cargo", "Documento"]);
   });
 
   it("un error de validación se muestra en su campo", () => {
@@ -94,7 +94,7 @@ describe("ProfileForm", () => {
 
   it("los textos se pueden sustituir", () => {
     montar({ labels: { name: "Full name", email: "Email" } });
-    expect(screen.getByLabelText("Full name")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Full name/)).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
   });
 
@@ -150,7 +150,7 @@ describe("ProfileForm", () => {
       // cual recibido, `avatarFile` incluido, como parte de `value`.
       onChange.mockClear();
       rerender(<ProfileForm value={conFoto} onChange={onChange} />);
-      await user.type(screen.getByLabelText("Nombre"), "!");
+      await user.type(screen.getByLabelText(/^Nombre/), "!");
       const trasTeclear = onChange.mock.calls[onChange.mock.calls.length - 1][0];
       expect(trasTeclear.avatarFile).toBeUndefined();
       expect("avatarFile" in trasTeclear).toBe(false);
@@ -160,11 +160,11 @@ describe("ProfileForm", () => {
   describe("accesibilidad de los campos", () => {
     it("cada campo lleva `name` y `autoComplete` para el autorrelleno", () => {
       montar();
-      expect(screen.getByLabelText("Nombre")).toHaveAttribute("autocomplete", "name");
+      expect(screen.getByLabelText(/^Nombre/)).toHaveAttribute("autocomplete", "name");
       expect(screen.getByLabelText("Correo")).toHaveAttribute("autocomplete", "email");
       expect(screen.getByLabelText("Teléfono")).toHaveAttribute("autocomplete", "tel");
       expect(screen.getByLabelText("Cargo")).toHaveAttribute("autocomplete", "organization-title");
-      expect(screen.getByLabelText("Nombre")).toHaveAttribute("name", "name");
+      expect(screen.getByLabelText(/^Nombre/)).toHaveAttribute("name", "name");
     });
   });
 
@@ -175,6 +175,6 @@ describe("ProfileForm", () => {
 
   it("un campo repetido en `fields` no se duplica", () => {
     montar({ fields: ["name", "name", "email"] });
-    expect(screen.getAllByLabelText("Nombre")).toHaveLength(1);
+    expect(screen.getAllByLabelText(/^Nombre/)).toHaveLength(1);
   });
 });

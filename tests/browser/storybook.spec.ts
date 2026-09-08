@@ -150,6 +150,23 @@ test.describe("Storybook browser gate", () => {
     });
   });
 
+  // Ninguna de las stories de SettingsPage/ProfileForm (#124) tenía captura en
+  // oscuro; el precedente es UserMenu/AppearanceSettings, que resuelven el
+  // tema con el global `theme` en vez de una story dedicada. Esta reutiliza
+  // la misma story "default" —trae `ProfileForm` en la pestaña «Cuenta»,
+  // activa de entrada— así que una sola captura cubre los dos archivos.
+  test("keeps the settings page shell visually stable in dark theme", async ({ page }) => {
+    await page.goto(storyUrl("layout-settingspage--default", "theme:dark;palette:indigo;fontFamily:geist"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+    await expect(story).toHaveScreenshot("settings-page-dark.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
   test("keeps the animated banner visually stable", async ({ page }) => {
     await page.goto(storyUrl("contenedores-animatedbanner--exito"));
     await stabilize(page);

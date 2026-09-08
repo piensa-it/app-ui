@@ -141,11 +141,11 @@ function SectionFooter({ onSave, onCancel, dirty, saving, text }: SectionFooterP
   };
 
   return (
-    <div className="mt-ui-lg flex flex-col-reverse gap-ui-xs border-t border-border pt-ui-md sm:flex-row sm:justify-end">
+    <div className="mt-stack flex flex-col-reverse gap-ui-xs border-t border-border pt-ui-md sm:flex-row sm:justify-end">
       {onCancel ? (
         <Button
           type="button"
-          variant="plain"
+          variant="outline"
           onClick={handleCancel}
           disabled={!dirty && !saving}
           aria-disabled={saving || undefined}
@@ -344,7 +344,7 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     }, [active, candidate, section]);
 
     return (
-      <div ref={setRootRef} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
+      <div ref={setRootRef} className={cn("flex flex-col gap-stack", className)} {...props}>
         <PageHeader title={title} description={description} actions={actions} />
         <Tabs value={active ?? NONE} onValueChange={change}>
           {sections.map((item) => {
@@ -361,10 +361,10 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
                 value={item.id}
                 disabled={item.disabled}
                 header={
-                  <span className="flex items-center gap-ui-2xs">
+                  <>
                     {Icon ? <Icon className="size-4 shrink-0" /> : null}
                     {label}
-                  </span>
+                  </>
                 }
               >
                 {item.content}
