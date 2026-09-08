@@ -216,6 +216,15 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * Se despliega una fila cada vez: dos detalles abiertos a la vez convierten
    * la tabla en una lista y se pierde la comparación entre filas, que es para
    * lo que existe una tabla.
+   *
+   * La fila abierta se rastrea por `row.id`, así que este prop va emparejado
+   * con `getRowId`. Sin él, `row.id` es la posición de TanStack, no una
+   * identidad: ordenar desde el encabezado de columna es seguro —reordena
+   * la vista, no el arreglo `data`—, pero si el padre vuelve a renderizar con
+   * `value` en otro orden (una recarga que trae los mismos registros
+   * reordenados), el detalle abierto se queda en la posición y termina
+   * mostrando otro registro. En desarrollo, usarlo sin `getRowId` deja un
+   * aviso en consola.
    */
   renderExpanded?: (row: TValue) => React.ReactNode;
   className?: string;
@@ -268,6 +277,26 @@ function DataTable<TValue extends DataTableValue>({
   const [columnQuery, setColumnQuery] = React.useState("");
   const [activeDensity, setActiveDensity] = React.useState(density);
   const [filaAbierta, setFilaAbierta] = React.useState<string | null>(null);
+  // Prefijo para el `id` del `<td>` del detalle: único por instancia de
+  // `DataTable`, para que dos tablas en la misma pantalla no compartan
+  // identificadores.
+  const detalleIdBase = React.useId();
+
+  // Aviso de una sola vez al montar (no en cada render): `renderExpanded` sin
+  // `getRowId` rastrea la fila abierta por la posición de TanStack, no por su
+  // identidad. Ver el JSDoc de `renderExpanded` para el porqué. Se recorta en
+  // producción igual que hace `@tanstack/table-core` con sus propios avisos.
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (!renderExpanded || getRowId) return;
+    console.warn(
+      "DataTable: `renderExpanded` sin `getRowId` rastrea la fila abierta por la posición de TanStack, no por su identidad. " +
+        "Ordenar desde el encabezado de columna es seguro, pero si el padre vuelve a renderizar con `value` en otro orden " +
+        "(p. ej. una recarga que trae los mismos registros reordenados), el detalle abierto se queda en la posición y termina " +
+        "mostrando otro registro. Pasa `getRowId` a `DataTable` para evitarlo.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- se avisa una sola vez al montar, no en cada cambio de props.
+  }, []);
 
   const columnSpecs = React.useMemo(
     () =>
@@ -634,6 +663,7 @@ function DataTable<TValue extends DataTableValue>({
             {loading ? (
               Array.from({ length: Math.min(rows, 5) }).map((_, rowIndex) => (
                 <tr key={`loading-${rowIndex}`} className="border-b border-border last:border-0">
+                  {renderExpanded ? <td className={cellPadding} /> : null}
                   {table.getVisibleLeafColumns().map((column, columnIndex) => (
                     <td key={`${column.id ?? columnIndex}`} className={cellPadding}>
                       <div className={cn("h-4 animate-pulse rounded bg-muted", columnIndex === 0 ? "w-3/5" : columnIndex % 2 ? "w-4/5" : "w-2/5")} />
@@ -651,8 +681,14 @@ function DataTable<TValue extends DataTableValue>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => {
+              table.getRowModel().rows.map((row, rowIndex) => {
                 const abierta = filaAbierta === row.id;
+                // No se asume ningún campo (p. ej. `nombre`) en un `TValue`
+                // arbitrario: la posición en pantalla es lo único que la
+                // tabla conoce de toda fila, así que es lo que distingue un
+                // botón «Desplegar» del de al lado para quien navega con
+                // lector de pantalla.
+                const detalleId = `${detalleIdBase}-fila-${rowIndex}`;
                 return (
                   <React.Fragment key={row.id}>
                     <tr
@@ -690,7 +726,12 @@ function DataTable<TValue extends DataTableValue>({
                           <button
                             type="button"
                             aria-expanded={abierta}
-                            aria-label={abierta ? "Replegar el detalle" : "Desplegar el detalle"}
+                            aria-controls={detalleId}
+                            aria-label={
+                              abierta
+                                ? `Replegar el detalle de la fila ${rowIndex + 1}`
+                                : `Desplegar el detalle de la fila ${rowIndex + 1}`
+                            }
                             className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
                             onClick={() => setFilaAbierta(abierta ? null : row.id)}
                           >
@@ -712,7 +753,7 @@ function DataTable<TValue extends DataTableValue>({
                     </tr>
                     {renderExpanded && abierta ? (
                       <tr className="border-b border-border bg-muted/20">
-                        <td colSpan={table.getVisibleLeafColumns().length + 1} className={cellPadding}>
+                        <td id={detalleId} colSpan={table.getVisibleLeafColumns().length + 1} className={cellPadding}>
                           {renderExpanded(row.original)}
                         </td>
                       </tr>

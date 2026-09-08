@@ -776,6 +776,21 @@ describe("DataTable — columnas de presentación", () => {
     expect(screen.queryByRole("button", { name: /desplegar/i })).toBeNull();
   });
 
+  // El esqueleto de carga (`loading`) dibuja sus propias filas, no las de
+  // `table.getRowModel()`. Sin la celda de despliegue ahí también, el
+  // esqueleto tiene una columna menos que el encabezado y la tabla queda
+  // despareja mientras carga.
+  it("con loading y renderExpanded, el esqueleto tiene tantas celdas como el encabezado", () => {
+    const { container } = render(
+      <DataTable value={[]} loading renderExpanded={(f: Fila) => <p>{f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    const headerCells = container.querySelectorAll("thead th").length;
+    const primeraFilaEsqueleto = container.querySelector("tbody tr")!;
+    expect(primeraFilaEsqueleto.querySelectorAll("td").length).toBe(headerCells);
+  });
+
   it("solo una fila a la vez: abrir Luis repliega el detalle de Ana", async () => {
     const value: Fila[] = [
       { id: "a", nombre: "Ana" },
@@ -825,13 +840,18 @@ describe("DataTable — columnas de presentación", () => {
     expect(screen.queryByText("Detalle de Ana")).toBeNull();
   });
 
-  // La misma exposición que `getRowId` vino a resolver, pero por la puerta
-  // de `filaAbierta`: sin identidad estable, `row.id` es el índice posicional
-  // del arreglo `value` tal como llega en cada render. Si el padre vuelve a
-  // renderizar con el arreglo reordenado —una recarga que trae los mismos
-  // registros en otro orden, algo que sí ocurre en el ERP—, la posición 0
-  // pasa a ser otro registro y `filaAbierta` la sigue apuntando.
-  it("sin getRowId, el detalle abierto SÍ salta a otro registro si el padre reordena `value`", async () => {
+  // Esta prueba PIENSA A PROPÓSITO una limitación conocida y documentada en
+  // el JSDoc de `renderExpanded`, no describe un bug que alguien deba
+  // "arreglar" invirtiendo la aserción. La misma exposición que `getRowId`
+  // vino a resolver reaparece por la puerta de `filaAbierta`: sin identidad
+  // estable, `row.id` es el índice posicional del arreglo `value` tal como
+  // llega en cada render. Si el padre vuelve a renderizar con el arreglo
+  // reordenado —una recarga que trae los mismos registros en otro orden,
+  // algo que sí ocurre en el ERP—, la posición 0 pasa a ser otro registro y
+  // `filaAbierta` la sigue apuntando. No se vuelve `getRowId` obligatorio
+  // (rompería a quien ya usa `renderExpanded` sin él); en su lugar hay un
+  // aviso de desarrollo (ver más abajo) que dice exactamente esto.
+  it("[limitación conocida, documentada] sin getRowId, el detalle abierto SÍ salta a otro registro si el padre reordena `value`", async () => {
     const value: Fila[] = [{ nombre: "Beto" }, { nombre: "Ana" }];
     const user = userEvent.setup();
     const columnas = [<Column<Fila> key="nombre" field="nombre" header="Nombre" />];
@@ -860,5 +880,80 @@ describe("DataTable — columnas de presentación", () => {
     // se rompía el estado no controlado de una fila.
     expect(screen.queryByText("Detalle de Beto")).toBeNull();
     expect(screen.getByText("Detalle de Ana")).toBeInTheDocument();
+  });
+
+  it("renderExpanded sin getRowId avisa una sola vez en consola, en desarrollo", () => {
+    const advertir = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { rerender } = render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]} renderExpanded={(f: Fila) => <p>{f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(advertir).toHaveBeenCalledTimes(1);
+    expect(advertir.mock.calls[0][0]).toMatch(/getRowId/);
+
+    // Un re-render posterior no repite el aviso: es de montaje, no de props.
+    rerender(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]} renderExpanded={(f: Fila) => <p>{f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(advertir).toHaveBeenCalledTimes(1);
+    advertir.mockRestore();
+  });
+
+  it("renderExpanded con getRowId no avisa en consola", () => {
+    const advertir = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <DataTable
+        value={[{ id: "a", nombre: "Ana" }] as Fila[]}
+        getRowId={(f: Fila) => f.id!}
+        renderExpanded={(f: Fila) => <p>{f.nombre}</p>}
+      >
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(advertir).not.toHaveBeenCalled();
+    advertir.mockRestore();
+  });
+
+  it("sin renderExpanded no avisa en consola, tenga o no getRowId", () => {
+    const advertir = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <DataTable value={[{ nombre: "Ana" }] as Fila[]}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+    expect(advertir).not.toHaveBeenCalled();
+    advertir.mockRestore();
+  });
+
+  // El botón que despliega el detalle repite el mismo texto en cada fila
+  // («Desplegar el detalle»): sin más, un lector de pantalla que recorre
+  // los botones no puede distinguir uno de otro. `aria-controls` asocia
+  // además el botón con el `<td>` del detalle que abre.
+  it("el botón del detalle distingue cada fila y se asocia al detalle con aria-controls", async () => {
+    const value: Fila[] = [
+      { id: "a", nombre: "Ana" },
+      { id: "b", nombre: "Luis" },
+    ];
+    const user = userEvent.setup();
+
+    render(
+      <DataTable value={value} getRowId={(f) => f.id!} renderExpanded={(f) => <p>Detalle de {f.nombre}</p>}>
+        <Column<Fila> field="nombre" header="Nombre" />
+      </DataTable>,
+    );
+
+    const botones = screen.getAllByRole("button", { name: /desplegar/i });
+    expect(botones[0]).toHaveAccessibleName(/fila 1/i);
+    expect(botones[1]).toHaveAccessibleName(/fila 2/i);
+
+    const controlaId = botones[0].getAttribute("aria-controls");
+    expect(controlaId).toBeTruthy();
+
+    await user.click(botones[0]);
+    const detalle = screen.getByText("Detalle de Ana").closest("td")!;
+    expect(detalle).toHaveAttribute("id", controlaId);
   });
 });
