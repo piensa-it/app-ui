@@ -77,9 +77,9 @@ export interface SettingsPageLabels {
   /** @default "Si sales de esta sección se perderán." */
   unsavedDescription?: string;
   /** @default "Descartar" */
-  unsavedConfirm?: string;
+  unsavedConfirmLabel?: string;
   /** @default "Seguir aquí" */
-  unsavedCancel?: string;
+  unsavedCancelLabel?: string;
 }
 
 const DEFAULT_LABELS: Required<SettingsPageLabels> = {
@@ -88,8 +88,8 @@ const DEFAULT_LABELS: Required<SettingsPageLabels> = {
   saving: "Guardando…",
   unsavedTitle: "Hay cambios sin guardar",
   unsavedDescription: "Si sales de esta sección se perderán.",
-  unsavedConfirm: "Descartar",
-  unsavedCancel: "Seguir aquí",
+  unsavedConfirmLabel: "Descartar",
+  unsavedCancelLabel: "Seguir aquí",
 };
 
 interface SectionFooterProps {
@@ -186,6 +186,13 @@ export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElem
    * navega fuera de la pantalla (otra ruta, cerrar la pestaña del navegador),
    * la librería no se entera y no hay aviso. Esa protección, si hace falta,
    * es cosa de la aplicación (p. ej. un `beforeunload` o un guard de router).
+   *
+   * El aviso es una foto del momento del clic: si la sección deja de estar
+   * `dirty` mientras el diálogo sigue abierto —un autoguardado que termina, o
+   * la aplicación cambia `guardUnsaved` a `false`— el texto («se perderán»)
+   * queda desactualizado, aunque confirmar sigue haciendo lo correcto
+   * (cambiar de sección) porque no hay nada más que perder. `confirmAlert` es
+   * imperativo y no admite cerrarse desde fuera una vez abierto.
    * @default true
    */
   guardUnsaved?: boolean;
@@ -233,10 +240,38 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     // dos casos no puede seguir activa y se cae en la primera habilitada.
     const active = sections.some((item) => item.id === candidate && !item.disabled) ? candidate : first;
 
+    // `onSectionChange` va por ref, no por dependencia directa del efecto de
+    // abajo: la mayoría de las aplicaciones pasan un manejador en línea, cuya
+    // identidad cambia en cada render. Si el efecto dependiera de la función
+    // en sí, cada render dispararía el efecto de nuevo y, al llamar a
+    // `onSectionChange`, el padre volvería a renderizar con otra identidad de
+    // función — un bucle sin fin. La ref siempre apunta a la versión más
+    // reciente sin forzar al efecto a re-ejecutarse por eso.
+    //
+    // La misma ref resuelve otro problema: entre abrir el aviso de cambios
+    // sin guardar y que la persona confirme pasa tiempo real, así que
+    // `apply` no puede capturar el `onSectionChange` del render del clic —
+    // sería el de ese momento, no el más reciente si el padre volvió a
+    // renderizar mientras tanto.
+    const onSectionChangeRef = React.useRef(onSectionChange);
+    React.useEffect(() => {
+      onSectionChangeRef.current = onSectionChange;
+    });
+
+    const rootRef = React.useRef<HTMLDivElement>(null);
+    const setRootRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        rootRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref],
+    );
+
     const apply = (next: string) => {
       // Con `section`, la pestaña la lleva la aplicación: aquí solo se avisa.
       if (section === undefined) setInternal(next);
-      onSectionChange?.(next);
+      onSectionChangeRef.current?.(next);
     };
 
     // La sección que se abandona es la que está activa *antes* del cambio:
@@ -245,6 +280,11 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     // está dejando de ver— y es lo esperable: solo hay una sección visible
     // (e interactuable) a la vez.
     const change = (next: string) => {
+      // Red de seguridad, no camino real: `Tabs` recibe `value={active ??
+      // NONE}` y Ark no dispara `onValueChange` al clicar la pestaña ya
+      // seleccionada, así que hoy `next` nunca llega valiendo `active`. Se
+      // conserva por si `tabs.tsx` cambia ese comportamiento algún día —sin
+      // esto, un clic en la pestaña activa abriría el aviso sin motivo.
       if (next === active) return;
       const leaving = sections.find((item) => item.id === active);
       // Una sección `dirty` sin `onSave` no pinta pie, pero de todos modos
@@ -258,24 +298,27 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       confirmAlert({
         title: text.unsavedTitle,
         description: text.unsavedDescription,
-        confirmLabel: text.unsavedConfirm,
-        cancelLabel: text.unsavedCancel,
+        confirmLabel: text.unsavedConfirmLabel,
+        cancelLabel: text.unsavedCancelLabel,
         variant: "destructive",
         onConfirm: () => apply(next),
+        // Al cancelar, el foco vuelve a la pestaña que sigue activa. Sin
+        // esto, se queda en la pestaña clicada —la que se decidió no
+        // abrir—, con `aria-selected="false"`: un anillo de foco mintiendo
+        // sobre cuál es la sección activa, y pulsar Enter ahí reabre el
+        // aviso en un bucle para quien navega con teclado.
+        onCancel: () => {
+          // El foco tiene que esperar a que Ark termine de restaurarlo a la
+          // pestaña que abrió el diálogo (`restoreFocus`, activado por
+          // defecto en `Dialog`): si se llama de forma síncrona aquí, esa
+          // restauración —posterior, al desactivar el focus trap— lo
+          // pisa. Un macrotask corre después de esa restauración.
+          setTimeout(() => {
+            rootRef.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
+          }, 0);
+        },
       });
     };
-
-    // `onSectionChange` va por ref, no por dependencia directa del efecto de
-    // abajo: la mayoría de las aplicaciones pasan un manejador en línea, cuya
-    // identidad cambia en cada render. Si el efecto dependiera de la función
-    // en sí, cada render dispararía el efecto de nuevo y, al llamar a
-    // `onSectionChange`, el padre volvería a renderizar con otra identidad de
-    // función — un bucle sin fin. La ref siempre apunta a la versión más
-    // reciente sin forzar al efecto a re-ejecutarse por eso.
-    const onSectionChangeRef = React.useRef(onSectionChange);
-    React.useEffect(() => {
-      onSectionChangeRef.current = onSectionChange;
-    });
 
     // Cuando `active` se aleja de `candidate` (repliegue por una `sections`
     // que cambió por debajo), hay que reconciliar quien manda. En modo
@@ -301,7 +344,7 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     }, [active, candidate, section]);
 
     return (
-      <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
+      <div ref={setRootRef} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
         <PageHeader title={title} description={description} actions={actions} />
         <Tabs value={active ?? NONE} onValueChange={change}>
           {sections.map((item) => {

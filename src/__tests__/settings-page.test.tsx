@@ -1,7 +1,7 @@
 import * as React from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { UiProvider } from "../components/providers/UiProvider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
@@ -364,23 +364,37 @@ describe("SettingsPage · el pie de guardado", () => {
         { id: "appearance", content: <p>Tema y color</p> },
       ],
     });
+    // Sin esta aserción, la prueba pasaría igual aunque el pie nunca se
+    // hubiera pintado en la sección de origen.
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     await screen.findByText("Tema y color");
     await waitFor(() => expect(screen.queryByRole("button", { name: "Guardar" })).not.toBeInTheDocument());
   });
 });
 
-const conCambios = (onSectionChange?: (id: string) => void) => {
-  montar({
-    onSectionChange,
-    sections: [
-      { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
-      { id: "appearance", content: <p>Tema y color</p> },
-    ],
-  });
-};
+// Sección fresca en cada llamada: los `vi.fn()` de `onSave` no deben
+// acumular llamadas de una prueba a otra.
+const seccionesSucias = (): SettingsSection[] => [
+  { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
+  { id: "appearance", content: <p>Tema y color</p> },
+];
+
+const conCambios = (props: Partial<React.ComponentProps<typeof SettingsPage>> = {}) =>
+  montar({ ...props, sections: seccionesSucias() });
 
 describe("SettingsPage · salir de una sección con cambios", () => {
+  // `confirmAlert` guarda su estado en un store fuera de React (ver
+  // `alert-dialog.tsx`), que sobrevive al desmontaje de cada prueba: si una
+  // deja el diálogo abierto, la siguiente remonta `AlertDialogHost` ya
+  // abierto —con el `onConfirm` de la prueba anterior, obsoleto— y su
+  // overlay deja el resto de la página con `pointer-events: none`. Se cierra
+  // aquí, una vez, para todas las pruebas de este bloque.
+  afterEach(() => {
+    const dialogo = document.querySelector('[role="alertdialog"]');
+    if (dialogo) fireEvent.click(dialogo.querySelector("button")!);
+  });
+
   it("pide confirmación antes de cambiar de pestaña", async () => {
     const user = userEvent.setup();
     conCambios();
@@ -389,16 +403,9 @@ describe("SettingsPage · salir de una sección con cambios", () => {
     expect(dialogo).toHaveTextContent("Hay cambios sin guardar");
     // Es el AlertDialogHost de UiProvider, no una capa modal propia.
     expect(screen.getAllByRole("alertdialog")).toHaveLength(1);
-    // `confirmAlert` guarda su estado en un store fuera de React (ver
-    // `alert-dialog.tsx`): sobrevive al desmontaje de este test. Sin cerrarlo
-    // aquí, el siguiente test remonta `AlertDialogHost` ya abierto —con el
-    // `onConfirm` de este test, obsoleto— y su overlay deja el resto de la
-    // página con `pointer-events: none`, así que ningún clic de ese test
-    // llega a su destino.
-    await user.click(within(dialogo).getByRole("button", { name: "Seguir aquí" }));
   });
 
-  it("al cancelar, la pestaña no cambia", async () => {
+  it("al cancelar, la pestaña no cambia y el foco vuelve a la pestaña activa", async () => {
     const user = userEvent.setup();
     conCambios();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
@@ -406,6 +413,11 @@ describe("SettingsPage · salir de una sección con cambios", () => {
     await user.click(within(dialogo).getByRole("button", { name: "Seguir aquí" }));
     await waitFor(() => expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true"));
     expect(screen.getByText("Datos de la cuenta")).toBeVisible();
+    // El foco no puede quedar en la pestaña clicada —la que se decidió no
+    // abrir—: ahí queda un anillo de foco mintiendo sobre cuál es la sección
+    // activa, y pulsar Enter la reabriría en un bucle para quien navega con
+    // teclado. Sonda real de DOM, no solo del atributo `aria-selected`.
+    await waitFor(() => expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveFocus());
   });
 
   it("al confirmar, se pierde el cambio y se abre la otra sección", async () => {
@@ -420,7 +432,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
   it("con `section` controlado, solo avisa a la aplicación tras confirmar", async () => {
     const user = userEvent.setup();
     const onSectionChange = vi.fn();
-    conCambios(onSectionChange);
+    conCambios({ onSectionChange });
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(onSectionChange).not.toHaveBeenCalled();
     const dialogo = await screen.findByRole("alertdialog");
@@ -430,13 +442,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
 
   it("`guardUnsaved={false}` lo desactiva", async () => {
     const user = userEvent.setup();
-    montar({
-      guardUnsaved: false,
-      sections: [
-        { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
-        { id: "appearance", content: <p>Tema y color</p> },
-      ],
-    });
+    conCambios({ guardUnsaved: false });
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(await screen.findByText("Tema y color")).toBeVisible();
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
@@ -452,20 +458,19 @@ describe("SettingsPage · salir de una sección con cambios", () => {
 
   it("los textos del aviso se pueden sustituir", async () => {
     const user = userEvent.setup();
-    montar({
-      labels: { unsavedTitle: "Unsaved changes", unsavedConfirm: "Discard", unsavedCancel: "Stay" },
-      sections: [
-        { id: "account", content: <p>Datos de la cuenta</p>, dirty: true, onSave: vi.fn() },
-        { id: "appearance", content: <p>Tema y color</p> },
-      ],
+    conCambios({
+      labels: {
+        unsavedTitle: "Unsaved changes",
+        unsavedDescription: "Changes will be lost.",
+        unsavedConfirmLabel: "Discard",
+        unsavedCancelLabel: "Stay",
+      },
     });
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     const dialogo = await screen.findByRole("alertdialog");
     expect(dialogo).toHaveTextContent("Unsaved changes");
+    expect(dialogo).toHaveTextContent("Changes will be lost.");
     expect(within(dialogo).getByRole("button", { name: "Discard" })).toBeInTheDocument();
     expect(within(dialogo).getByRole("button", { name: "Stay" })).toBeInTheDocument();
-    // Ver el comentario en «pide confirmación…»: cerrarlo evita filtrar el
-    // diálogo abierto a un test futuro que se agregue después de este.
-    await user.click(within(dialogo).getByRole("button", { name: "Stay" }));
   });
 });
