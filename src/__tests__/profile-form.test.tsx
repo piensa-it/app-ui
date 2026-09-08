@@ -75,15 +75,15 @@ describe("ProfileForm", () => {
   });
 
   it("los campos propios de la aplicación van tras los estándar", () => {
-    montar({
-      children: (
+    const { container } = render(
+      <ProfileForm value={valor} onChange={vi.fn()}>
         <Field label="Documento">
           <Input defaultValue="1020304050" />
         </Field>
-      ),
-    });
-    const etiquetas = screen.getAllByText(/Nombre|Correo|Teléfono|Cargo|Documento/).map((n) => n.textContent);
-    expect(etiquetas[etiquetas.length - 1]).toBe("Documento");
+      </ProfileForm>,
+    );
+    const etiquetas = Array.from(container.querySelectorAll("label")).map((n) => n.textContent);
+    expect(etiquetas).toEqual(["Nombre", "Correo", "Teléfono", "Cargo", "Documento"]);
   });
 
   it("un error de validación se muestra en su campo", () => {
@@ -122,13 +122,59 @@ describe("ProfileForm", () => {
       expect(ultimo.avatarFile).toBeNull();
     });
 
-    it("cambiar solo el color no toca `avatar.src` (no hay foto que preservar)", async () => {
+    it("cambiar solo el color no toca `avatar.src` ni marca `avatarFile` como quitado", async () => {
       const { onChange } = montar();
       const colores = screen.getAllByRole("radio");
       await userEvent.click(colores[2]);
       const ultimo = onChange.mock.calls[onChange.mock.calls.length - 1][0];
       expect(ultimo.avatar.src).toBeUndefined();
-      expect(ultimo.avatarFile).toBeNull();
+      // `avatarFile` es el evento «se subió o se quitó una foto»; elegir un
+      // color no es ninguna de las dos, así que la clave no debe aparecer
+      // (y mucho menos como `null`, que en el resto del contrato significa
+      // «se quitó la foto»: una app que borre la foto guardada cuando
+      // `avatarFile === null` haría un borrado espurio).
+      expect(ultimo.avatarFile).toBeUndefined();
+      expect("avatarFile" in ultimo).toBe(false);
     });
+
+    it("editar un campo tras subir una foto no vuelve a mandar el mismo archivo", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const { rerender } = render(<ProfileForm value={valor} onChange={onChange} />);
+      const archivo = imagen();
+      await userEvent.upload(screen.getByLabelText("Subir foto"), archivo);
+      const conFoto = onChange.mock.calls[onChange.mock.calls.length - 1][0];
+      expect(conFoto.avatarFile).toBe(archivo);
+
+      // Patrón documentado en el `@example`: la app reenvía el objeto tal
+      // cual recibido, `avatarFile` incluido, como parte de `value`.
+      onChange.mockClear();
+      rerender(<ProfileForm value={conFoto} onChange={onChange} />);
+      await user.type(screen.getByLabelText("Nombre"), "!");
+      const trasTeclear = onChange.mock.calls[onChange.mock.calls.length - 1][0];
+      expect(trasTeclear.avatarFile).toBeUndefined();
+      expect("avatarFile" in trasTeclear).toBe(false);
+    });
+  });
+
+  describe("accesibilidad de los campos", () => {
+    it("cada campo lleva `name` y `autoComplete` para el autorrelleno", () => {
+      montar();
+      expect(screen.getByLabelText("Nombre")).toHaveAttribute("autocomplete", "name");
+      expect(screen.getByLabelText("Correo")).toHaveAttribute("autocomplete", "email");
+      expect(screen.getByLabelText("Teléfono")).toHaveAttribute("autocomplete", "tel");
+      expect(screen.getByLabelText("Cargo")).toHaveAttribute("autocomplete", "organization-title");
+      expect(screen.getByLabelText("Nombre")).toHaveAttribute("name", "name");
+    });
+  });
+
+  it("`avatarLabels` traduce los textos del AvatarPicker interno", () => {
+    montar({ avatarLabels: { upload: "Upload photo" } });
+    expect(screen.getByRole("button", { name: "Upload photo" })).toBeInTheDocument();
+  });
+
+  it("un campo repetido en `fields` no se duplica", () => {
+    montar({ fields: ["name", "name", "email"] });
+    expect(screen.getAllByLabelText("Nombre")).toHaveLength(1);
   });
 });

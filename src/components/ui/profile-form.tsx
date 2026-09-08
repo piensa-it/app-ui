@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import type { TokenColor } from "@/lib/palette";
-import { AvatarPicker, type AvatarPickerValue } from "./avatar-picker";
+import { AvatarPicker, type AvatarPickerLabels, type AvatarPickerValue } from "./avatar-picker";
 import { Field } from "./field";
 import { FormGrid } from "./form-grid";
 import { Input } from "./input";
@@ -20,8 +20,12 @@ export interface ProfileFormValue {
 
 export interface ProfileFormChange extends ProfileFormValue {
   /**
-   * La foto recién elegida, o `null` si se quitó, cuando el cambio vino del
-   * avatar. Subirla y guardarla es de la aplicación.
+   * La foto recién elegida, o `null` si se quitó, solo presente cuando el
+   * cambio fue justo eso —subir o quitar la foto—. En cualquier otro cambio
+   * —incluido elegir un color de iniciales, o editar un campo— la clave no
+   * aparece: no es parte del *valor* del perfil, es el *evento* de subida, y
+   * reenviarla en cada cambio posterior (p. ej. `onChange={setPerfil}`)
+   * volvería a subir el mismo archivo con cada letra tecleada.
    */
   avatarFile?: File | null;
 }
@@ -59,6 +63,8 @@ export interface ProfileFormProps {
   avatarColors?: TokenColor[];
   /** @default 2 */
   avatarMaxSizeMb?: number;
+  /** Textos del `AvatarPicker` interno («Subir foto», «Color de las iniciales»…). */
+  avatarLabels?: AvatarPickerLabels;
   labels?: ProfileFormLabels;
   className?: string;
 }
@@ -72,14 +78,18 @@ const DEFAULT_LABELS: Required<ProfileFormLabels> = {
 
 const DEFAULT_FIELDS: ProfileField[] = ["name", "email", "phone", "jobTitle"];
 
-// Solo para el teclado que ofrece el navegador en móvil: `ProfileForm` no
-// pinta un <form>, así que no hay envío que dispare la validación nativa del
-// navegador y choque con `errors` (que es de la aplicación).
-const INPUT_TYPE: Record<ProfileField, string> = {
-  name: "text",
-  email: "email",
-  phone: "tel",
-  jobTitle: "text",
+// `type` es el teclado adecuado en móvil y una pista más para el autorrelleno;
+// `autoComplete` es lo que de verdad identifica el propósito del campo ante
+// gestores de contraseñas y autorrelleno (WCAG 2.1 SC 1.3.5). Si la
+// aplicación envuelve `ProfileForm` en un `<form>` propio (`SettingsPage` lo
+// permite: ver su doc de `content`), el envío puede disparar la validación
+// nativa del navegador antes que `errors` —que es de la aplicación—; le toca
+// a esa aplicación poner `noValidate` en su `<form>`.
+const INPUT_ATTRS: Record<ProfileField, { type: string; autoComplete: string }> = {
+  name: { type: "text", autoComplete: "name" },
+  email: { type: "email", autoComplete: "email" },
+  phone: { type: "tel", autoComplete: "tel" },
+  jobTitle: { type: "text", autoComplete: "organization-title" },
 };
 
 /**
@@ -100,7 +110,7 @@ const INPUT_TYPE: Record<ProfileField, string> = {
  *   onChange={(next) => setPerfil(next)}
  *   errors={{ email: errorDeCorreo }}
  * >
- *   <Field label="Documento" span="full"><Input value={doc} onChange={…} /></Field>
+ *   <Field label="Documento" span="full"><Input value={doc} onChange={(e) => setDoc(e.target.value)} /></Field>
  * </ProfileForm>
  * ```
  */
@@ -114,12 +124,28 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
       children,
       avatarColors,
       avatarMaxSizeMb,
+      avatarLabels,
       labels,
       className,
     },
     ref,
   ) => {
     const text = { ...DEFAULT_LABELS, ...labels };
+    // Los campos únicos que se ofrecen: repetir uno en `fields` no debe pintar
+    // dos controles con la misma clave —React se quejaría, y la aplicación no
+    // podría distinguirlos con `getByLabelText`.
+    const uniqueFields = [...new Set(fields)];
+
+    // `avatarFile` no es parte del valor del perfil, es el evento de subida:
+    // se descarta siempre del `value` recibido, y solo se vuelve a agregar
+    // cuando el cambio actual de verdad fue eso —subir o quitar la foto—.
+    // Así un tecleo posterior nunca reenvía el mismo `File`, y elegir un
+    // color no se confunde con quitar la foto.
+    const emit = (patch: Partial<ProfileFormValue>, avatarFile?: File | null) => {
+      const clean: ProfileFormChange = { ...(value as ProfileFormChange) };
+      delete clean.avatarFile;
+      onChange(avatarFile === undefined ? { ...clean, ...patch } : { ...clean, ...patch, avatarFile });
+    };
 
     return (
       <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)}>
@@ -128,22 +154,32 @@ export const ProfileForm = React.forwardRef<HTMLDivElement, ProfileFormProps>(
           value={value.avatar}
           colors={avatarColors}
           maxSizeMb={avatarMaxSizeMb}
+          labels={avatarLabels}
           // El avatar es un dato más del perfil: se entrega junto al resto,
           // para que la aplicación guarde una sola vez. `AvatarPicker` ya
           // resuelve `src` para los tres casos —subir, quitar, solo cambiar
           // el color, este último reenviando el `src` que ya tenía— así que
-          // no hace falta (ni conviene) recalcularlo aquí: forzar una lógica
-          // propia terminó siendo la fuente del bug que el plan original
-          // intentaba tapar con un condicional que nunca se ejecutaba.
-          onChange={({ file, color, src }) => onChange({ ...value, avatar: { color, src }, avatarFile: file })}
+          // no hace falta (ni conviene) recalcularlo aquí.
+          //
+          // `file` distingue subir (`File`) de los otros dos, pero quitar y
+          // solo cambiar el color llegan idénticos (`file: null, src:
+          // undefined`): la única diferencia es si ya había una foto puesta,
+          // así que se compara contra el `value` actual, no contra el evento.
+          onChange={({ file, color, src }) => {
+            const hadPhoto = value.avatar?.src !== undefined;
+            const avatarFile = file !== null ? file : hadPhoto ? null : undefined;
+            emit({ avatar: { color, src } }, avatarFile);
+          }}
         />
         <FormGrid>
-          {fields.map((field) => (
+          {uniqueFields.map((field) => (
             <Field key={field} label={text[field]} error={errors?.[field]}>
               <Input
-                type={INPUT_TYPE[field]}
+                type={INPUT_ATTRS[field].type}
+                name={field}
+                autoComplete={INPUT_ATTRS[field].autoComplete}
                 value={value[field] ?? ""}
-                onChange={(event) => onChange({ ...value, [field]: event.target.value })}
+                onChange={(event) => emit({ [field]: event.target.value })}
               />
             </Field>
           ))}
