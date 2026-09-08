@@ -5,20 +5,34 @@ import { Tabs, TabPanel } from "@/components/ui/tabs";
 import { PageHeader } from "./page-header";
 import { BellIcon, PaletteIcon, ShieldIcon, UserIcon } from "@/icons";
 
+/**
+ * El catálogo de secciones conocidas: lo que hace que «Cuenta» se llame igual,
+ * lleve el mismo icono y esté en el mismo sitio en las tres aplicaciones. Fijar
+ * estos cuatro identificadores es justo el objetivo de la HU. Una sección
+ * propia trae su `label` y, si quiere, su `icon`.
+ */
+const KNOWN_SECTIONS = {
+  account: { label: "Cuenta", icon: UserIcon },
+  appearance: { label: "Apariencia", icon: PaletteIcon },
+  security: { label: "Seguridad", icon: ShieldIcon },
+  notifications: { label: "Notificaciones", icon: BellIcon },
+} satisfies Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }>;
+
 /** Una sección de la pantalla: una pestaña y lo que hay debajo. */
 export interface SettingsSection {
   /**
    * `account`, `appearance`, `security` o `notifications` —de ellos salen el
-   * rótulo y el icono— o uno propio, que entonces necesita `label`.
+   * rótulo y el icono, con autocompletado— o uno propio, que entonces
+   * necesita `label`.
    */
-  id: string;
+  id: keyof typeof KNOWN_SECTIONS | (string & {});
   label?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   content: React.ReactNode;
   disabled?: boolean;
 }
 
-export interface SettingsPageProps {
+export interface SettingsPageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;
   description?: React.ReactNode;
   /** Acciones de la pantalla, a la derecha del título. */
@@ -27,20 +41,7 @@ export interface SettingsPageProps {
   /** Sección abierta. Sin ella, el armazón la lleva solo. */
   section?: string;
   onSectionChange?: (id: string) => void;
-  className?: string;
 }
-
-/**
- * El catálogo de secciones conocidas: lo que hace que «Cuenta» se llame igual,
- * lleve el mismo icono y esté en el mismo sitio en las tres aplicaciones. Una
- * sección propia trae su `label` y, si quiere, su `icon`.
- */
-const KNOWN_SECTIONS: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  account: { label: "Cuenta", icon: UserIcon },
-  appearance: { label: "Apariencia", icon: PaletteIcon },
-  security: { label: "Seguridad", icon: ShieldIcon },
-  notifications: { label: "Notificaciones", icon: BellIcon },
-};
 
 /**
  * El destino estándar de «Mi perfil» y «Configuración» (#124): cabecera,
@@ -65,10 +66,16 @@ const KNOWN_SECTIONS: Record<string, { label: string; icon: React.ComponentType<
  * ```
  */
 export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
-  ({ title, description, actions, sections, section, onSectionChange, className }, ref) => {
-    const first = sections[0]?.id;
+  ({ title, description, actions, sections, section, onSectionChange, className, ...props }, ref) => {
+    // La primera sección habilitada: una deshabilitada no puede abrirse sola,
+    // ni al montar ni como destino de repliegue.
+    const first = sections.find((item) => !item.disabled)?.id ?? sections[0]?.id;
     const [internal, setInternal] = React.useState(first);
-    const active = section ?? internal;
+    const candidate = section ?? internal;
+    // La sección candidata puede haber desaparecido de `sections` (carga
+    // diferida, permisos) o haber quedado deshabilitada: en cualquiera de los
+    // dos casos no puede seguir activa y se cae en la primera habilitada.
+    const active = sections.some((item) => item.id === candidate && !item.disabled) ? candidate : first;
 
     const change = (next: string) => {
       // Con `section`, la pestaña la lleva la aplicación: aquí solo se avisa.
@@ -77,11 +84,13 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
     };
 
     return (
-      <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)}>
+      <div ref={ref} className={cn("flex flex-col gap-ui-lg", className)} {...props}>
         <PageHeader title={title} description={description} actions={actions} />
         <Tabs value={active} onValueChange={change}>
           {sections.map((item) => {
-            const known = KNOWN_SECTIONS[item.id];
+            const known = KNOWN_SECTIONS[item.id as keyof typeof KNOWN_SECTIONS] as
+              | (typeof KNOWN_SECTIONS)[keyof typeof KNOWN_SECTIONS]
+              | undefined;
             const Icon = item.icon ?? known?.icon;
             // Una sección propia sin rótulo cae en su identificador: es feo,
             // pero se ve, y es mejor que una pestaña en blanco.
@@ -97,7 +106,6 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
                     {label}
                   </span>
                 }
-                contentClassName="pt-ui-lg"
               >
                 {item.content}
               </TabPanel>

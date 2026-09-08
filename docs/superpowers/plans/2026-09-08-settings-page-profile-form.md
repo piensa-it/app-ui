@@ -108,7 +108,7 @@ describe("SettingsPage · cabecera y pestañas", () => {
 
   it("sin `section`, abre la primera", () => {
     montar();
-    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Datos de la cuenta")).toBeVisible();
   });
 
@@ -121,10 +121,10 @@ describe("SettingsPage · cabecera y pestañas", () => {
   it("con `section`, manda la aplicación: el clic avisa pero no cambia solo", async () => {
     const onSectionChange = vi.fn();
     montar({ section: "appearance", onSectionChange });
-    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("tab", { name: "Cuenta" }));
     expect(onSectionChange).toHaveBeenCalledWith("account");
-    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("las acciones de la cabecera van con el título", () => {
@@ -493,7 +493,7 @@ describe("SettingsPage · salir de una sección con cambios", () => {
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     const dialogo = await screen.findByRole("alertdialog");
     await user.click(within(dialogo).getByRole("button", { name: "Seguir aquí" }));
-    await waitFor(() => expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("data-selected"));
+    await waitFor(() => expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true"));
     expect(screen.getByText("Datos de la cuenta")).toBeVisible();
   });
 

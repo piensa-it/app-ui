@@ -5,14 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { UiProvider } from "../components/providers/UiProvider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
 
-const user = userEvent.setup();
+const DEFAULT_SECTIONS: SettingsSection[] = [
+  { id: "account", content: <p>Datos de la cuenta</p> },
+  { id: "appearance", content: <p>Tema y color</p> },
+];
 
 const montar = (props: Partial<React.ComponentProps<typeof SettingsPage>> = {}) => {
-  const secciones: SettingsSection[] = props.sections ?? [
-    { id: "account", content: <p>Datos de la cuenta</p> },
-    { id: "appearance", content: <p>Tema y color</p> },
-  ];
-  render(
+  const secciones: SettingsSection[] = props.sections ?? DEFAULT_SECTIONS;
+  return render(
     <UiProvider>
       <SettingsPage title="Mi perfil" {...props} sections={secciones} />
     </UiProvider>,
@@ -47,25 +47,39 @@ describe("SettingsPage · cabecera y pestañas", () => {
     expect(screen.getByRole("tab", { name: "Facturación" })).toBeInTheDocument();
   });
 
+  it("un identificador propio sin `label` cae en el identificador", () => {
+    // Comportamiento pensado, no accidental: mejor una pestaña fea que una en
+    // blanco (ver el comentario junto a `label` en la implementación).
+    montar({ sections: [{ id: "facturacion", content: <p>Plan</p> }] });
+    expect(screen.getByRole("tab", { name: "facturacion" })).toBeInTheDocument();
+  });
+
   it("sin `section`, abre la primera", () => {
     montar();
-    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Datos de la cuenta")).toBeVisible();
   });
 
+  it("la sección inactiva no se ve", () => {
+    montar();
+    expect(screen.getByText("Tema y color")).not.toBeVisible();
+  });
+
   it("sin `section`, la pestaña la lleva el armazón", async () => {
+    const user = userEvent.setup();
     montar();
     await user.click(screen.getByRole("tab", { name: "Apariencia" }));
     expect(await screen.findByText("Tema y color")).toBeVisible();
   });
 
   it("con `section`, manda la aplicación: el clic avisa pero no cambia solo", async () => {
+    const user = userEvent.setup();
     const onSectionChange = vi.fn();
     montar({ section: "appearance", onSectionChange });
-    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("tab", { name: "Cuenta" }));
     expect(onSectionChange).toHaveBeenCalledWith("account");
-    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("data-selected");
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("las acciones de la cabecera van con el título", () => {
@@ -76,5 +90,67 @@ describe("SettingsPage · cabecera y pestañas", () => {
   it("una sección deshabilitada no se puede abrir", () => {
     montar({ sections: [{ id: "account", content: <p>A</p> }, { id: "appearance", content: <p>B</p>, disabled: true }] });
     expect(screen.getByRole("tab", { name: "Apariencia" })).toBeDisabled();
+  });
+
+  it("un clic en una pestaña deshabilitada no cambia de sección", async () => {
+    const user = userEvent.setup();
+    montar({ sections: [{ id: "account", content: <p>A</p> }, { id: "appearance", content: <p>B</p>, disabled: true }] });
+    await user.click(screen.getByRole("tab", { name: "Apariencia" }));
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("A")).toBeVisible();
+  });
+});
+
+/**
+ * Bugs reales de la revisión de calidad: la pestaña activa no puede quedar
+ * huérfana cuando `sections` cambia por debajo —carga diferida, permisos que
+ * llegan tarde— ni abrirse sobre una sección deshabilitada al montar.
+ */
+describe("SettingsPage · `sections` que cambia por debajo", () => {
+  it("con la primera sección deshabilitada, abre la primera habilitada", () => {
+    montar({
+      sections: [
+        { id: "account", content: <p>A</p>, disabled: true },
+        { id: "appearance", content: <p>B</p> },
+      ],
+    });
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("B")).toBeVisible();
+  });
+
+  it("de `sections` vacío a con contenido, activa la primera al llegar", () => {
+    const { rerender } = render(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={[]} />
+      </UiProvider>,
+    );
+    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+
+    rerender(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={DEFAULT_SECTIONS} />
+      </UiProvider>,
+    );
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Datos de la cuenta")).toBeVisible();
+  });
+
+  it("si la sección activa desaparece de `sections`, cae en la primera", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={DEFAULT_SECTIONS} />
+      </UiProvider>,
+    );
+    await user.click(screen.getByRole("tab", { name: "Apariencia" }));
+    expect(screen.getByRole("tab", { name: "Apariencia" })).toHaveAttribute("aria-selected", "true");
+
+    rerender(
+      <UiProvider>
+        <SettingsPage title="Mi perfil" sections={[{ id: "account", content: <p>Datos de la cuenta</p> }]} />
+      </UiProvider>,
+    );
+    expect(screen.getByRole("tab", { name: "Cuenta" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Datos de la cuenta")).toBeVisible();
   });
 });
