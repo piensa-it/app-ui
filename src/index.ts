@@ -130,6 +130,14 @@ export {
   type AvatarPickerChange,
   type AvatarPickerLabels,
 } from "./components/ui/avatar-picker";
+export {
+  ProfileForm,
+  type ProfileFormProps,
+  type ProfileFormValue,
+  type ProfileFormChange,
+  type ProfileFormLabels,
+  type ProfileField,
+} from "./components/ui/profile-form";
 export { Progress, type ProgressProps } from "./components/ui/progress";
 export { Toaster, toast, type ToastOptions } from "./components/ui/toast";
 
@@ -214,6 +222,12 @@ export {
   type UserMenuItem,
   type UserMenuLabels,
 } from "./components/layout/user-menu";
+export {
+  SettingsPage,
+  type SettingsPageProps,
+  type SettingsPageLabels,
+  type SettingsSection,
+} from "./components/layout/settings-page";
 export { initialsFrom } from "./lib/initials";
 export { Layout, type LayoutProps } from "./components/layout/Layout";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/GlobalErrorBoundary";
