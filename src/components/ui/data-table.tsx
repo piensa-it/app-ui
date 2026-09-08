@@ -159,9 +159,14 @@ export interface DataTableProps<TValue extends DataTableValue> {
   searchable?: boolean;
   searchPlaceholder?: string;
   /**
-   * Nombre accesible del buscador. Por defecto «Buscar en la tabla»; se
-   * cambia cuando la pantalla tiene un nombre mejor —y cuando una prueba lo
-   * localiza por él—.
+   * Nombre accesible del buscador. Antes de este prop el `aria-label` estaba
+   * fijo a «Buscar en la tabla»: todas las pantallas anunciaban el mismo
+   * nombre y una prueba de extremo a extremo no tenía forma de distinguir un
+   * buscador de otro cuando había más de uno en pantalla.
+   *
+   * Es independiente de `searchPlaceholder` y no cae a su valor: si se fija
+   * el placeholder sin fijar este prop, el campo muestra un texto pero
+   * anuncia otro —hay que poner los dos a la vez.
    */
   searchLabel?: string;
   loading?: boolean;
