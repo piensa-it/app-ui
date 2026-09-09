@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { Toast as ArkToast, Toaster as ArkToaster, createToaster } from "@ark-ui/react/toast";
+import { Portal } from "@ark-ui/react/portal";
 import { CheckCircle2, X, XCircle, Info, AlertTriangle, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,60 +22,71 @@ const ICON_BY_TYPE: Record<string, ComponentType<{ className?: string }>> = {
  * no hace falta agregarlo manualmente). Habilita las notificaciones globales
  * vía el objeto `toast` exportado de este módulo, análogo a `sonner` —
  * reemplaza al `Toaster` sobre PrimeReact Toast.
+ *
+ * Se monta en un `Portal` (#67) a `document.body`, igual que el resto de los
+ * componentes que superponen (`Dialog`, `AlertDialog`, `Menu`, `Select`...):
+ * es el único punto de montaje que queda fuera del subárbol que un `Dialog`
+ * modal marca `aria-hidden="true"` mientras está abierto
+ * (`hideContentBelow` de Zag), así que un aviso lanzado desde un formulario
+ * de captura sigue siendo anunciado y su botón de cerrar sigue siendo
+ * alcanzable. `z-[100]` ya queda por encima de cualquier capa modal (Dialog
+ * y AlertDialog usan `z-50`) sin depender del orden de montaje en el DOM.
  */
 function Toaster() {
   return (
-    <ArkToaster toaster={toaster} className="fixed z-[100] flex flex-col gap-2 outline-hidden">
-      {(toast: ArkToast.Options) => {
-        const Icon = ICON_BY_TYPE[toast.type ?? "info"];
-        return (
-          <ArkToast.Root
-            key={toast.id}
-            className={cn(
-              "flex w-80 items-start gap-3 rounded-md border border-border bg-raised p-4 text-sm shadow-lg",
-              elevationRing,
-              cx(
-                "data-[state=open]:animate-in data-[state=closed]:animate-out",
-                "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-                "data-[state=closed]:slide-out-to-right-4 data-[state=open]:slide-in-from-bottom-2",
-              ),
-            )}
-          >
-            {Icon ? (
-              <Icon
-                className={cn(
-                  "mt-0.5 h-5 w-5 shrink-0",
-                  toast.type === "success" && "text-success",
-                  toast.type === "error" && "text-destructive",
-                  toast.type === "warning" && "text-warning",
-                  toast.type === "info" && "text-primary",
-                  toast.type === "loading" && "animate-spin text-muted-foreground",
-                )}
-              />
-            ) : null}
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              {toast.title ? (
-                <ArkToast.Title className="font-medium leading-none">{toast.title}</ArkToast.Title>
+    <Portal>
+      <ArkToaster toaster={toaster} className="fixed z-[100] flex flex-col gap-2 outline-hidden">
+        {(toast: ArkToast.Options) => {
+          const Icon = ICON_BY_TYPE[toast.type ?? "info"];
+          return (
+            <ArkToast.Root
+              key={toast.id}
+              className={cn(
+                "flex w-80 items-start gap-3 rounded-md border border-border bg-raised p-4 text-sm shadow-lg",
+                elevationRing,
+                cx(
+                  "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                  "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                  "data-[state=closed]:slide-out-to-right-4 data-[state=open]:slide-in-from-bottom-2",
+                ),
+              )}
+            >
+              {Icon ? (
+                <Icon
+                  className={cn(
+                    "mt-0.5 h-5 w-5 shrink-0",
+                    toast.type === "success" && "text-success",
+                    toast.type === "error" && "text-destructive",
+                    toast.type === "warning" && "text-warning",
+                    toast.type === "info" && "text-primary",
+                    toast.type === "loading" && "animate-spin text-muted-foreground",
+                  )}
+                />
               ) : null}
-              {toast.description ? (
-                <ArkToast.Description className="text-muted-foreground">{toast.description}</ArkToast.Description>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                {toast.title ? (
+                  <ArkToast.Title className="font-medium leading-none">{toast.title}</ArkToast.Title>
+                ) : null}
+                {toast.description ? (
+                  <ArkToast.Description className="text-muted-foreground">{toast.description}</ArkToast.Description>
+                ) : null}
+              </div>
+              {toast.closable !== false ? (
+                <ArkToast.CloseTrigger
+                  aria-label="Cerrar notificación"
+                  className={cn(
+                    "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
+                    focusRingOutside,
+                  )}
+                >
+                  <X className="h-4 w-4" />
+                </ArkToast.CloseTrigger>
               ) : null}
-            </div>
-            {toast.closable !== false ? (
-              <ArkToast.CloseTrigger
-                aria-label="Cerrar notificación"
-                className={cn(
-                  "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
-                  focusRingOutside,
-                )}
-              >
-                <X className="h-4 w-4" />
-              </ArkToast.CloseTrigger>
-            ) : null}
-          </ArkToast.Root>
-        );
-      }}
-    </ArkToaster>
+            </ArkToast.Root>
+          );
+        }}
+      </ArkToaster>
+    </Portal>
   );
 }
 

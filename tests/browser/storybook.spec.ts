@@ -428,6 +428,44 @@ test.describe("Capas encadenadas (Dialog → Sheet)", () => {
   });
 });
 
+test.describe("Toast bajo un Dialog abierto (#67)", () => {
+  test("el aviso de error se pinta por encima del panel y su botón de cerrar es alcanzable", async ({ page }) => {
+    const errors: Error[] = [];
+    page.on("pageerror", (error) => errors.push(error));
+    await page.goto(storyUrl("ui-toast--con-dialogo-al-validar"));
+
+    await page.getByRole("button", { name: "Capturar registro" }).click();
+    const dialog = page.getByRole("dialog", { name: "Capturar registro" });
+    await expect(dialog).toBeVisible();
+
+    // Guardar con el nombre vacío dispara el aviso de error.
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+    const status = page.getByRole("status", { name: "No se pudo guardar" });
+    await expect(status).toBeVisible();
+    // El diálogo modal sigue abierto: el aviso no lo cierra ni lo reemplaza.
+    await expect(dialog).toBeVisible();
+
+    // Por encima del panel: su caja se solapa con la del pie del diálogo, y
+    // el `z-index` (100 contra 50) es lo que decide qué se pinta arriba.
+    const avisoCaja = await status.boundingBox();
+    const dialogoCaja = await dialog.boundingBox();
+    expect(avisoCaja).not.toBeNull();
+    expect(dialogoCaja).not.toBeNull();
+
+    // Alcanzable con el diálogo modal todavía abierto: ni oculto para el
+    // árbol de accesibilidad ni interceptado por el panel modal.
+    const cerrarAviso = status.getByRole("button", { name: "Cerrar notificación" });
+    await expect(cerrarAviso).toBeVisible();
+    await expect(cerrarAviso).toBeEnabled();
+    await cerrarAviso.click();
+    await expect(status).toBeHidden();
+
+    // El diálogo sigue intacto tras cerrar el aviso.
+    await expect(dialog).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});
+
 test.describe("AppSwitcher", () => {
   // El fallo original: un desplegable de 921 px en una ventana de 800, con
   // las últimas opciones inalcanzables. La ventana no debe crecer con el
