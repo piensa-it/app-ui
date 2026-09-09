@@ -83,6 +83,38 @@ describe("DataTable", () => {
     expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
   });
 
+  it("el popover de columnas cambia densidad, filtra por nombre, y 'Mostrar todas'/'Restaurar columnas' funcionan", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable value={[{ nombre: "Ana", correo: "ana@example.com" }]} configurableColumns>
+        <Column field="nombre" header="Nombre" hideable={false} />
+        <Column field="correo" header="Correo" />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Configurar columnas" }));
+
+    const compacta = screen.getByRole("button", { name: "Compacta" });
+    await user.click(compacta);
+    expect(compacta).toHaveAttribute("aria-pressed", "true");
+
+    await user.type(screen.getByRole("textbox", { name: "Buscar columna" }), "corr");
+    expect(screen.getByRole("button", { name: /Correo/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Nombre/i })).not.toBeInTheDocument();
+
+    await user.clear(screen.getByRole("textbox", { name: "Buscar columna" }));
+    await user.click(screen.getByRole("button", { name: /Correo/i }));
+    expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Mostrar todas" }));
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Correo/i }));
+    expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Restaurar columnas" }));
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+  });
+
   it("cierra la configuración de columnas al continuar con la búsqueda", async () => {
     const user = userEvent.setup();
     render(
