@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, type CSSProperties } from "react";
+
+import "./marketing.css";
 
 export interface ImageCarouselBackdropProps {
   images: string[];
@@ -24,6 +25,14 @@ export interface ImageCarouselBackdropProps {
  * paleta: variant="duotone" usa `bg-primary` por defecto para que el color
  * salga del theme de cada consumidor; sobreescribe `duotoneOverlayClassName`
  * / `glowClassNames` si necesitas un color puntual distinto al primary.
+ *
+ * El fundido es CSS puro (`marketing.css`), no framer-motion (#64): dos capas
+ * fijas superpuestas — la de atrás muestra la imagen ya asentada en su
+ * opacidad final (sin animar), la de delante remonta con `key={index}` y
+ * anima su propia opacidad de 0 al valor final. Cuando termina, la de atrás
+ * "alcanza" a la de delante (mismo índice, misma opacidad) sin salto visible,
+ * lista para el siguiente fundido. Respeta `prefers-reduced-motion` desde la
+ * hoja de estilos, igual que el resto del sistema de movimiento.
  */
 export function ImageCarouselBackdrop({
   images,
@@ -33,30 +42,44 @@ export function ImageCarouselBackdrop({
   duotoneOverlayClassName = "bg-primary/45 backdrop-blur-[3px]",
   glowClassNames = ["bg-primary/60", "bg-primary/30"],
 }: ImageCarouselBackdropProps) {
-  const [index, setIndex] = useState(0);
+  const [current, setCurrent] = useState(0);
+  const [previous, setPrevious] = useState(0);
+  const targetOpacity = variant === "hero" ? 0.5 : 1;
 
   useEffect(() => {
     if (images.length <= 1) return;
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
+      setCurrent((prev) => {
+        setPrevious(prev);
+        return (prev + 1) % images.length;
+      });
     }, intervalMs);
     return () => clearInterval(interval);
   }, [images.length, intervalMs]);
 
+  // La animación de `marketing.css` solo controla la transición de entrada:
+  // el `opacity` inline es la opacidad real una vez termina (o si la
+  // animación está deshabilitada — reduced motion, o un entorno de prueba
+  // que la fuerza a `none`). La variable CSS es lo que lee el `@keyframes`
+  // para no depender de un valor fijo distinto por variante.
+  const fadeStyle: CSSProperties = {
+    opacity: targetOpacity,
+    ["--marketing-fade-opacity" as string]: targetOpacity,
+  };
+
   return (
     <>
       <div className={`absolute inset-0 z-0 ${variant === "hero" ? "bg-overlay" : "bg-primary"}`}>
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={index}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: variant === "hero" ? 0.5 : 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${images[index]})` }}
-          />
-        </AnimatePresence>
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${images[previous]})`, opacity: targetOpacity }}
+        />
+        <div
+          key={current}
+          data-marketing-motion="carousel-fade"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${images[current]})`, ...fadeStyle }}
+        />
         {variant === "duotone" && (
           <>
             <div className="absolute inset-0 bg-gradient-to-br from-background/75 to-background/85 mix-blend-multiply" />
