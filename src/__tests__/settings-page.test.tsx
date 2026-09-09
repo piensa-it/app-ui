@@ -1,7 +1,7 @@
 import * as React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { UiProvider } from "../components/providers/UiProvider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
@@ -385,17 +385,6 @@ const conCambios = (props: Partial<React.ComponentProps<typeof SettingsPage>> = 
   montar({ ...props, sections: seccionesSucias() });
 
 describe("SettingsPage · salir de una sección con cambios", () => {
-  // `confirmAlert` guarda su estado en un store fuera de React (ver
-  // `alert-dialog.tsx`), que sobrevive al desmontaje de cada prueba: si una
-  // deja el diálogo abierto, la siguiente remonta `AlertDialogHost` ya
-  // abierto —con el `onConfirm` de la prueba anterior, obsoleto— y su
-  // overlay deja el resto de la página con `pointer-events: none`. Se cierra
-  // aquí, una vez, para todas las pruebas de este bloque.
-  afterEach(() => {
-    const dialogo = document.querySelector('[role="alertdialog"]');
-    if (dialogo) fireEvent.click(dialogo.querySelector("button")!);
-  });
-
   it("pide confirmación antes de cambiar de pestaña", async () => {
     const user = userEvent.setup();
     conCambios();

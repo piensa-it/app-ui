@@ -61,6 +61,13 @@ function AlertDialogHost() {
   const current = React.useSyncExternalStore(subscribe, getSnapshot);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
+  // El store vive fuera de React y sobrevive al desmontaje de este
+  // componente por defecto. `AlertDialogHost` es el único que puede pintarlo,
+  // así que si se desmonta —remontaje de la app, un microfrontend, Storybook
+  // cambiando de story— nadie debe heredar un diálogo abierto con un
+  // `onConfirm` de un ciclo de vida que ya no existe (#138).
+  React.useEffect(() => () => setState(null), []);
+
   const close = () => setState(current ? { ...current, open: false } : null);
 
   return (
@@ -74,6 +81,15 @@ function AlertDialogHost() {
       initialFocusEl={() => cancelRef.current}
       lazyMount
       unmountOnExit
+      // `close()` deja `open: false` en vez de `null`: con `unmountOnExit` el
+      // contenido (título, descripción, variante) tiene que seguir
+      // pintándose mientras el diálogo se desvanece, o la animación de
+      // salida se ve con el diálogo ya vacío. Las opciones —y con ellas el
+      // `onConfirm` y su árbol de closures— se sueltan aquí, en
+      // `onExitComplete`, que Ark UI invoca cuando la animación de salida
+      // termina (o de inmediato si no hay ninguna, ver @zag-js/presence). Así
+      // no se retienen indefinidamente pero tampoco se corta la animación.
+      onExitComplete={() => setState(null)}
     >
       <Portal>
         <ArkDialog.Backdrop className={cn("fixed inset-0 z-50", overlayBackdrop, backdropAnimation)} />
@@ -127,3 +143,15 @@ function AlertDialogHost() {
 }
 
 export { AlertDialogHost, confirmAlert };
+
+/**
+ * El store es intencionalmente privado del módulo (ver comentario junto a
+ * `state`): nada fuera de este fichero debe leerlo ni escribirlo. Se expone
+ * aquí, sin pasar por `src/index.ts`, solo para la única prueba que no puede
+ * comprobarse desde fuera: que cerrar un diálogo suelta las opciones (y con
+ * ellas el `onConfirm`) en vez de conservarlas con `open: false` — eso es
+ * retención de memoria, invisible en el DOM. Todo lo demás sobre este store
+ * (qué hereda un remontaje, si un `onConfirm` viejo puede dispararse) se
+ * prueba por conducta observable, sin este hook — ver `alert-dialog.test.tsx`.
+ */
+export const __alertDialogTestHooks = { getState: getSnapshot };
