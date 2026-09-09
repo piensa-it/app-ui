@@ -35,7 +35,7 @@ export class GlobalErrorBoundary extends Component<GlobalErrorBoundaryProps, Sta
     this.props.onError?.(error, errorInfo);
   }
 
-  public render() {
+  public render(): ReactNode {
     if (this.state.hasError) {
       const {
         title = "Ups, algo salió mal",
