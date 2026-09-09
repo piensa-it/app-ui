@@ -11,20 +11,22 @@ import { Slider } from "../components/ui/slider";
  */
 describe("Slider", () => {
   it("renderiza un slider accesible con el valor inicial", () => {
-    render(<Slider value={[40]} aria-label="Volumen" thumbAlignment="center" />);
+    render(<Slider value={[40]} aria-label={["Volumen"]} thumbAlignment="center" />);
     const control = screen.getByRole("slider", { name: "Volumen" });
     expect(control).toHaveAttribute("aria-valuenow", "40");
   });
 
   it("min/max quedan expuestos en el elemento con role=slider", () => {
-    render(<Slider value={[5]} min={0} max={10} aria-label="Rango" thumbAlignment="center" />);
+    render(<Slider value={[5]} min={0} max={10} aria-label={["Rango"]} thumbAlignment="center" />);
     const control = screen.getByRole("slider", { name: "Rango" });
     expect(control).toHaveAttribute("aria-valuemin", "0");
     expect(control).toHaveAttribute("aria-valuemax", "10");
   });
 
   it("con dos valores renderiza dos thumbs (rango)", () => {
-    render(<Slider value={[2, 8]} min={0} max={10} aria-label="Rango doble" thumbAlignment="center" />);
+    render(
+      <Slider value={[2, 8]} min={0} max={10} aria-label={["Mínimo", "Máximo"]} thumbAlignment="center" />,
+    );
     expect(screen.getAllByRole("slider")).toHaveLength(2);
   });
 
@@ -36,7 +38,7 @@ describe("Slider", () => {
         onChange={(value) => (valorActual = value)}
         min={0}
         max={10}
-        aria-label="Con handler"
+        aria-label={["Con handler"]}
         thumbAlignment="center"
       />,
     );
