@@ -26,9 +26,18 @@ npm run test:browser:docker         # Las mismas, en el Linux exacto de CI
 npm run test:browser:docker:update  # Regenera las capturas de referencia de Linux
 ```
 
-Las capturas comparadas se guardan por plataforma (`*-darwin.png`,
-`*-linux.png`) porque macOS y Linux no rasterizan las letras igual. Las que
-mira CI son las de Linux: regeneralas con Docker, no a mano.
+Las capturas comparadas se generan por plataforma (macOS y Linux no
+rasterizan las letras igual), pero solo se **versionan** las de Linux
+(`*-linux.png`): son las únicas que mira `browser-gate` en CI, y se
+regeneran con Docker, no a mano. Las de macOS (`*-darwin.png`) están en
+`.gitignore` y no se suben: son específicas de cada Mac, no de la
+plataforma —dos Macs distintas ya difieren en miles de píxeles de contorno
+de letras (#141)—, así que versionarlas rompía `npm run test:browser` para
+cualquiera que no fuera quien las generó. `npm run test:browser` las crea
+solas en la primera corrida de cada máquina y compara contra sí misma en
+las siguientes — esa primera corrida se reporta en rojo (Playwright avisa
+"A snapshot doesn't exist ..., writing actual."), es esperado, no una
+regresión: se vuelve a correr y ya pasa en limpio.
 
 ## Estructura del proyecto
 
