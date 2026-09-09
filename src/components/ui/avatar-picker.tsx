@@ -7,7 +7,7 @@ import type { TokenColor } from "@/lib/palette";
 import { DEFAULT_AVATAR_COLORS } from "@/lib/avatar-colors";
 import { Avatar } from "./avatar";
 import { Button } from "./button";
-import { CameraIcon, CloseIcon } from "@/icons";
+import { CameraIcon, CheckIcon, CloseIcon } from "@/icons";
 
 export interface AvatarPickerValue {
   /** URL de la foto guardada, si la hay. */
@@ -188,15 +188,27 @@ export const AvatarPicker = React.forwardRef<HTMLDivElement, AvatarPickerProps>(
                   onClick={() => onChange({ file: null, color: option, src: value?.src })}
                   style={{ backgroundColor: `hsl(${option})` }}
                   className={cn(
-                    "grid size-10 place-items-center rounded-lg text-ui-caption font-semibold text-white transition-transform duration-fast",
+                    "relative grid size-10 place-items-center rounded-lg text-ui-caption font-semibold text-white transition-transform duration-fast",
                     focusRingOutside,
-                    // La elegida se marca con anillo, no con otro color: el color ya es el dato.
-                    // `ring-offset-raised` asume superficie `raised`, que puede no ser la del
-                    // control — es el desvío descrito en #125, ajeno a #139, no se toca aquí.
-                    selected ? "ring-2 ring-foreground ring-offset-2 ring-offset-raised" : "hover:scale-105",
+                    !selected && "hover:scale-105",
                   )}
                 >
                   {initialsFrom(name)}
+                  {selected ? (
+                    // La elegida se marca con un visto, no con otro color: el color ya es el
+                    // dato (mismo criterio que `AppearanceSettings` y `AppSwitcher`, #125).
+                    // No con borde: a diferencia de esos dos, aquí el color cubre toda la
+                    // casilla —no hay superficie neutra detrás— y uno de los ocho por defecto
+                    // ("243 70% 52%") comparte matiz con `--primary`, así que un borde de ese
+                    // color se perdería contra él. El disco blanco sí se distingue de los ocho:
+                    // es la misma garantía de contraste que ya prueba el texto de las iniciales.
+                    <span
+                      aria-hidden="true"
+                      className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full bg-white text-primary shadow-sm"
+                    >
+                      <CheckIcon className="size-2.5" strokeWidth={3} />
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
