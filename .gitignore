@@ -5,6 +5,7 @@ node_modules/
 dist/
 storybook-static/
 *.tsbuildinfo
+.tmp-react18-consumer-*/
 
 # Tests
 coverage/

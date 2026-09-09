@@ -12,8 +12,14 @@ export interface SidebarState {
   closeMobile: () => void;
   /** El menú se está mostrando dentro del panel móvil. */
   inMobilePanel: boolean;
-  /** Identificadores de las secciones que el usuario dejó cerradas. */
-  closedGroups: readonly string[];
+  /**
+   * Preferencia explícita por sección, `id → abierta`. Solo lleva las
+   * secciones que la persona tocó (o que se migraron del formato viejo, que
+   * solo guardaba las cerradas): una sección ausente no tiene preferencia
+   * guardada y `defaultOpen` decide (#94). No uses `groupId in groupPreferences`
+   * para nada más que leer si hay preferencia — el valor puede ser `false`.
+   */
+  groupPreferences: Readonly<Record<string, boolean>>;
   /** Abre o cierra una sección, recordándolo con el resto de preferencias. */
   toggleGroup: (groupId: string, open: boolean) => void;
 }
@@ -39,7 +45,7 @@ export function useSidebar(): SidebarState {
       rail: false,
       closeMobile: () => {},
       inMobilePanel: false,
-      closedGroups: [],
+      groupPreferences: {},
       toggleGroup: () => {},
     }
   );
