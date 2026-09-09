@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { createPalette, type TokenColor } from "@/lib/palette";
 import type { UiDensity } from "@/components/providers/UiProvider";
 import { CheckIcon } from "@/icons";
@@ -230,7 +231,7 @@ function Option({ label, selected, onSelect, children }: OptionProps) {
       onClick={onSelect}
       className={cn(
         "flex flex-col gap-ui-2xs rounded-lg border p-ui-xs text-left transition-colors duration-fast",
-        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        focusRingOutside,
         // La elegida se marca con borde y visto, no con color: el color puede
         // ser justamente lo que se está eligiendo.
         selected ? "border-primary bg-subtle" : "border-surface-border bg-surface hover:bg-surface-hover",

@@ -4,6 +4,7 @@ import { CheckCircle2, X, XCircle, Info, AlertTriangle, Loader2 } from "lucide-r
 
 import { cn } from "@/lib/utils";
 import { cx, elevationRing } from "@/lib/style-helpers";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 const toaster = createToaster({ placement: "bottom-end", gap: 12, overlap: false });
 
@@ -64,7 +65,7 @@ function Toaster() {
                 aria-label="Cerrar notificación"
                 className={cn(
                   "shrink-0 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  focusRingOutside,
                 )}
               >
                 <X className="h-4 w-4" />

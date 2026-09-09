@@ -2,6 +2,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { Select } from "@/components/ui/select";
 
 export interface PaginationProps {
@@ -90,7 +91,7 @@ function Pagination({
             className={cn(
               "flex h-control-default w-control-default items-center justify-center rounded-md border border-input",
               "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              focusRingOutside,
               "disabled:pointer-events-none disabled:opacity-50",
             )}
           >
@@ -109,7 +110,7 @@ function Pagination({
             className={cn(
               "flex h-control-default w-control-default items-center justify-center rounded-md border border-input",
               "transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              focusRingOutside,
               "disabled:pointer-events-none disabled:opacity-50",
             )}
           >

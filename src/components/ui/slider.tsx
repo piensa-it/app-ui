@@ -3,6 +3,7 @@ import { Slider as ArkSlider } from "@ark-ui/react/slider";
 
 import { cn } from "@/lib/utils";
 import { sliderTrackSizeVariants, sliderThumbSizeVariants } from "@/lib/recipes/slider";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 export interface SliderProps extends Omit<ArkSlider.RootProps, "value" | "onValueChange" | "children"> {
   value?: number[];
@@ -32,7 +33,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             className={cn(
               "block transition-transform duration-normal hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none",
               sliderThumbSizeVariants({ size }),
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              focusRingOutside,
               "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
             )}
           >

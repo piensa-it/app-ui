@@ -3,6 +3,7 @@ import { Accordion as ArkAccordion } from "@ark-ui/react/accordion";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 export interface AccordionTabProps {
   /** Etiqueta del panel. */
@@ -69,7 +70,8 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
                   "group flex min-h-control-comfortable w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold",
                   "transition-colors duration-normal ease-standard hover:bg-surface-hover",
                   "data-[state=open]:bg-subtle/70 data-[state=open]:text-subtle-foreground",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-inset",
+                  focusRingOutside,
+                  "focus-visible:ring-inset",
                   "disabled:pointer-events-none disabled:opacity-50",
                 )}
               >

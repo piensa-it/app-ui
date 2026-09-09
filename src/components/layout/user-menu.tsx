@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { initialsFrom } from "@/lib/initials";
 import type { TokenColor } from "@/lib/palette";
 import { Avatar } from "@/components/ui/avatar";
@@ -147,7 +148,7 @@ export const UserMenu = React.forwardRef<HTMLButtonElement, UserMenuProps>(
             className={cn(
               "flex items-center gap-ui-xs rounded-md py-ui-2xs pl-ui-2xs pr-ui-xs text-left",
               "transition-colors duration-normal hover:bg-surface-hover",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              focusRingOutside,
               className,
             )}
           >

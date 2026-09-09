@@ -2,6 +2,7 @@ import * as React from "react";
 import { Tabs as ArkTabs } from "@ark-ui/react/tabs";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 export interface TabPanelProps {
   /** Etiqueta de la pestaña. */
@@ -81,7 +82,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
                 "flex min-h-control-comfortable shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-4 text-sm font-medium text-muted-foreground",
                 "transition-colors duration-normal hover:bg-surface-hover hover:text-foreground",
                 "data-[selected]:text-foreground",
-                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                focusRingOutside,
                 "disabled:pointer-events-none disabled:opacity-50",
                 panel.className,
               )}
