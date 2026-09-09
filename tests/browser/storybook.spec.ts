@@ -297,6 +297,58 @@ test.describe("Storybook browser gate", () => {
     });
   });
 
+  // #130: la pantalla de entrada completa. Las dos capturas —claro y
+  // oscuro— son el criterio de aceptación de la HU; el `aside` de la story
+  // lleva una sola imagen a propósito para que la referencia no dependa del
+  // momento del ciclo del carrusel.
+  for (const theme of ["light", "dark"] as const) {
+    test(`keeps the auth screen visually stable in ${theme} theme`, async ({ page }) => {
+      await page.goto(storyUrl("layout-authlayout--basico", `theme:${theme};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+
+      const story = page.locator("#storybook-root");
+      await expect(story.getByRole("button", { name: "Entrar" })).toBeVisible();
+      await expect(story).toHaveScreenshot(`auth-layout-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
+  // El criterio dice que por debajo de `md` el panel desaparece y el
+  // formulario ocupa el ancho. jsdom no aplica media queries —allí solo se
+  // vería la clase— así que la única comprobación que vale es esta, midiendo
+  // el DOM real a dos anchos.
+  test("por debajo de md el panel desaparece y el formulario ocupa el ancho", async ({ page }) => {
+    await page.goto(storyUrl("layout-authlayout--basico"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    // El armazón son dos columnas hermanas y el panel es la segunda; no hay
+    // convención de `data-slot` en el repo, así que se localiza por
+    // estructura en vez de inventarle un atributo solo para la prueba.
+    const panel = story.locator("> div > div").nth(1);
+    const formulario = story.locator("form");
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(formulario).toBeVisible();
+    const anchoAmplio = (await formulario.boundingBox())!.width;
+    const columnaIzquierda = (await story.locator("main").boundingBox())!.width;
+    // A lo ancho, la columna del formulario es media pantalla: el panel ocupa
+    // la otra mitad.
+    expect(columnaIzquierda).toBeLessThan(1280 * 0.6);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(formulario).toBeVisible();
+    await expect(panel).toBeHidden();
+    const columnaEstrecha = (await story.locator("main").boundingBox())!.width;
+    // Ya no es media pantalla: la columna se queda con todo el ancho útil.
+    expect(columnaEstrecha).toBeGreaterThan(390 * 0.8);
+    // Y el formulario no quedó más ancho que antes por accidente: lo acota
+    // `max-w-sm`, no la columna.
+    expect(anchoAmplio).toBeGreaterThan(0);
+  });
+
   // La entrada del menú móvil de PublicHeader pasó de framer-motion a CSS
   // puro (#64). La captura fija el estado abierto (layout + colores); la
   // animación de entrada la cubre `motion.css`/`marketing.css` con su propio

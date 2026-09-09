@@ -268,7 +268,13 @@ export const SettingsPage = React.forwardRef<HTMLDivElement, SettingsPageProps>(
       onSectionChangeRef.current = onSectionChange;
     });
 
-    const rootRef = React.useRef<HTMLDivElement>(null);
+    // `| null` en el parámetro de tipo, no solo en el valor inicial: con los
+    // tipos de React 18 `useRef<T>(null)` devuelve un `RefObject<T>` de
+    // `current` **de solo lectura**, y la asignación de abajo no compila. En
+    // los de React 19 `current` es asignable y las dos formas valen, así que
+    // esta es la única que sirve para las dos versiones que declara
+    // `peerDependencies`.
+    const rootRef = React.useRef<HTMLDivElement | null>(null);
     const setRootRef = React.useCallback(
       (node: HTMLDivElement | null) => {
         rootRef.current = node;

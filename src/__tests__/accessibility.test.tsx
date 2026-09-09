@@ -11,6 +11,8 @@ import { MultiSelect } from "../components/ui/multi-select";
 import { Select } from "../components/ui/select";
 import { AnimatedBanner } from "../components/ui/animated-banner";
 import { Illustration } from "../components/ui/illustration";
+import { AuthLayout } from "../components/layout/auth-layout";
+import { LoginForm } from "../components/ui/login-form";
 
 async function expectNoA11yViolations(container: HTMLElement) {
   const result = await axe.run(container, {
@@ -71,6 +73,27 @@ describe("accesibilidad base", () => {
       >
         Los cambios están disponibles.
       </AnimatedBanner>,
+    );
+
+    await expectNoA11yViolations(container);
+  });
+
+  // La pantalla de entrada es la primera que ve alguien, y la que más
+  // depende de que el teclado y el lector de pantalla funcionen (#130). Se
+  // revisa con el error visible, que es el estado que estrena una región
+  // viva y un `role="alert"`.
+  it("no detecta violaciones en la pantalla de entrada, ni con el error visible", async () => {
+    const { container } = render(
+      <AuthLayout brand={<span>Piensa IT</span>} footer={<span>© 2026</span>}>
+        <LoginForm
+          value={{ username: "", password: "", remember: false }}
+          onChange={() => {}}
+          onSubmit={() => {}}
+          error="Usuario o contraseña incorrectos."
+          onForgot={() => {}}
+          onActivate={() => {}}
+        />
+      </AuthLayout>,
     );
 
     await expectNoA11yViolations(container);
