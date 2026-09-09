@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { Dialog, DialogTitle } from "../components/ui/dialog";
-import { Sheet, SheetTitle } from "../components/ui/sidebar";
+import { Sheet, SheetTitle } from "../components/ui/sheet";
 
 type Overlay = typeof Dialog | typeof Sheet;
 type TitleComponent = React.ComponentType<React.PropsWithChildren>;

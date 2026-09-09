@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { UiProvider } from "../components/providers/UiProvider";
+import { UiProvider } from "../components/providers/ui-provider";
 
 describe("UiProvider — densidad", () => {
   it("no marca densidad cuando no se pide", () => {

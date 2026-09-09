@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { GlobalErrorBoundary } from "../components/layout/GlobalErrorBoundary";
+import { GlobalErrorBoundary } from "../components/layout/global-error-boundary";
 
 /**
  * `GlobalErrorBoundary` es el componente que atrapa fallos no controlados en

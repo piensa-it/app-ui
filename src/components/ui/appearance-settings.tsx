@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
 import { createPalette, type TokenColor } from "@/lib/palette";
-import type { UiDensity } from "@/components/providers/UiProvider";
+import type { UiDensity } from "@/components/providers/ui-provider";
 import { CheckIcon } from "@/icons";
 import { BUNDLED_LOOKS, BUNDLED_PALETTES, FONT_PRESETS } from "@/lib/appearance-presets";
 

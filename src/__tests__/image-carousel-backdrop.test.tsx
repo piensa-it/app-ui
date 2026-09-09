@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render } from "@testing-library/react";
-import { ImageCarouselBackdrop } from "../components/marketing/ImageCarouselBackdrop";
+import { ImageCarouselBackdrop } from "../components/marketing/image-carousel-backdrop";
 
 describe("ImageCarouselBackdrop", () => {
   it("pinta la primera imagen como fondo", () => {

@@ -5,7 +5,7 @@ import axe from "axe-core";
 
 import { Button } from "../components/ui/button";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
-import { Sheet, SheetHeader, SheetTitle, SheetDescription } from "../components/ui/sidebar";
+import { Sheet, SheetHeader, SheetTitle, SheetDescription } from "../components/ui/sheet";
 import { Popover, PopoverTrigger, PopoverContent } from "../components/ui/popover";
 import { Menu, MenuTrigger, MenuContent, MenuItem } from "../components/ui/menu";
 import { Tooltip } from "../components/ui/tooltip";

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ImageCarouselBackdrop } from "./ImageCarouselBackdrop";
+import { ImageCarouselBackdrop } from "./image-carousel-backdrop";
 
 // Placeholders de color sólido — en un producto real estas son fotos reales
 // pasadas por el consumidor (ver `heroBackgrounds.ts` de ejemplo en el README).

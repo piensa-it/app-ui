@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { LinkComponent } from "./PublicHeader";
+import type { LinkComponent } from "./public-header";
 
 import { cn } from "@/lib/utils";
 

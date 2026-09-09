@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PublicHeader } from "./PublicHeader";
+import { PublicHeader } from "./public-header";
 import { Button } from "../ui/button";
 
 // Logo placeholder neutro — cada producto pasa el suyo vía `logoSrc`.
