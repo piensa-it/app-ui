@@ -11,7 +11,7 @@ describe("useSidebar", () => {
     expect(result.current.collapsed).toBe(false);
     expect(result.current.rail).toBe(false);
     expect(result.current.inMobilePanel).toBe(false);
-    expect(result.current.closedGroups).toEqual([]);
+    expect(result.current.groupPreferences).toEqual({});
     // No deben lanzar: son no-ops fuera de AppShell.
     expect(() => result.current.closeMobile()).not.toThrow();
     expect(() => result.current.toggleGroup("grupo", true)).not.toThrow();
@@ -23,7 +23,7 @@ describe("useSidebar", () => {
       rail: true,
       closeMobile: () => {},
       inMobilePanel: true,
-      closedGroups: ["reportes"],
+      groupPreferences: { reportes: false },
       toggleGroup: () => {},
     };
     const wrapper = ({ children }: { children: React.ReactNode }) =>
