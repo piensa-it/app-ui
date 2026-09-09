@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DataTable, Column } from "./data-table";
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Trash2 } from "lucide-react";
 
 const meta = {
   title: "UI/DataTable",
@@ -223,6 +223,44 @@ export const ColumnaNumerica: Story = {
   ),
 };
 
+const ETIQUETA_ESTADO: Record<Usuario["estado"], string> = {
+  activo: "Activo",
+  inactivo: "Inactivo",
+};
+
+/**
+ * `accessor` es lo que hace ordenable y buscable una columna que no lee un
+ * campo crudo de la fila. Aquí «Estado» no tiene `field`: el valor en la fila
+ * es `"activo"` / `"inactivo"`, pero lo que el usuario ve —y por lo que
+ * espera ordenar y buscar— es la etiqueta en español. Sin `accessor` esta
+ * columna sería de presentación pura: ni orden ni búsqueda, aunque tenga
+ * `sortable`.
+ */
+export const ColumnaCalculada: Story = {
+  name: "Columna calculada (accessor)",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="«Estado» se ordena y se busca por la etiqueta en español, no por el valor crudo de la fila."
+      searchable
+      rows={10}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        id="estado"
+        header="Estado"
+        sortable
+        accessor={(row: Usuario) => ETIQUETA_ESTADO[row.estado]}
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{ETIQUETA_ESTADO[row.estado]}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};
+
 /** `paginator={false}` muestra todas las filas sin pie de paginación. */
 export const SinPaginador: Story = {
   name: "Sin paginador",
@@ -242,6 +280,153 @@ export const PaginadorForzado: Story = {
     <DataTable value={usuarios} paginator>
       <Column field="nombre" header="Nombre" sortable />
       <Column field="correo" header="Correo" />
+    </DataTable>
+  ),
+};
+
+/**
+ * `onRowClick` convierte la fila en un control: responde al ratón y al
+ * teclado (Enter y Espacio). La columna de acciones sigue siendo un botón
+ * normal, y su clic no llega a `onRowClick` — pulsar «Eliminar» no abre
+ * además el detalle de la fila.
+ */
+export const FilaClicable: Story = {
+  name: "Fila clicable, sin robarle el clic a las acciones",
+  render: () => (
+    <DataTable
+      value={usuarios}
+      title="Miembros del equipo"
+      description="Haz clic en una fila para abrir su detalle."
+      onRowClick={(usuario) => window.alert(`Abriendo a ${usuario.nombre}`)}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+      <Column
+        id="acciones"
+        header="Acciones"
+        hideable={false}
+        body={() => (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.alert("Eliminar (no abre el detalle)")}
+          >
+            <Trash2 /> Eliminar
+          </Button>
+        )}
+      />
+    </DataTable>
+  ),
+};
+
+/**
+ * `renderExpanded` añade al principio la columna estrecha con el botón que
+ * despliega el detalle bajo la fila. Una sola fila abierta a la vez: abrir
+ * otra repliega la anterior, para no convertir la tabla en una lista.
+ */
+export const DetalleEnLinea: Story = {
+  name: "Detalle en línea bajo la fila",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="Despliega una fila para ver su ficha completa sin salir de la tabla."
+      searchable
+      rows={10}
+      // `renderExpanded` rastrea la fila abierta por `row.id`: sin `getRowId`
+      // sería la posición de TanStack, no el correo. El correo es único por
+      // fila en este arreglo (viene del nombre), así que sirve de identidad.
+      getRowId={(usuario: Usuario) => usuario.correo}
+      renderExpanded={(usuario: Usuario) => (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cargo</dt>
+            <dd className="text-sm">{usuario.cargo}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sede</dt>
+            <dd className="text-sm">{usuario.sede}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supervisor</dt>
+            <dd className="text-sm">{usuario.supervisor}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Costo mensual</dt>
+            <dd className="text-sm">${usuario.costoMensual?.toLocaleString("es-CO")}</dd>
+          </div>
+        </dl>
+      )}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};
+
+/**
+ * `multiple` deja abiertas varias filas a la vez: en CoreLink, Categorías,
+ * Segmentos y Listas de Precios necesitan comparar dos fichas lado a lado
+ * (los ítems de una categoría junto a los de otra), y el comportamiento por
+ * defecto —una fila a la vez— se lo impediría.
+ */
+export const DetalleEnLineaMultiple: Story = {
+  name: "Detalle en línea, varias filas a la vez (multiple)",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      description="Con `multiple`, desplegar una fila no repliega las demás: se pueden comparar dos o más fichas a la vez."
+      searchable
+      rows={10}
+      getRowId={(usuario: Usuario) => usuario.correo}
+      multiple
+      renderExpanded={(usuario: Usuario) => (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cargo</dt>
+            <dd className="text-sm">{usuario.cargo}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sede</dt>
+            <dd className="text-sm">{usuario.sede}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supervisor</dt>
+            <dd className="text-sm">{usuario.supervisor}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Costo mensual</dt>
+            <dd className="text-sm">${usuario.costoMensual?.toLocaleString("es-CO")}</dd>
+          </div>
+        </dl>
+      )}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
     </DataTable>
   ),
 };

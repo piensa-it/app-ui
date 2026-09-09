@@ -1,5 +1,5 @@
 import * as React from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable, Column } from "../components/ui/data-table";
@@ -336,5 +336,145 @@ describe("DataTable — modo jerárquico", () => {
       </DataTable>,
     );
     expect(screen.getByRole("button", { name: "Expandir fila 1" })).toBeInTheDocument();
+  });
+});
+
+describe("DataTable — jerarquía combinada con las capacidades de CoreLink", () => {
+  it("onRowClick: el chevron de expandir no dispara el clic de fila, y una fila sin hijas sí lo dispara", async () => {
+    const user = userEvent.setup();
+    const abrir = vi.fn();
+    render(
+      <DataTable value={arbol()} getSubRows={getSubRows} getRowId={getRowId} onRowClick={abrir}>
+        <Column field="nombre" header="Nombre" tree />
+      </DataTable>,
+    );
+
+    // El chevron es un <button> real (no portado): el mismo guardián
+    // estructural que protege al kebab de acciones lo detiene aquí.
+    await user.click(screen.getByRole("button", { name: "Expandir Edificio A" }));
+    expect(screen.getByText("Torre 1")).toBeInTheDocument();
+    expect(abrir).not.toHaveBeenCalled();
+
+    // El resto de la fila (fuera del botón) sí dispara onRowClick con
+    // normalidad — la jerarquía no le quita la capacidad a la fila.
+    await user.click(screen.getByText("Edificio A"));
+    expect(abrir).toHaveBeenCalledWith(expect.objectContaining({ id: "1", nombre: "Edificio A" }));
+  });
+
+  it("renderExpanded convive con la jerarquía: cada fila del árbol puede llevar además su propio detalle", async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        value={arbol()}
+        getSubRows={getSubRows}
+        getRowId={getRowId}
+        defaultExpandedDepth={Infinity}
+        renderExpanded={(u) => <p>Detalle de {u.nombre}</p>}
+      >
+        <Column field="nombre" header="Nombre" tree />
+      </DataTable>,
+    );
+
+    // Las hijas ya están visibles por la jerarquía (defaultExpandedDepth).
+    expect(screen.getByText("Torre 1")).toBeInTheDocument();
+    // Pero ningún detalle está abierto todavía: son dos mecanismos aparte.
+    expect(screen.queryByText("Detalle de Edificio A")).toBeNull();
+
+    // Expandir/colapsar el árbol no toca el detalle, y viceversa: el botón
+    // del árbol y el de "Desplegar el detalle" son controles distintos en la
+    // misma fila.
+    const filaEdificioA = screen.getByText("Edificio A").closest("tr")!;
+    await user.click(within(filaEdificioA).getByRole("button", { name: /Desplegar el detalle/ }));
+    expect(screen.getByText("Detalle de Edificio A")).toBeInTheDocument();
+    // El árbol sigue expandido: no se colapsó al abrir el detalle.
+    expect(screen.getByText("Torre 1")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Colapsar Edificio A" }));
+    expect(screen.queryByText("Torre 1")).not.toBeInTheDocument();
+    // El detalle sigue abierto: colapsar el árbol tampoco lo toca.
+    expect(screen.getByText("Detalle de Edificio A")).toBeInTheDocument();
+  });
+
+  it("accessor ordena entre hermanos dentro de un árbol, sin aplanarlo", async () => {
+    const user = userEvent.setup();
+    const ETIQUETA: Record<string, string> = { edificio: "Edificio", torre: "Torre", unidad: "Unidad" };
+    const desordenado: Unidad[] = [
+      { id: "1", nombre: "Z", tipo: "edificio" },
+      { id: "1.1", parentId: "1", nombre: "Torre Z", tipo: "torre" },
+      { id: "1.2", parentId: "1", nombre: "Torre A", tipo: "torre" },
+      { id: "2", nombre: "A", tipo: "edificio" },
+    ];
+    render(
+      <DataTable
+        value={buildTree(desordenado)}
+        getSubRows={getSubRows}
+        getRowId={getRowId}
+        defaultExpandedDepth={Infinity}
+      >
+        <Column<UnidadArbol> id="etiqueta" header="Tipo" tree sortable accessor={(u) => ETIQUETA[u.tipo] ?? u.tipo} body={(u) => u.nombre} />
+      </DataTable>,
+    );
+
+    // Las cuatro filas tienen el mismo `tipo` calculado dos a dos (dos
+    // "Edificio", dos "Torre"), así que ordenar por la etiqueta no cambia el
+    // orden entre "Z" y "A" — lo que importa aquí es que ordenar por
+    // `accessor` NO revienta ni aplana el árbol al usar la columna `tree`.
+    await user.click(screen.getByRole("button", { name: "Ordenar por Tipo" }));
+    const rows = screen.getAllByRole("row").slice(1);
+    const nombres = rows.map((row) => within(row).getByRole("cell").textContent?.trim());
+    // Las hijas de "Z" (la primera raíz) siguen siendo sus hijas: el árbol
+    // no se aplanó en una lista suelta de cuatro filas al mismo nivel.
+    expect(nombres).toEqual(["Z", "Torre Z", "Torre A", "A"]);
+    expect(screen.getByText("Z").closest("tr")).toHaveAttribute("aria-level", "1");
+    expect(screen.getByText("Torre Z").closest("tr")).toHaveAttribute("aria-level", "2");
+  });
+
+  it("preferencesKey persiste columnas, expansión, tamaño de página y orden a la vez", async () => {
+    const user = userEvent.setup();
+    window.localStorage.clear();
+    const { unmount } = render(
+      <DataTable
+        value={arbol()}
+        getSubRows={getSubRows}
+        getRowId={getRowId}
+        preferencesKey="unidades-combinadas"
+        rows={1}
+      >
+        <Column field="nombre" header="Nombre" tree sortable />
+        <Column field="tipo" header="Tipo" hideable defaultVisible={false} />
+      </DataTable>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Expandir Edificio A" }));
+    await user.click(screen.getByRole("button", { name: "Ordenar por Nombre" }));
+
+    await waitFor(() => {
+      const guardado = JSON.parse(window.localStorage.getItem("ui-table:unidades-combinadas:prefs")!);
+      expect(guardado.expanded).toEqual({ 1: true });
+      expect(guardado.pageSize).toBe(1);
+      expect(guardado.sort).toEqual([{ id: "nombre", desc: false }]);
+      expect(guardado.columns).toEqual({ nombre: true, tipo: false });
+    });
+    unmount();
+
+    // Las cuatro sobreviven a un remontaje, todas juntas.
+    render(
+      <DataTable
+        value={arbol()}
+        getSubRows={getSubRows}
+        getRowId={getRowId}
+        preferencesKey="unidades-combinadas"
+        rows={1}
+      >
+        <Column field="nombre" header="Nombre" tree sortable />
+        <Column field="tipo" header="Tipo" hideable defaultVisible={false} />
+      </DataTable>,
+    );
+    // La expansión sobrevivió.
+    expect(screen.getByText("Torre 1")).toBeInTheDocument();
+    // "tipo" sigue oculta.
+    expect(screen.queryByText("torre")).not.toBeInTheDocument();
+    // pageSize=1 dejó paginador con una sola raíz por página.
+    expect(screen.getByText(/1-1 de 2/)).toBeInTheDocument();
   });
 });

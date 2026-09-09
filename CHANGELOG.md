@@ -6,6 +6,24 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+Siete capacidades del `DataTable`, todas para que una aplicación pueda dejar de mantener su propia tabla. Salieron de medir la de CoreLink —588 líneas, 55 pantallas, 544 columnas— contra ésta, columna por columna y prop por prop (piensa-it/app-corelink#68). Nada de lo que usaba la 0.12.0 cambia de comportamiento, incluida la jerarquía de N niveles que trajo esa versión: ambos mecanismos de fila expandible —el árbol y `renderExpanded`— conviven en la misma tabla.
+
+### Added
+
+- **`onRowClick`: la fila abre el documento.** Doce de las pantallas medidas abren un panel al pulsar la fila. La fila se vuelve enfocable y responde a Enter y Espacio, no sólo al ratón. Lo que costó escribirlo bien fue lo que NO debe dispararla: pulsar «Eliminar» en la columna de acciones no puede abrir además el detalle. Un filtro por selector de controles no basta, porque `MenuContent` pinta sus opciones en un `Portal` y en el DOM cuelgan de `document.body` mientras el evento sintético de React sigue burbujeando hasta el `<tr>` —el kebab borraba Y abría—. Por eso el primer filtro es estructural: lo que no nace dentro de la fila no pasó en la fila. `label` entra en la lista de controles porque `RadioGroupItem` recorta su `<input>` a 1px y el clic aterriza en la etiqueta. El mismo guardián cubre el control de expandir del árbol: un clic en el chevron de una fila jerárquica tampoco dispara `onRowClick`.
+- **`renderExpanded`: el detalle en línea bajo la fila.** Cinco pantallas lo necesitaban. Añade al principio una columna estrecha con el botón que abre y cierra, con `aria-controls` y un nombre accesible por fila. Una fila abierta cada vez por defecto —`multiple` permite varias—: dos detalles a la vez convierten la tabla en una lista y se pierde la comparación entre filas, que es para lo que existe una tabla. Funciona también en modo jerárquico: cada fila del árbol, tenga o no hijas, puede llevar además su propio detalle desplegable — son dos mecanismos independientes (estado propio, columnas distintas) que no se pisan.
+- **`accessor`: ordenar y buscar por el valor calculado.** De los 501 accessors de la tabla medida, 320 son lecturas de propiedad que `field` ya cubría; **207 son calculados** —78 con `??`, 19 booleanos como número, 16 `.length`, 14 mapas de etiquetas, 5 concatenaciones— y no tienen campo que nombrar. Sin esto, ordenar por «Estado» ordenaba por `"sent"` en vez de por «Enviado», que es la palabra que el usuario ve. Declarar `field` y `accessor` a la vez es error de compilación: no hay lectura coherente de la pareja. Ordena correctamente dentro de un árbol (`getSubRows`): TanStack ordena entre hermanos del mismo nivel, y `accessor` es solo de dónde sale el valor.
+- **`searchLabel`: nombrar el buscador.** El `aria-label` estaba fijo a «Buscar en la tabla», así que todas las pantallas anunciaban lo mismo y una prueba de extremo a extremo no podía distinguir un buscador de otro. No cae por defecto a `searchPlaceholder`: se ponen los dos o el campo muestra un texto y anuncia otro.
+- **`titleAs`: el título como encabezado real.** `h2`, `h3`, `h4` o `div`. Por defecto sigue siendo `div`, que es lo que se pintaba.
+
+### Changed
+
+- **`preferencesKey` recuerda cuatro cosas, no dos.** Además de las columnas visibles y la expansión (0.12.0), ahora también el tamaño de página y el orden, todo bajo `ui-table:<clave>:prefs`. **Las claves anteriores (`ui-table:<clave>:columns` y `ui-table:<clave>:expanded`) se siguen leyendo cuando la nueva no existe y NO se borran**, así que nadie pierde lo que tenía y un rollback sigue encontrándolas; a cambio quedan ahí para siempre. Lo que se guarda se sanea al leerlo, campo por campo y en `sort` entrada por entrada: un array bajo esa clave hacía que `.sort` resolviera a `Array.prototype.sort`, que `useState` invocaba como inicializador perezoso y reventaba el montaje; un `pageSize` no numérico dejaba a TanStack calculando `NaN` y la tabla decía «No hay datos» sobre quince filas reales. Un orden guardado sobre una columna que ya no está visible se descarta en vez de dejar la tabla ordenada por algo que no se ve y no se puede deshacer. Con `expanded`/`onExpandedChange` controlados, la expansión no se persiste —igual que en 0.12.0—, pero el resto (columnas, tamaño de página, orden) sí.
+
+### Notas para quien actualice
+
+- El único cambio de comportamiento bajo un nombre que no cambia es el de `preferencesKey`. Si una pantalla construye esa clave con algo variable —la empresa activa, el módulo, una pestaña—, hay que forzar el remontaje con `key={preferencesKey}`: la tabla lee las preferencias una vez al montar y luego escribiría las viejas sobre la clave nueva. Ya ocurría con `:columns` y `:expanded`; ahora se lleva por delante también el orden y el tamaño de página.
+
 ## [0.12.0] - 2026-09-09
 
 ### Added

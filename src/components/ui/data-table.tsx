@@ -24,13 +24,13 @@ import {
   type SortingState,
   type Updater,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
 import { Pagination } from "@/components/ui/pagination";
 import { DataTableToolbar, type DataTableDensity } from "@/components/ui/data-table-toolbar";
-import { useColumnVisibilityPreference, useExpandedPreference } from "@/components/ui/data-table-preferences";
+import { readTablePrefs, usePersistTablePrefs, useExpandedPreference } from "@/components/ui/data-table-preferences";
 import { collectExpandedIds, collectSearchExpandedIds } from "@/lib/tree";
 
 /**
@@ -118,15 +118,19 @@ interface ColumnBase<TValue extends DataTableValue> {
 }
 
 /**
- * Una columna es de una de dos clases, y la identidad no es lo mismo que el
+ * Una columna es de una de tres clases, y la identidad no es lo mismo que el
  * origen del dato:
  *
  * - **De campo**: lee un campo de la fila. Se puede ordenar y buscar por ella.
  *   Anota el tipo (`<Column<Movimiento> field="valor" />`) para que un campo
  *   mal escrito sea un error de compilación y no una columna vacía.
- * - **De presentación**: no corresponde a ningún campo —acciones de fila, un
- *   estado derivado de dos campos, un contacto que junta correo y teléfono—.
- *   Se identifica con `id` y pinta con `body`.
+ * - **Calculada**: no lee un campo sino que lo calcula —una etiqueta
+ *   traducida, dos campos concatenados, una longitud—. Se identifica con `id`
+ *   y ordena/busca por lo que devuelva `accessor`, no por ningún campo crudo.
+ *   `body` es opcional: sin él se pinta lo que devuelva `accessor`.
+ * - **De presentación**: no corresponde a ningún campo ni tiene por qué
+ *   ordenarse —acciones de fila, por ejemplo—. Se identifica con `id` y pinta
+ *   con `body`.
  */
 export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
   (
@@ -135,11 +139,52 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
         field: keyof TValue & string;
         /** Identidad de la columna. Por defecto, el propio campo. Úsalo para tener dos columnas del mismo campo. */
         id?: string;
+        /**
+         * No tiene sentido junto a `field`: `body` ya cubre la pintura y el
+         * `cell` de respaldo lee `getValue()`, que es el propio campo. Un
+         * `field` que gana un `accessor` a medio migrar sortearía y buscaría
+         * por otra cosa que la que su nombre sugiere — se prohíbe en el tipo
+         * para que sea un error de compilación, no una sorpresa en pantalla.
+         */
+        accessor?: undefined;
       }
     | {
         field?: undefined;
         /** Identidad de la columna. Obligatoria cuando no hay campo. */
         id: string;
+        /**
+         * De dónde sale el valor por el que se ordena y se busca, cuando no
+         * es un campo de la fila: una etiqueta traducida, dos campos
+         * concatenados, una longitud, un booleano como número.
+         *
+         * Es lo que hace ordenable una columna que no tiene `field`. Ordenar
+         * por `estado` cuando en la fila pone `"sent"` y en pantalla
+         * «Enviado» ordena por la palabra que el usuario ve, que es la que
+         * espera. Funciona igual dentro de una tabla jerárquica
+         * (`getSubRows`): TanStack ordena entre hermanos del mismo nivel sin
+         * aplanar el árbol, y `accessor` sólo decide de dónde sale el valor.
+         *
+         * Límite conocido: la búsqueda en una tabla jerárquica fuerza a
+         * expandir los ancestros de una coincidencia mirando los campos
+         * crudos de la fila, no accessors calculados — una columna sin
+         * `field` no participa en ese forzado, aunque su valor calculado sí
+         * entra en el filtro global normal (`getValue()`).
+         */
+        accessor: (row: TValue) => unknown;
+        /**
+         * Sin `body`, la celda pinta lo que devuelva `accessor`, convertido a
+         * texto (`String(...)`). Vale para una etiqueta, un número, una
+         * fecha ya formateada — no para un objeto ni un arreglo: eso pinta
+         * literalmente `[object Object]` sin ningún error que lo delate. Si
+         * `accessor` devuelve algo que no es ya texto plano, pon `body`.
+         */
+        body?: (row: TValue) => React.ReactNode;
+      }
+    | {
+        field?: undefined;
+        /** Identidad de la columna. Obligatoria cuando no hay campo. */
+        id: string;
+        accessor?: undefined;
         /** Una columna sin campo tiene que pintar algo. */
         body: (row: TValue) => React.ReactNode;
       }
@@ -152,6 +197,16 @@ export type ColumnProps<TValue extends DataTableValue> = ColumnBase<TValue> &
 function Column<TValue extends DataTableValue>(_props: ColumnProps<TValue>): null {
   return null;
 }
+
+/**
+ * Si una columna acepta orden: tiene de dónde leer un valor —`field` o
+ * `accessor`— y lo pidió con `sortable`. Una sola definición para que
+ * `idsOrdenables` y `enableSorting` (en `columnDefs`) nunca puedan volver a
+ * decir cosas distintas — ya ocurrió una vez, cuando `accessor` llegó y solo
+ * uno de los dos se actualizó.
+ */
+const esOrdenable = <TValue extends DataTableValue>(props: ColumnProps<TValue>): boolean =>
+  Boolean(props.field || props.accessor) && (props.sortable ?? false);
 
 export interface DataTableProps<TValue extends DataTableValue> {
   value: TValue[];
@@ -171,10 +226,27 @@ export interface DataTableProps<TValue extends DataTableValue> {
   /** Caption visible que describe el conjunto de datos. */
   caption?: React.ReactNode;
   title?: React.ReactNode;
+  /**
+   * Etiqueta con la que se pinta `title`. `"div"` por defecto para no
+   * inventar estructura donde la pantalla no la pidió; una pantalla que
+   * encabeza una sección con la tabla pasa el nivel que le toca.
+   */
+  titleAs?: "h2" | "h3" | "h4" | "div";
   description?: React.ReactNode;
   actions?: React.ReactNode;
   searchable?: boolean;
   searchPlaceholder?: string;
+  /**
+   * Nombre accesible del buscador. Antes de este prop el `aria-label` estaba
+   * fijo a «Buscar en la tabla»: todas las pantallas anunciaban el mismo
+   * nombre y una prueba de extremo a extremo no tenía forma de distinguir un
+   * buscador de otro cuando había más de uno en pantalla.
+   *
+   * Es independiente de `searchPlaceholder` y no cae a su valor: si se fija
+   * el placeholder sin fijar este prop, el campo muestra un texto pero
+   * anuncia otro —hay que poner los dos a la vez.
+   */
+  searchLabel?: string;
   loading?: boolean;
   /** Densidad vertical de las filas. @default "default" */
   density?: "compact" | "default" | "comfortable";
@@ -182,7 +254,10 @@ export interface DataTableProps<TValue extends DataTableValue> {
   striped?: boolean;
   /** Muestra el configurador de columnas en la barra superior. */
   configurableColumns?: boolean;
-  /** Clave de localStorage para recordar columnas visibles por tabla/usuario. */
+  /**
+   * Clave de localStorage para recordar, por tabla, las columnas visibles,
+   * la expansión (en modo jerárquico), el tamaño de página y el orden.
+   */
   preferencesKey?: string;
   /** Notifica cambios para persistencia externa en perfiles de usuario. */
   onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;
@@ -191,9 +266,64 @@ export interface DataTableProps<TValue extends DataTableValue> {
    * Identidad estable de cada fila. Sin él, TanStack usa el índice, que cambia
    * al ordenar o filtrar. **Requisito**, no mejora, en modo jerárquico: sin
    * ids estables la expansión se guarda contra la fila equivocada en cuanto
-   * se ordena, filtra o cambia de página.
+   * se ordena, filtra o cambia de página. También lo es, en la práctica, junto
+   * a `renderExpanded`: sin él la fila abierta se identifica por la posición
+   * de TanStack y salta de registro si el padre vuelve a renderizar con
+   * `value` en otro orden.
+   *
+   * Cuando se pasa, cada `<tr>` de datos lleva además `data-row-id` con el
+   * id devuelto. Sin `getRowId` el atributo no se emite: un «row-id» con el
+   * índice posicional de TanStack dentro invitaría a un selector que
+   * funciona hasta el día que la tabla se ordena o filtra.
    */
   getRowId?: (row: TValue, index: number) => string;
+  /**
+   * Qué hacer al activar una fila. Con ella la fila se vuelve enfocable y
+   * responde a Enter y Espacio, no sólo al ratón.
+   *
+   * Los clics nacidos dentro de un control de la fila —un botón de acciones,
+   * un enlace, una casilla, el chevron de expandir de una fila jerárquica—
+   * NO la disparan: pulsar «Eliminar» no puede abrir además el detalle, y
+   * expandir un nodo del árbol no puede además activar `onRowClick`.
+   */
+  onRowClick?: (row: TValue) => void;
+  /**
+   * Detalle en línea bajo la fila. Cuando se pasa, la tabla añade al
+   * principio una columna estrecha con el botón que lo abre y lo cierra.
+   *
+   * Por defecto se despliega una fila cada vez: abrir otra repliega la
+   * anterior. Dos detalles abiertos a la vez convierten la tabla en una
+   * lista y se pierde la comparación entre filas, que es para lo que existe
+   * una tabla — ver `multiple` para el caso en que esa comparación es
+   * justamente el trabajo de la pantalla.
+   *
+   * La fila abierta se rastrea por `row.id`, así que este prop va emparejado
+   * con `getRowId`. Sin él, `row.id` es la posición de TanStack, no una
+   * identidad: ordenar desde el encabezado de columna es seguro —reordena
+   * la vista, no el arreglo `data`—, pero si el padre vuelve a renderizar con
+   * `value` en otro orden (una recarga que trae los mismos registros
+   * reordenados), el detalle abierto se queda en la posición y termina
+   * mostrando otro registro. En desarrollo, usarlo sin `getRowId` deja un
+   * aviso en consola.
+   *
+   * **Convive con la jerarquía** (`getSubRows`): son dos mecanismos
+   * independientes —estado propio, columna propia— y no se pisan. Una fila
+   * del árbol, tenga o no hijas, puede llevar además su detalle desplegable;
+   * expandir el nodo no abre el detalle, ni al revés.
+   */
+  renderExpanded?: (row: TValue) => React.ReactNode;
+  /**
+   * Permite tener varias filas desplegadas a la vez.
+   *
+   * Por defecto NO: `renderExpanded` cierra la fila anterior al abrir otra,
+   * porque dos detalles abiertos convierten la tabla en una lista y se
+   * pierde la comparación entre filas, que es para lo que existe una tabla.
+   *
+   * Se enciende cuando comparar dos detalles ES el trabajo de la pantalla:
+   * los ítems de dos categorías, los clientes de dos segmentos, dos vistas
+   * previas de lista de precios, uno junto al otro.
+   */
+  multiple?: boolean;
   /**
    * Accessor a las hijas de una fila (ej. `(fila) => fila.children`).
    * **Activa el modo jerárquico** — sin esta prop, `DataTable` se comporta
@@ -239,10 +369,12 @@ function DataTable<TValue extends DataTableValue>({
   "aria-label": ariaLabel = "Tabla de datos",
   caption,
   title,
+  titleAs = "div",
   description,
   actions,
   searchable = false,
   searchPlaceholder = "Buscar en la tabla…",
+  searchLabel = "Buscar en la tabla",
   loading = false,
   density = "default",
   striped = false,
@@ -251,6 +383,9 @@ function DataTable<TValue extends DataTableValue>({
   onColumnVisibilityChange,
   className,
   getRowId,
+  onRowClick,
+  renderExpanded,
+  multiple = false,
   getSubRows,
   defaultExpandedDepth = 0,
   expanded: controlledExpanded,
@@ -260,10 +395,47 @@ function DataTable<TValue extends DataTableValue>({
   // componente se activa, y el render es el mismo de antes de la jerarquía.
   const isHierarchical = typeof getSubRows === "function";
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: rows });
+  // Lee las preferencias persistidas de esta tabla una sola vez al montar
+  // — un `useState` con inicializador perezoso ignora `readTablePrefs` en
+  // renders posteriores, que es lo que se quiere: la tabla no debe releer
+  // `localStorage` por su cuenta mientras el usuario interactúa con ella.
+  const [prefsIniciales] = React.useState(() => readTablePrefs(preferencesKey));
+
+  const [sorting, setSorting] = React.useState<SortingState>(prefsIniciales.sort ?? []);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: prefsIniciales.pageSize ?? rows,
+  });
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [activeDensity, setActiveDensity] = React.useState<DataTableDensity>(density);
+  // Un `Set` en vez de un solo `string | null`: `multiple` es lo único que
+  // cambia entre abrir una fila y abrir varias, así que basta con decidir,
+  // al abrir, si se vacía el resto del set o no — el caso de una sola fila
+  // (`multiple` en false) nunca llega a tener más de un elemento.
+  const [filasAbiertas, setFilasAbiertas] = React.useState<Set<string>>(() => new Set());
+  // Prefijo para el `id` del `<td>` del detalle: único por instancia de
+  // `DataTable`, para que dos tablas en la misma pantalla no compartan
+  // identificadores.
+  const detalleIdBase = React.useId();
+
+  // Aviso de una sola vez al montar (no en cada render): `renderExpanded` sin
+  // `getRowId` rastrea la fila abierta por la posición de TanStack, no por su
+  // identidad. Ver el JSDoc de `renderExpanded` para el porqué. Se recorta en
+  // producción igual que hace `@tanstack/table-core` con sus propios avisos.
+  const avisoDisparado = React.useRef(false);
+  React.useEffect(() => {
+    if (avisoDisparado.current) return;
+    if (process.env.NODE_ENV === "production") return;
+    if (!renderExpanded || getRowId) return;
+    avisoDisparado.current = true;
+    console.warn(
+      "DataTable: `renderExpanded` sin `getRowId` rastrea la fila abierta por la posición de TanStack, no por su identidad. " +
+        "Ordenar desde el encabezado de columna es seguro, pero si el padre vuelve a renderizar con `value` en otro orden " +
+        "(p. ej. una recarga que trae los mismos registros reordenados), el detalle abierto se queda en la posición y termina " +
+        "mostrando otro registro. Pasa `getRowId` a `DataTable` para evitarlo.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberadamente solo al montar, ver el comentario de arriba.
+  }, []);
 
   const columnSpecs = React.useMemo(
     () =>
@@ -281,7 +453,10 @@ function DataTable<TValue extends DataTableValue>({
       ),
     [columnSpecs],
   );
-  const [columnVisibility, setColumnVisibility] = useColumnVisibilityPreference(preferencesKey, defaultVisibility);
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(() => ({
+    ...defaultVisibility,
+    ...(prefsIniciales.columns ?? {}),
+  }));
 
   // Estado inicial cuando no hay nada persistido ni controlado: solo se
   // evalúa una vez, dentro del `useState` perezoso de `useExpandedPreference`
@@ -293,11 +468,10 @@ function DataTable<TValue extends DataTableValue>({
     return collectExpandedIds(value, defaultExpandedDepth, getSubRows!, getRowId);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberadamente solo se usa como valor inicial, no se re-ejecuta ante cambios posteriores.
   }, []);
-  const [realExpanded, setRealExpanded] = useExpandedPreference(
-    preferencesKey,
+  const [realExpanded, setRealExpanded, isExpandedControlled] = useExpandedPreference(
     controlledExpanded,
     onExpandedChange,
-    computeDefaultExpanded,
+    () => prefsIniciales.expanded ?? computeDefaultExpanded(),
   );
 
   // Columnas con campo: son las únicas por las que se puede buscar (mismo
@@ -348,17 +522,53 @@ function DataTable<TValue extends DataTableValue>({
     [effectiveExpanded, searchExpandedIds, setRealExpanded],
   );
 
+  // IDs de columna que aceptan orden: `esOrdenable`, la misma que arma
+  // `enableSorting` más abajo en `columnDefs`. Sin ella aquí, un orden
+  // persistido sobre una columna calculada se descartaría en cada recarga
+  // como si la columna no existiera —el mismo síntoma que resuelve
+  // `sortingEfectivo` para una columna oculta, pero por la razón equivocada—.
+  const idsOrdenables = React.useMemo(
+    () =>
+      new Set(
+        columnSpecs
+          .filter((spec) => esOrdenable(spec.props))
+          .map((spec) => (spec.props.id ?? spec.props.field) as string),
+      ),
+    [columnSpecs],
+  );
+
+  // Un orden sobre una columna que está oculta (o que ya no admite orden) se
+  // descarta al derivarlo, no con estado propio — ver el detalle en el
+  // historial del componente. `sortingEfectivo` (no `sorting`) es lo que ve
+  // la tabla y lo que se persiste.
+  const sortingEfectivo = React.useMemo(
+    () => sorting.filter((criterio) => idsOrdenables.has(criterio.id) && columnVisibility[criterio.id] !== false),
+    [sorting, idsOrdenables, columnVisibility],
+  );
+
+  // Una sola escritura para las cuatro preferencias, bajo la clave nueva.
+  usePersistTablePrefs(
+    preferencesKey,
+    { columns: columnVisibility, expanded: realExpanded, pageSize: pagination.pageSize, sort: sortingEfectivo },
+    isExpandedControlled,
+  );
+
   const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
     const treeSpecIndex = isHierarchical ? columnSpecs.findIndex((spec) => spec.props.tree) : -1;
     return columnSpecs.map((spec, index) => ({
       // Uno de los dos existe siempre: el tipo de `ColumnProps` exige `id`
       // cuando no hay `field`.
       id: (spec.props.id ?? spec.props.field) as string,
-      // Sin campo no hay valor que leer: la columna solo pinta lo que diga
-      // `body`, y no se puede ordenar ni buscar por ella.
-      ...(spec.props.field ? { accessorKey: spec.props.field } : {}),
+      // Dos casos mutuamente excluyentes, no una prioridad: el tipo de
+      // `ColumnProps` ya prohíbe declarar `field` y `accessor` a la vez, así
+      // que nunca hay que decidir cuál gana.
+      ...(spec.props.accessor
+        ? { accessorFn: (row: TValue) => spec.props.accessor!(row) }
+        : spec.props.field
+          ? { accessorKey: spec.props.field }
+          : {}),
       header: () => spec.props.header,
-      enableSorting: Boolean(spec.props.field) && (spec.props.sortable ?? false),
+      enableSorting: esOrdenable(spec.props),
       enableHiding: spec.props.hideable ?? true,
       cell: (ctx) => {
         const content = spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "");
@@ -418,7 +628,11 @@ function DataTable<TValue extends DataTableValue>({
     data: value,
     columns: columnDefs,
     state: {
-      sorting,
+      // La tabla ve `sortingEfectivo`, no el `sorting` crudo: así un clic de
+      // encabezado (que decide asc/desc/ninguno leyendo el estado actual de
+      // la tabla) nunca parte de un criterio fantasma sobre una columna
+      // oculta.
+      sorting: sortingEfectivo,
       pagination: effectivePagination,
       globalFilter,
       columnVisibility,
@@ -458,7 +672,7 @@ function DataTable<TValue extends DataTableValue>({
   // pie de totales.
   const filteredRows = React.useMemo(
     () => table.getFilteredRowModel().rows.map((row) => row.original),
-    [table, globalFilter, value, sorting],
+    [table, globalFilter, value, sortingEfectivo],
   );
   const hasFooter = columnSpecs.some((spec) => spec.props.footer);
   const totalRows = table.getFilteredRowModel().rows.length;
@@ -470,15 +684,71 @@ function DataTable<TValue extends DataTableValue>({
     comfortable: "px-4 py-4",
   }[activeDensity];
 
+  /*
+   * `target` nunca se comprueba con `instanceof Element`/`instanceof Node`:
+   * un portal puede montar en otro documento (otra ventana, un iframe), y ahí
+   * la clase `Element` no es la misma que la de este realm — `instanceof`
+   * daría `false` para un elemento perfectamente real. Comprobar que tiene
+   * forma de elemento (`closest` como función) funciona en cualquier realm.
+   */
+  const comoElemento = (target: EventTarget | null): Element | null =>
+    target && typeof (target as Element).closest === "function" ? (target as Element) : null;
+
+  /*
+   * El kebab de acciones de una fila (`MenuTrigger` + `MenuContent`) pinta su
+   * `MenuItem` en un `Portal`, igual que `Select` — en el DOM ese ítem cuelga
+   * de `document.body`, no del `<tr>`. `closest()` viaja por el DOM: un clic
+   * en «Eliminar» no encuentra ningún control camino arriba y se cuela como
+   * clic de fila, así que un solo click borraba la fila Y abría su detalle.
+   * React sí entrega el evento al `onClick` del `<tr>` porque su árbol de
+   * bubbling es el de React, no el del DOM — por eso el primer filtro no es
+   * "¿hay un control en el camino?" sino "¿el clic nació siquiera dentro de
+   * este `<tr>`?": si no, es de un portal y no es de la fila. Aplica igual al
+   * `onKeyDown`: un Enter sobre un ítem de menú portado también burbujea por
+   * el árbol de React hasta la fila. El chevron de expandir del árbol NO
+   * pasa por este filtro —nace dentro del `<tr>`, no está portado— y se
+   * detiene en el siguiente: es un `<button>` real.
+   */
+  const naceFueraDeLaFila = (currentTarget: HTMLTableRowElement, target: EventTarget | null) => {
+    const element = comoElemento(target);
+    return !element || !currentTarget.contains(element);
+  };
+
+  /*
+   * Ya dentro de la fila, un control real tampoco la dispara — por dos
+   * mecanismos distintos, que llegan al mismo `label` en la lista:
+   *
+   * - `RadioGroupItem` (radio-group.tsx) deja su `<input>` real recortado a
+   *   1px (`peer sr-only`, sin geometría): en producción el clic siempre
+   *   aterriza en el `<label>` que envuelve el círculo, o en su texto —
+   *   nunca en el input.
+   * - `Switch`/`Checkbox` sí cubren el control entero (hidden-input.ts: el
+   *   input al 100% de ancho/alto, `clip: auto`), así que en un navegador
+   *   real el clic cae en ese input aunque el usuario apunte al texto. Pero
+   *   Testing Library no hace ese cálculo de superposición: `getByText`
+   *   dispara el clic directo sobre el `<span>` que encontró, sin pasar por
+   *   el input que lo cubre — el mismo hueco, solo que producido por la
+   *   herramienta de prueba y no por el navegador.
+   *
+   * El botón de expandir del árbol y el de `renderExpanded` son `<button>`
+   * simples: entran por el selector sin necesitar caso propio.
+   */
+  const naceEnUnControl = (target: EventTarget | null) => {
+    const element = comoElemento(target);
+    return Boolean(element?.closest("button, a, input, select, textarea, label, [role='button'], [role='checkbox']"));
+  };
+
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
       {title || description || actions || searchable || configurableColumns ? (
         <DataTableToolbar
           title={title}
+          titleAs={titleAs}
           description={description}
           actions={actions}
           searchable={searchable}
           searchPlaceholder={searchPlaceholder}
+          searchLabel={searchLabel}
           configurableColumns={configurableColumns}
           globalFilter={globalFilter}
           onGlobalFilterChange={setGlobalFilter}
@@ -496,6 +766,16 @@ function DataTable<TValue extends DataTableValue>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-border bg-muted/50">
+                {renderExpanded ? (
+                  <th className="w-14 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {/* La celda del cuerpo trae un botón enfocable: un `<th>`
+                        con `aria-hidden` deja esa columna sin encabezado para
+                        quien navega celda por celda con lector de pantalla.
+                        `sr-only` la mantiene fuera de la vista sin sacarla del
+                        árbol de accesibilidad. */}
+                    <span className="sr-only">Detalle</span>
+                  </th>
+                ) : null}
                 {headerGroup.headers.map((header) => {
                   const sortDir = header.column.getIsSorted();
                   return (
@@ -549,6 +829,7 @@ function DataTable<TValue extends DataTableValue>({
             {loading ? (
               Array.from({ length: Math.min(rows, 5) }).map((_, rowIndex) => (
                 <tr key={`loading-${rowIndex}`} className="border-b border-border last:border-0">
+                  {renderExpanded ? <td className={cellPadding} /> : null}
                   {table.getVisibleLeafColumns().map((column, columnIndex) => (
                     <td key={`${column.id ?? columnIndex}`} className={cellPadding}>
                       <div className={cn("h-4 animate-pulse rounded bg-muted", columnIndex === 0 ? "w-3/5" : columnIndex % 2 ? "w-4/5" : "w-2/5")} />
@@ -558,45 +839,122 @@ function DataTable<TValue extends DataTableValue>({
               ))
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={table.getVisibleLeafColumns().length} className="px-4 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={table.getVisibleLeafColumns().length + (renderExpanded ? 1 : 0)}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={cn(
-                    "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
-                    striped && "even:bg-muted/30",
-                  )}
-                  // Sin `role="treegrid"` a propósito: exigiría navegación de
-                  // rejilla a nivel de celda y cambiaría el teclado del caso
-                  // plano. Sobre la tabla normal, el rol `row` sí admite estos
-                  // cuatro atributos — el lector anuncia nivel, posición y si
-                  // está desplegado sin tocar el teclado.
-                  {...(isHierarchical
-                    ? {
-                        "aria-level": row.depth + 1,
-                        "aria-setsize": row.getParentRow()?.subRows.length ?? totalRows,
-                        "aria-posinset": row.index + 1,
-                        ...(row.getCanExpand() ? { "aria-expanded": row.getIsExpanded() } : {}),
+              table.getRowModel().rows.map((row, rowIndex) => {
+                const abierta = filasAbiertas.has(row.id);
+                // No se asume ningún campo (p. ej. `nombre`) en un `TValue`
+                // arbitrario: la posición en pantalla es lo único que la
+                // tabla conoce de toda fila, así que es lo que distingue un
+                // botón «Desplegar» del de al lado para quien navega con
+                // lector de pantalla. A propósito distinto de `filasAbiertas`
+                // (identidad de dato, `row.id`): este `id` solo necesita ser
+                // único en el DOM mientras existe.
+                const detalleId = `${detalleIdBase}-fila-${rowIndex}`;
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr
+                      data-row-id={getRowId ? row.id : undefined}
+                      tabIndex={onRowClick ? 0 : undefined}
+                      onClick={
+                        onRowClick
+                          ? (event) => {
+                              if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
+                              if (naceEnUnControl(event.target)) return;
+                              onRowClick(row.original);
+                            }
+                          : undefined
                       }
-                    : {})}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
+                      onKeyDown={
+                        onRowClick
+                          ? (event) => {
+                              if (event.key !== "Enter" && event.key !== " ") return;
+                              if (naceFueraDeLaFila(event.currentTarget, event.target)) return;
+                              if (naceEnUnControl(event.target)) return;
+                              // El Espacio desplaza la página si se le deja.
+                              event.preventDefault();
+                              onRowClick(row.original);
+                            }
+                          : undefined
+                      }
                       className={cn(
-                        cellPadding,
-                        (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
+                        "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
+                        striped && "even:bg-muted/30",
+                        onRowClick && "cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                       )}
+                      // Sin `role="treegrid"` a propósito: exigiría navegación
+                      // de rejilla a nivel de celda y cambiaría el teclado del
+                      // caso plano. Sobre la tabla normal, el rol `row` sí
+                      // admite estos cuatro atributos.
+                      {...(isHierarchical
+                        ? {
+                            "aria-level": row.depth + 1,
+                            "aria-setsize": row.getParentRow()?.subRows.length ?? totalRows,
+                            "aria-posinset": row.index + 1,
+                            ...(row.getCanExpand() ? { "aria-expanded": row.getIsExpanded() } : {}),
+                          }
+                        : {})}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+                      {renderExpanded ? (
+                        <td className={cellPadding}>
+                          <button
+                            type="button"
+                            aria-expanded={abierta}
+                            aria-controls={detalleId}
+                            aria-label={
+                              abierta
+                                ? `Replegar el detalle de la fila ${rowIndex + 1}`
+                                : `Desplegar el detalle de la fila ${rowIndex + 1}`
+                            }
+                            className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                            onClick={() =>
+                              setFilasAbiertas((previas) => {
+                                const siguientes = multiple ? new Set(previas) : new Set<string>();
+                                if (abierta) {
+                                  siguientes.delete(row.id);
+                                } else {
+                                  siguientes.add(row.id);
+                                }
+                                return siguientes;
+                              })
+                            }
+                          >
+                            {abierta ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                          </button>
+                        </td>
+                      ) : null}
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className={cn(
+                            cellPadding,
+                            (cell.column.columnDef.meta as { className?: string } | undefined)?.className,
+                          )}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                    {renderExpanded && abierta ? (
+                      <tr className="border-b border-border bg-muted/20">
+                        <td
+                          id={detalleId}
+                          colSpan={table.getVisibleLeafColumns().length + 1}
+                          className={cellPadding}
+                        >
+                          {renderExpanded(row.original)}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </React.Fragment>
+                );
+              })
             )}
           </tbody>
           {/* El pie solo existe si alguna columna declara `footer`. Se calcula
@@ -605,6 +963,7 @@ function DataTable<TValue extends DataTableValue>({
           {hasFooter && !loading ? (
             <tfoot aria-label="Totales" className="border-t-2 border-border bg-muted/40 font-medium">
               <tr>
+                {renderExpanded ? <td className={cellPadding} /> : null}
                 {table.getVisibleLeafColumns().map((column) => {
                   const footer = (column.columnDef.meta as ColumnMeta<TValue> | undefined)?.footer;
                   return (
