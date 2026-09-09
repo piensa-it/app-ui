@@ -4,6 +4,7 @@ import { RotateCcw, Search, Settings2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { DataTableFeatures, DataTableValue } from "@/components/ui/data-table";
@@ -42,6 +43,41 @@ export interface DataTableToolbarProps<TValue extends DataTableValue> {
   defaultVisibility: ColumnVisibilityState;
   setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibilityState>>;
   onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;
+  /**
+   * Filas seleccionadas en TODA la tabla — no solo las visibles bajo el
+   * filtro actual. Con esta prop en `0` (o `DataTable` sin `selectable`) la
+   * barra se pinta exactamente igual que antes de #137.
+   */
+  selectionCount?: number;
+  /**
+   * De `selectionCount`, cuántas quedan fuera del filtro actual (no
+   * aparecen en la tabla ahora mismo). **Decisión de #137**: la selección
+   * sobrevive a filtrar (una fila que sale de la vista sigue marcada, y
+   * vuelve a verse marcada si se limpia el filtro) — así que el contador
+   * tiene que decir la verdad en vez de fingir que esas filas no cuentan.
+   * Callarlo sería el error caro que pide evitar la incidencia: una
+   * aplicación operando sobre filas que su usuario no ve en pantalla, sin
+   * que nada se lo advierta. En `0` no se añade ninguna aclaración al texto.
+   */
+  selectionOutsideFilterCount?: number;
+  /** Filas seleccionadas, completas — lo que recibe `selectionActions`. */
+  selectedRows?: TValue[];
+  /** Botones de acciones masivas. Sin ella, la barra en modo selección no pinta ningún botón propio. */
+  selectionActions?: (rows: TValue[]) => React.ReactNode;
+  /**
+   * `true` cuando la casilla de cabecera acaba de marcar toda la página y
+   * hay más filas que cumplen el filtro sin seleccionar — dispara el aviso
+   * para extender la selección a todas ellas (patrón Gmail/GitHub, ver
+   * #137: marcar de un clic TODO lo filtrado sin este paso intermedio es
+   * donde ocurren los desastres de "creí que eran 10 y eran 3.000").
+   */
+  showExtendSelectionBanner?: boolean;
+  /** Filas seleccionadas en la página actual — para el texto del aviso. */
+  pageSelectedCount?: number;
+  /** Filas que cumplen el filtro actual y admiten selección — para el texto del aviso. */
+  filteredSelectableCount?: number;
+  /** Extiende la selección de "esta página" a "todo lo que cumple el filtro". */
+  onExtendSelectionToFiltered?: () => void;
 }
 
 /**
@@ -67,18 +103,64 @@ export function DataTableToolbar<TValue extends DataTableValue>({
   defaultVisibility,
   setColumnVisibility,
   onColumnVisibilityChange,
+  selectionCount = 0,
+  selectionOutsideFilterCount = 0,
+  selectedRows = [],
+  selectionActions,
+  showExtendSelectionBanner = false,
+  pageSelectedCount = 0,
+  filteredSelectableCount = 0,
+  onExtendSelectionToFiltered,
 }: DataTableToolbarProps<TValue>) {
   const [columnQuery, setColumnQuery] = React.useState("");
   const TitleTag = titleAs;
+  const hasSelection = selectionCount > 0;
+
+  // «N seleccionadas» — con la aclaración de #137 cuando hay selección fuera
+  // del filtro actual (ver el DocBlock de `selectionOutsideFilterCount`).
+  const selectionLabel = `${selectionCount} ${selectionCount === 1 ? "seleccionada" : "seleccionadas"}`;
+  const selectionAnnouncement =
+    selectionOutsideFilterCount > 0
+      ? `${selectionLabel} (${selectionOutsideFilterCount} fuera del filtro actual)`
+      : selectionLabel;
 
   return (
-    <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        {title ? <TitleTag className="font-heading text-base font-semibold text-foreground">{title}</TitleTag> : null}
-        {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {searchable ? (
+    // Fragmento, no un `<div>` extra: sin selección (el caso de siempre,
+    // sin `selectable`), el DOM tiene que quedar carácter por carácter
+    // igual al de antes de #137 — un envoltorio nuevo aquí, aunque no se
+    // viera, ya sería un cambio. El aviso de extender (`showExtendSelectionBanner`)
+    // se pinta como hermano, no como hijo de un wrapper nuevo.
+    <>
+      <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          {hasSelection ? (
+            // `role="status"` + `aria-live="polite"`: el cambio de cuenta se
+            // anuncia sin interrumpir a quien usa un lector de pantalla —
+            // criterio de accesibilidad de #137. Reemplaza solo el
+            // título/descripción, no el buscador: el contador de #137 tiene
+            // que poder decir "fuera del filtro actual", y eso exige poder
+            // seguir filtrando con una selección activa — si el buscador
+            // desapareciera aquí, ese criterio de aceptación sería
+            // imposible de ejercitar. `actions` (los botones "normales" de
+            // la tabla) sí se sustituye por `selectionActions`: no tiene
+            // sentido ver "Nuevo usuario" junto a "Borrar seleccionados".
+            <div role="status" aria-live="polite" className="text-sm font-semibold text-foreground">
+              {selectionAnnouncement}
+            </div>
+          ) : (
+            <>
+              {title ? <TitleTag className="font-heading text-base font-semibold text-foreground">{title}</TitleTag> : null}
+              {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
+            </>
+          )}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {hasSelection ? (
+            <div className="flex flex-wrap items-center gap-2">{selectionActions?.(selectedRows)}</div>
+          ) : (
+            actions
+          )}
+          {searchable ? (
           <div className="relative min-w-0 sm:w-64">
             <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -93,7 +175,6 @@ export function DataTableToolbar<TValue extends DataTableValue>({
             />
           </div>
         ) : null}
-        {actions}
         {configurableColumns ? (
           <Popover positioning={{ placement: "bottom-end" }}>
             <PopoverTrigger>
@@ -220,7 +301,19 @@ export function DataTableToolbar<TValue extends DataTableValue>({
             </PopoverContent>
           </Popover>
         ) : null}
+        </div>
       </div>
-    </div>
+      {showExtendSelectionBanner ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-subtle px-4 py-2 text-sm text-subtle-foreground">
+          <span>
+            Seleccionadas las {pageSelectedCount} de esta página. Seleccionar las {filteredSelectableCount} que
+            cumplen el filtro.
+          </span>
+          <Button type="button" variant="plain" size="sm" onClick={onExtendSelectionToFiltered}>
+            Seleccionar las {filteredSelectableCount}
+          </Button>
+        </div>
+      ) : null}
+    </>
   );
 }

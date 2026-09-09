@@ -7,6 +7,7 @@ import {
   globalFilteringFeature,
   rowExpandingFeature,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   createExpandedRowModel,
   createFilteredRowModel,
@@ -21,6 +22,8 @@ import {
   type ColumnDef,
   type ColumnVisibilityState,
   type ExpandedState,
+  type Row,
+  type RowSelectionState,
   type SortingState,
   type Updater,
 } from "@tanstack/react-table";
@@ -28,10 +31,11 @@ import { ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "luci
 
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Pagination } from "@/components/ui/pagination";
 import { DataTableToolbar, type DataTableDensity } from "@/components/ui/data-table-toolbar";
 import { readTablePrefs, usePersistTablePrefs, useExpandedPreference } from "@/components/ui/data-table-preferences";
-import { collectExpandedIds, collectSearchExpandedIds } from "@/lib/tree";
+import { buildRowIndex, collectExpandedIds, collectSearchExpandedIds } from "@/lib/tree";
 
 /**
  * Desde la v9 de TanStack Table las features ya no vienen incluidas: hay que
@@ -46,6 +50,7 @@ const dataTableFeatures = tableFeatures({
   globalFilteringFeature,
   rowExpandingFeature,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
@@ -343,6 +348,63 @@ export interface DataTableProps<TValue extends DataTableValue> {
   expanded?: ExpandedState;
   /** Notifica cambios de expansión, se use o no de forma controlada. */
   onExpandedChange?: (expanded: ExpandedState) => void;
+  /**
+   * **Activa la selección de filas** — sin ella, `DataTable` se comporta
+   * exactamente igual que antes de que existiera esta capacidad: misma
+   * condición dura que `getSubRows` para la jerarquía. Antepone una columna
+   * de casillas que el propio armazón dibuja — no se declara con `<Column>`
+   * porque no es ordenable, ni ocultable, ni configurable, es estructural.
+   *
+   * Requiere `getRowId` en la práctica: sin ids estables la selección se
+   * pierde en cuanto se ordena, filtra o cambia de página (deja un aviso en
+   * consola en desarrollo, igual que `renderExpanded` sin `getRowId`).
+   *
+   * En modo jerárquico (`getSubRows`) seleccionar un padre selecciona toda
+   * su rama —`enableSubRowSelection`, ver más abajo— y un padre con solo
+   * parte de sus hijas marcadas sale indeterminado.
+   */
+  selectable?: boolean;
+  /**
+   * Filas seleccionadas, controlado. Sin esta prop, `DataTable` lleva su
+   * propio estado interno (y lo reporta igual por `onSelectedChange`).
+   *
+   * Son filas completas, no ids — igual que `selectionActions`: quien usa
+   * `DataTable` no tiene por qué mantener un mapa id→fila propio solo para
+   * traducir lo que le devuelve la tabla. Internamente sí se resuelve por
+   * id (con `getRowId`, o por posición si no se pasa) para sobrevivir a
+   * ordenar, filtrar y paginar — ver el DocBlock de `buildRowIndex` en
+   * `lib/tree.ts`.
+   */
+  selected?: TValue[];
+  /** Notifica cambios de selección, se use o no de forma controlada. */
+  onSelectedChange?: (rows: TValue[]) => void;
+  /**
+   * Controla si marcar una fila con hijas marca también su rama.
+   * @default true — el valor de fábrica de TanStack, ver #137.
+   */
+  enableSubRowSelection?: boolean | ((row: TValue) => boolean);
+  /**
+   * Nombre accesible de la fila, para la casilla de selección de cada una
+   * («Seleccionar fila de Ana Gómez», no «Seleccionar fila 3» — lo segundo
+   * no sobrevive a que la fila cambie de posición al ordenar o filtrar).
+   * Sin esta prop, cae a `Fila <n>` con la posición visible.
+   */
+  getRowLabel?: (row: TValue) => string;
+  /**
+   * Botones de acciones masivas. Reciben las filas seleccionadas
+   * **completas**, nunca solo sus ids — la aplicación ya las necesita para
+   * operar (exportar, borrar…) y forzarla a re-mapear ids a datos por su
+   * cuenta sería trabajo repetido en cada pantalla que use esto.
+   *
+   * Con selección activa, sustituye el título y las `actions` normales en
+   * la barra superior — no añade una barra nueva ni desplaza la tabla. El
+   * buscador (`searchable`) NO se sustituye: sigue disponible con
+   * selección activa, a propósito — ver el porqué en el comentario de
+   * `data-table-toolbar.tsx` junto al bloque de título/selección, y el
+   * DocBlock de `selected` más abajo sobre qué dice el contador cuando lo
+   * seleccionado deja de verse por el filtro.
+   */
+  selectionActions?: (rows: TValue[]) => React.ReactNode;
 }
 
 /**
@@ -390,6 +452,12 @@ function DataTable<TValue extends DataTableValue>({
   defaultExpandedDepth = 0,
   expanded: controlledExpanded,
   onExpandedChange,
+  selectable = false,
+  selected: controlledSelected,
+  onSelectedChange,
+  enableSubRowSelection,
+  getRowLabel,
+  selectionActions,
 }: DataTableProps<TValue>) {
   // `getSubRows` es el interruptor: sin él nada de lo que sigue en este
   // componente se activa, y el render es el mismo de antes de la jerarquía.
@@ -433,6 +501,23 @@ function DataTable<TValue extends DataTableValue>({
         "Ordenar desde el encabezado de columna es seguro, pero si el padre vuelve a renderizar con `value` en otro orden " +
         "(p. ej. una recarga que trae los mismos registros reordenados), el detalle abierto se queda en la posición y termina " +
         "mostrando otro registro. Pasa `getRowId` a `DataTable` para evitarlo.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberadamente solo al montar, ver el comentario de arriba.
+  }, []);
+
+  // Mismo aviso de una sola vez que el de `renderExpanded`, pero para
+  // `selectable`: sin `getRowId` la selección se resuelve por posición de
+  // TanStack y no sobrevive a ordenar, filtrar ni paginar.
+  const avisoSeleccionDisparado = React.useRef(false);
+  React.useEffect(() => {
+    if (avisoSeleccionDisparado.current) return;
+    if (process.env.NODE_ENV === "production") return;
+    if (!selectable || getRowId) return;
+    avisoSeleccionDisparado.current = true;
+    console.warn(
+      "DataTable: `selectable` sin `getRowId` resuelve la selección por la posición de TanStack, no por identidad. " +
+        "Una fila seleccionada puede dejar de estarlo (o marcar otra distinta) en cuanto se ordena, filtra o cambia " +
+        "de página. Pasa `getRowId` a `DataTable` para evitarlo.",
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberadamente solo al montar, ver el comentario de arriba.
   }, []);
@@ -614,6 +699,68 @@ function DataTable<TValue extends DataTableValue>({
     }));
   }, [columnSpecs, isHierarchical]);
 
+  // Índice id↔fila (ver `buildRowIndex` en `lib/tree.ts`): traduce en los dos
+  // sentidos entre lo que entiende TanStack (`RowSelectionState`, un mapa de
+  // ids) y lo que expone `DataTable` en su API pública (filas completas, por
+  // `selected`/`onSelectedChange` y `selectionActions`). Solo se construye
+  // cuando hace falta — `selectable` es el interruptor, igual que en todo lo
+  // demás de este componente.
+  const rowIndex = React.useMemo(
+    () => (selectable ? buildRowIndex(value, getSubRows, getRowId) : null),
+    [selectable, value, getSubRows, getRowId],
+  );
+
+  const [internalRowSelection, setInternalRowSelection] = React.useState<RowSelectionState>({});
+  const isSelectionControlled = controlledSelected !== undefined;
+
+  // `selected` (filas) → `RowSelectionState` (ids), solo cuando está
+  // controlado: sin esto la tabla no tendría de dónde sacar el mapa de ids
+  // que necesita para pintar las casillas marcadas.
+  const controlledRowSelection = React.useMemo<RowSelectionState | null>(() => {
+    if (!selectable || !isSelectionControlled || !rowIndex) return null;
+    const next: RowSelectionState = {};
+    for (const row of controlledSelected!) {
+      const id = rowIndex.idOf.get(row);
+      if (id !== undefined) next[id] = true;
+    }
+    return next;
+  }, [selectable, isSelectionControlled, rowIndex, controlledSelected]);
+
+  const rowSelectionState = controlledRowSelection ?? internalRowSelection;
+
+  // `RowSelectionState` (ids) → filas, en sentido contrario: lo que TanStack
+  // entrega tras un clic (casilla de fila, de cabecera, o "extender a todo
+  // lo filtrado") se traduce a filas completas antes de salir por
+  // `onSelectedChange` — nadie fuera de este componente debería tener que
+  // conocer el esquema de ids que usa TanStack por dentro.
+  const handleRowSelectionChange = React.useCallback(
+    (updater: Updater<RowSelectionState>) => {
+      const next = typeof updater === "function" ? updater(rowSelectionState) : updater;
+      if (!isSelectionControlled) setInternalRowSelection(next);
+      if (onSelectedChange && rowIndex) {
+        const nextRows: TValue[] = [];
+        for (const id of Object.keys(next)) {
+          const row = rowIndex.byId.get(id);
+          if (row !== undefined) nextRows.push(row);
+        }
+        onSelectedChange(nextRows);
+      }
+    },
+    [isSelectionControlled, rowSelectionState, onSelectedChange, rowIndex],
+  );
+
+  // Con `Row<TFeatures, TValue>` (fila de TanStack), no `TValue`: es lo que
+  // pide `enableSubRowSelection` de TanStack, y adaptarlo aquí evita que la
+  // firma pública de `DataTable` tenga que exponer el tipo `Row` de TanStack.
+  const resolvedEnableSubRowSelection = React.useMemo(():
+    | boolean
+    | ((row: Row<DataTableFeatures, TValue>) => boolean)
+    | undefined => {
+    if (typeof enableSubRowSelection !== "function") return enableSubRowSelection;
+    const predicate = enableSubRowSelection;
+    return (row: Row<DataTableFeatures, TValue>) => predicate(row.original);
+  }, [enableSubRowSelection]);
+
   // Con `paginator` desactivado ya no se puede omitir el row model de
   // paginación: en la v9 las features son estáticas. Se deja registrada y se
   // fuerza una sola página que abarca todas las filas — mismo resultado
@@ -637,6 +784,7 @@ function DataTable<TValue extends DataTableValue>({
       globalFilter,
       columnVisibility,
       ...(isHierarchical ? { expanded: effectiveExpanded } : {}),
+      ...(selectable ? { rowSelection: rowSelectionState } : {}),
     },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
@@ -651,6 +799,15 @@ function DataTable<TValue extends DataTableValue>({
     // Solo se pasa cuando viene: sin él, TanStack sigue identificando filas
     // por índice, igual que antes de que existiera esta prop.
     ...(getRowId ? { getRowId } : {}),
+    // `selectable` es el interruptor de toda la selección — sin él, ni
+    // siquiera se le pasan estas opciones a TanStack, así que nada cambia
+    // (mismo patrón que el modo jerárquico, justo abajo).
+    ...(selectable
+      ? {
+          onRowSelectionChange: handleRowSelectionChange,
+          enableSubRowSelection: resolvedEnableSubRowSelection,
+        }
+      : {}),
     // Todo lo de abajo solo se activa en modo jerárquico — en plano, ni
     // siquiera se le pasan estas opciones a TanStack, así que nada cambia.
     ...(isHierarchical
@@ -683,6 +840,41 @@ function DataTable<TValue extends DataTableValue>({
     default: "px-4 py-3",
     comfortable: "px-4 py-4",
   }[activeDensity];
+
+  // Todo lo de abajo es derivado, no estado propio — se recalcula del
+  // `rowSelection` que ya vive en `table`. Solo se lee cuando `selectable`:
+  // llamarlo sin selección activa no rompería nada (la feature está
+  // registrada siempre, ver el comentario junto a `dataTableFeatures`), pero
+  // no hay razón para pagar el cálculo si no se va a pintar.
+  const selectedRows = React.useMemo(
+    () => (selectable ? table.getSelectedRowModel().flatRows.map((row) => row.original) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- depende del `rowSelection` ya reflejado en `table`, no de `rowSelectionState` directamente (id≠fila).
+    [selectable, table, rowSelectionState],
+  );
+  // El total cuenta TODA fila seleccionada, esté o no a la vista bajo el
+  // filtro actual — es la decisión de #137 sobre qué dice el contador (ver
+  // el DocBlock de `DataTableToolbarProps.selectionOutsideFilterCount`): la
+  // selección sobrevive a filtrar, así que un contador que solo mirara lo
+  // visible mentiría apenas se escribiera algo en el buscador.
+  const selectionTotalCount = selectedRows.length;
+  const selectionVisibleCount = selectable ? table.getFilteredSelectedRowModel().flatRows.length : 0;
+  const selectionOutsideFilterCount = selectionTotalCount - selectionVisibleCount;
+  const isAllPageRowsSelected = selectable && table.getIsAllPageRowsSelected();
+  const isSomePageRowsSelected = selectable && table.getIsSomePageRowsSelected();
+  const headerCheckedState: boolean | "indeterminate" = isAllPageRowsSelected
+    ? true
+    : isSomePageRowsSelected
+      ? "indeterminate"
+      : false;
+  // El aviso de extender a todo lo filtrado solo tiene sentido si marcar
+  // "toda la página" no es ya lo mismo que marcar "todo lo filtrado" — en
+  // una tabla de una sola página ambas cosas coinciden y el aviso no debe
+  // aparecer nunca.
+  const showExtendSelectionBanner = isAllPageRowsSelected && !table.getIsAllRowsSelected();
+  const pageRowCount = selectable ? table.getRowModel().rows.length : 0;
+  const filteredSelectableCount = selectable
+    ? table.getFilteredRowModel().flatRows.filter((row) => row.getCanSelect()).length
+    : 0;
 
   /*
    * `target` nunca se comprueba con `instanceof Element`/`instanceof Node`:
@@ -740,7 +932,12 @@ function DataTable<TValue extends DataTableValue>({
 
   return (
     <div className={cn("w-full overflow-hidden rounded-lg border border-raised-border bg-card shadow-sm", className)}>
-      {title || description || actions || searchable || configurableColumns ? (
+      {title ||
+      description ||
+      actions ||
+      searchable ||
+      configurableColumns ||
+      (selectable && selectionTotalCount > 0) ? (
         <DataTableToolbar
           title={title}
           titleAs={titleAs}
@@ -758,6 +955,14 @@ function DataTable<TValue extends DataTableValue>({
           defaultVisibility={defaultVisibility}
           setColumnVisibility={setColumnVisibility}
           onColumnVisibilityChange={onColumnVisibilityChange}
+          selectionCount={selectable ? selectionTotalCount : 0}
+          selectionOutsideFilterCount={selectionOutsideFilterCount}
+          selectedRows={selectedRows}
+          selectionActions={selectable ? selectionActions : undefined}
+          showExtendSelectionBanner={Boolean(selectable && showExtendSelectionBanner)}
+          pageSelectedCount={pageRowCount}
+          filteredSelectableCount={filteredSelectableCount}
+          onExtendSelectionToFiltered={() => table.toggleAllRowsSelected(true)}
         />
       ) : null}
       <div className="overflow-x-auto">
@@ -766,6 +971,24 @@ function DataTable<TValue extends DataTableValue>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-border bg-muted/50">
+                {selectable ? (
+                  <th className="w-12 px-4 py-3 text-left">
+                    <Checkbox
+                      checked={headerCheckedState}
+                      onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked)}
+                      // El alcance real de esta casilla: marca la página
+                      // visible, no todo lo que cumple el filtro — decisión
+                      // de #137, ver el DocBlock de `selectable`. El nombre
+                      // accesible lo dice para que quien no ve la pantalla
+                      // no asuma que marcó más de lo que marcó.
+                      aria-label={
+                        headerCheckedState === true
+                          ? "Deseleccionar todas las filas de esta página"
+                          : "Seleccionar todas las filas de esta página"
+                      }
+                    />
+                  </th>
+                ) : null}
                 {renderExpanded ? (
                   <th className="w-14 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {/* La celda del cuerpo trae un botón enfocable: un `<th>`
@@ -829,6 +1052,7 @@ function DataTable<TValue extends DataTableValue>({
             {loading ? (
               Array.from({ length: Math.min(rows, 5) }).map((_, rowIndex) => (
                 <tr key={`loading-${rowIndex}`} className="border-b border-border last:border-0">
+                  {selectable ? <td className={cellPadding} /> : null}
                   {renderExpanded ? <td className={cellPadding} /> : null}
                   {table.getVisibleLeafColumns().map((column, columnIndex) => (
                     <td key={`${column.id ?? columnIndex}`} className={cellPadding}>
@@ -840,7 +1064,7 @@ function DataTable<TValue extends DataTableValue>({
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={table.getVisibleLeafColumns().length + (renderExpanded ? 1 : 0)}
+                  colSpan={table.getVisibleLeafColumns().length + (renderExpanded ? 1 : 0) + (selectable ? 1 : 0)}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   {emptyMessage}
@@ -901,6 +1125,35 @@ function DataTable<TValue extends DataTableValue>({
                           }
                         : {})}
                     >
+                      {selectable ? (
+                        <td className={cellPadding}>
+                          {(() => {
+                            // Filas con hijas: "todo/parcial/nada" se lee de
+                            // sus descendientes, no de `row.getIsSelected()`
+                            // — ese solo refleja el propio id de la fila en
+                            // el mapa, y marcar hijas una por una (sin pasar
+                            // por el padre) nunca escribe el id del padre.
+                            // Filas sin hijas: `getIsSelected()` es lo único
+                            // que existe.
+                            const hasChildren = row.subRows.length > 0;
+                            const checkedState: boolean | "indeterminate" = hasChildren
+                              ? row.getIsAllSubRowsSelected()
+                                ? true
+                                : row.getIsSomeSelected()
+                                  ? "indeterminate"
+                                  : false
+                              : row.getIsSelected();
+                            const rowLabel = getRowLabel ? getRowLabel(row.original) : `fila ${rowIndex + 1}`;
+                            return (
+                              <Checkbox
+                                checked={checkedState}
+                                onCheckedChange={(checked) => row.toggleSelected(checked)}
+                                aria-label={checkedState === true ? `Deseleccionar ${rowLabel}` : `Seleccionar ${rowLabel}`}
+                              />
+                            );
+                          })()}
+                        </td>
+                      ) : null}
                       {renderExpanded ? (
                         <td className={cellPadding}>
                           <button
@@ -945,7 +1198,7 @@ function DataTable<TValue extends DataTableValue>({
                       <tr className="border-b border-border bg-muted/20">
                         <td
                           id={detalleId}
-                          colSpan={table.getVisibleLeafColumns().length + 1}
+                          colSpan={table.getVisibleLeafColumns().length + 1 + (selectable ? 1 : 0)}
                           className={cellPadding}
                         >
                           {renderExpanded(row.original)}
@@ -963,6 +1216,7 @@ function DataTable<TValue extends DataTableValue>({
           {hasFooter && !loading ? (
             <tfoot aria-label="Totales" className="border-t-2 border-border bg-muted/40 font-medium">
               <tr>
+                {selectable ? <td className={cellPadding} /> : null}
                 {renderExpanded ? <td className={cellPadding} /> : null}
                 {table.getVisibleLeafColumns().map((column) => {
                   const footer = (column.columnDef.meta as ColumnMeta<TValue> | undefined)?.footer;

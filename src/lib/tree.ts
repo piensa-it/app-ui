@@ -150,6 +150,49 @@ export function collectExpandedIds<TRow>(
 }
 
 /**
+ * Índice bidireccional id↔fila, con el mismo esquema de ids que
+ * {@link collectExpandedIds} (`getRowId` si se provee; si no, índices unidos
+ * por "." como `padre.índice`) — el que usa TanStack Table internamente.
+ *
+ * Lo necesita la selección de filas de `DataTable` (#137) para dos
+ * traducciones que TanStack no resuelve por sí solo:
+ *
+ * - `onRowSelectionChange` entrega un mapa `{ [id]: true }` — hay que volver
+ *   a la fila completa para `selectionActions` y `onSelectedChange`, que
+ *   reciben filas, no ids (ver el porqué en el DocBlock de `selected` en
+ *   `data-table.tsx`).
+ * - `selected` (controlado) entrega filas — hay que volver al id para
+ *   construir el `RowSelectionState` que espera TanStack.
+ *
+ * `idOf` indexa por identidad de objeto (`Map`, no por valor): asume que las
+ * filas que van y vienen por `selected`/`onSelectedChange` son las mismas
+ * referencias que trae `value` (o un subconjunto filtrado de ellas), como ya
+ * asume el resto de `DataTable` con `columnVisibility` y las demás
+ * preferencias derivadas de props.
+ */
+export function buildRowIndex<TRow>(
+  rows: readonly TRow[],
+  getSubRows?: (row: TRow) => TRow[] | undefined,
+  getRowId?: (row: TRow, index: number) => string,
+): { byId: Map<string, TRow>; idOf: Map<TRow, string> } {
+  const byId = new Map<string, TRow>();
+  const idOf = new Map<TRow, string>();
+
+  const walk = (nodes: readonly TRow[], parentPath: string) => {
+    nodes.forEach((node, index) => {
+      const id = getRowId ? getRowId(node, index) : parentPath ? `${parentPath}.${index}` : String(index);
+      byId.set(id, node);
+      idOf.set(node, id);
+      const children = getSubRows?.(node);
+      if (children && children.length > 0) walk(children, id);
+    });
+  };
+
+  walk(rows, "");
+  return { byId, idOf };
+}
+
+/**
  * Busca `query` en `fields` de cada fila del árbol y devuelve los ids —con
  * el mismo esquema que {@link collectExpandedIds}— de las filas que hay que
  * forzar a expandir para que lo encontrado quede visible: los antepasados de
