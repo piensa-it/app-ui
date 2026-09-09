@@ -5,7 +5,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+  // `inline-block`, no el `inline` de fábrica de un `<label>`: en Tailwind 4
+  // `space-y-*` es un margen entre hermanos que un elemento inline ignora
+  // (#123). `inline-block` conserva la altura de línea de un rótulo de texto
+  // suelto y admite ese margen.
+  "inline-block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
 );
 
 const Label = React.forwardRef<

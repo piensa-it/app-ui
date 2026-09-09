@@ -424,6 +424,52 @@ describe("SidebarNavGroup — secciones plegables", () => {
     expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
   });
 
+  it("`defaultOpen={false}` sí se puede abrir con el control (#94)", async () => {
+    const user = userEvent.setup();
+    render(grupo({ collapsible: true, defaultOpen: false }));
+    const toggle = screen.getAllByRole("button", { name: /Administración/ })[0];
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(toggle);
+
+    // `defaultOpen` solo decide el estado inicial; una vez que la persona
+    // pulsa el control, `toggleGroup` manda. Con el bug de #94 el grupo
+    // volvía a caer en `defaultOpen` en cada render y nunca se abría.
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getAllByRole("link", { name: "Usuarios" })[0]).toBeInTheDocument();
+  });
+
+  it("migra el formato viejo de `storageKey` (array de cerrados) sin perder la preferencia", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem("ui-shell:acme-viejo:groups", JSON.stringify(["admin"]));
+
+    const shell = (
+      <AppShell storageKey="acme-viejo" brand={<SidebarBrand name="Acme" />} sidebar={
+        <SidebarNav>
+          <SidebarNavGroup label="Administración" collapsible groupId="admin" defaultOpen>
+            <SidebarNavItem icon={<span />}>Usuarios</SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      }>
+        <p>Contenido</p>
+      </AppShell>
+    );
+
+    const { unmount } = render(shell);
+    // El formato viejo solo guardaba cerrados: aunque `defaultOpen` sea
+    // `true`, la preferencia guardada manda la primera vez.
+    expect(screen.getAllByRole("button", { name: /Administración/ })[0]).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(screen.getAllByRole("button", { name: /Administración/ })[0]);
+    expect(screen.getAllByRole("button", { name: /Administración/ })[0]).toHaveAttribute("aria-expanded", "true");
+    unmount();
+
+    // Tras el primer toggle se reescribe en el formato nuevo, y sigue
+    // recordando lo que la persona eligió.
+    render(shell);
+    expect(screen.getAllByRole("button", { name: /Administración/ })[0]).toHaveAttribute("aria-expanded", "true");
+  });
+
   it("el control dice qué controla", () => {
     render(grupo({ collapsible: true }));
     const toggle = screen.getAllByRole("button", { name: /Administración/ })[0];

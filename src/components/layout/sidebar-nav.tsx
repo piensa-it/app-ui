@@ -44,12 +44,15 @@ export interface SidebarNavGroupProps extends React.HTMLAttributes<HTMLDivElemen
 /** Sección con título dentro del menú, para menús largos. */
 export const SidebarNavGroup = React.forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   ({ label, collapsible = false, defaultOpen = true, groupId, className, children, ...props }, ref) => {
-    const { collapsed, closedGroups, toggleGroup } = useSidebar();
+    const { collapsed, groupPreferences, toggleGroup } = useSidebar();
     const contentId = React.useId();
     const id = groupId ?? (typeof label === "string" ? label : contentId);
     // La preferencia guardada manda sobre `defaultOpen`, que solo decide la
-    // primera vez.
-    const open = closedGroups.includes(id) ? false : defaultOpen;
+    // primera vez: si la sección nunca se tocó (no está en el mapa),
+    // `defaultOpen` elige; en cuanto la persona la abre o la cierra,
+    // `toggleGroup` la deja en el mapa y manda en cada render siguiente,
+    // aunque sea para abrir una sección que nació con `defaultOpen={false}`.
+    const open = id in groupPreferences ? groupPreferences[id] : defaultOpen;
 
     if (collapsed) {
       // Con el menú en iconos no hay sitio para el encabezado ni para el
