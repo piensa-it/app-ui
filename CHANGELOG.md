@@ -6,6 +6,17 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`AuthLayout`, `PasswordInput` y `LoginForm`: la pantalla de entrada estándar (#130).** Es la primera pantalla que ve alguien, y hasta ahora cada aplicación se la escribía. Va como **pantalla completa, no como ventana modal**, y esa es la decisión de fondo: así la ruta es enlazable, el navegador autocompleta y ofrece guardar la contraseña sin pelearse con una capa, el foco no queda atrapado y el teclado de móvil no compite con un diálogo —los gestores de contraseñas funcionan notoriamente peor dentro de un diálogo—. El modal se reserva para *volver* a entrar con la sesión caducada, y eso no estrena componente: es `LoginForm` dentro del `Dialog` que ya existe, documentado con una story. Ninguna de las tres piezas trae lógica de autenticación: ni fetch, ni router, ni sesión.
+  - `LoginForm` pinta un `<form>` de verdad, lo contrario de `SettingsPage` —donde el pie vive fuera del contenido—: aquí Enter tiene que enviar desde cualquiera de los dos campos, y los gestores necesitan un formulario real para ofrecer guardar. Los campos declaran su propósito con `autoComplete` (`username` y `current-password`, WCAG 2.1 SC 1.3.5). El botón **no** se deshabilita con los campos vacíos —deshabilitarlo esconde el motivo—; con `loading` sí descarta el segundo envío, pero con `aria-disabled` en vez de `disabled`, para no perder el foco ni el anuncio del cambio de texto. La región del error existe vacía desde el primer render, así que al aparecer se anuncia y el formulario no da un salto bajo el cursor.
+  - `PasswordInput` va sobre el `password-input` de Ark UI y **corrige dos cosas suyas**, ambas de teclado: Ark pinta el botón de mostrar/ocultar con `tabIndex={-1}` y solo escucha `onPointerDown`, así que quien navega con teclado ni llega al botón ni podría activarlo si llegara —un control visible cuya función no se puede usar sin ratón, que es lo que prohíbe WCAG 2.1 SC 2.1.1—. Aquí es enfocable y responde a Enter y Espacio; el clic de teclado se distingue por `detail === 0` para no alternar dos veces con el ratón. Verificado por mutación: sin la corrección, la prueba de teclado falla. Tampoco pide a los gestores de contraseñas que ignoren el campo (Ark lo trae apagado, y es lo contrario de lo que quiere una pantalla de entrada), aunque se puede pedir con `ignorePasswordManagers` para un campo que *parece* contraseña sin serlo.
+  - `AuthLayout` deja el panel derecho como un hueco, no como una variante: recibe lo que sea —lo documentado es `ImageCarouselBackdrop`— y por debajo de `md` simplemente no se pinta, con el formulario ocupando el ancho. Comprobado midiendo el DOM a dos anchos en un navegador real, no por la clase: jsdom no aplica media queries.
+
+### Fixed
+
+- **La librería no compilaba con los tipos de React 18**, que declara soportar en `peerDependencies`. `SettingsPage` usaba `useRef<HTMLDivElement>(null)`, que en los tipos de React 18 devuelve un `RefObject` de `current` **de solo lectura** —la asignación del callback ref no compila—; en los de React 19 sí es asignable, y por eso pasaba inadvertido. Roto desde 0.10.0 (#126), publicado así en 1.0.0 y 1.1.0. La causa de que nadie lo viera es que `verify:react18` **no está en CI**: existe el gate y hay que correrlo a mano.
+
 ## [1.1.0] - 2026-09-09
 
 ### Added

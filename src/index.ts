@@ -77,6 +77,13 @@ export { Switch, type SwitchProps } from "./components/ui/switch";
 export { Slider, type SliderProps } from "./components/ui/slider";
 export { NumberInput, type NumberInputProps } from "./components/ui/number-input";
 export { SearchInput, type SearchInputProps } from "./components/ui/search-input";
+export { PasswordInput, type PasswordInputProps, type PasswordInputLabels } from "./components/ui/password-input";
+export {
+  LoginForm,
+  type LoginFormProps,
+  type LoginFormValue,
+  type LoginFormLabels,
+} from "./components/ui/login-form";
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from "./components/ui/breadcrumb";
 export { Dialog, DialogHeader, DialogFooter, DialogTitle, DialogDescription, type DialogProps } from "./components/ui/dialog";
 export {
@@ -232,6 +239,7 @@ export {
   type SettingsPageLabels,
   type SettingsSection,
 } from "./components/layout/settings-page";
+export { AuthLayout, type AuthLayoutProps } from "./components/layout/auth-layout";
 export { initialsFrom } from "./lib/initials";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/global-error-boundary";
 
