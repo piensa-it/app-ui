@@ -12,10 +12,27 @@ export type DataTableDensity = "compact" | "default" | "comfortable";
 
 export interface DataTableToolbarProps<TValue extends DataTableValue> {
   title?: React.ReactNode;
+  /**
+   * Etiqueta con la que se pinta `title`. `"div"` por defecto para no
+   * inventar estructura donde la pantalla no la pidió; una pantalla que
+   * encabeza una sección con la tabla pasa el nivel que le toca.
+   */
+  titleAs?: "h2" | "h3" | "h4" | "div";
   description?: React.ReactNode;
   actions?: React.ReactNode;
   searchable?: boolean;
   searchPlaceholder?: string;
+  /**
+   * Nombre accesible del buscador. Antes de este prop el `aria-label` estaba
+   * fijo a «Buscar en la tabla»: todas las pantallas anunciaban el mismo
+   * nombre y una prueba de extremo a extremo no tenía forma de distinguir un
+   * buscador de otro cuando había más de uno en pantalla.
+   *
+   * Es independiente de `searchPlaceholder` y no cae a su valor: si se fija
+   * el placeholder sin fijar este prop, el campo muestra un texto pero
+   * anuncia otro —hay que poner los dos a la vez.
+   */
+  searchLabel?: string;
   configurableColumns?: boolean;
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
@@ -35,10 +52,12 @@ export interface DataTableToolbarProps<TValue extends DataTableValue> {
  */
 export function DataTableToolbar<TValue extends DataTableValue>({
   title,
+  titleAs = "div",
   description,
   actions,
   searchable,
   searchPlaceholder = "Buscar en la tabla…",
+  searchLabel = "Buscar en la tabla",
   configurableColumns,
   globalFilter,
   onGlobalFilterChange,
@@ -50,11 +69,12 @@ export function DataTableToolbar<TValue extends DataTableValue>({
   onColumnVisibilityChange,
 }: DataTableToolbarProps<TValue>) {
   const [columnQuery, setColumnQuery] = React.useState("");
+  const TitleTag = titleAs;
 
   return (
     <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        {title ? <div className="font-heading text-base font-semibold text-foreground">{title}</div> : null}
+        {title ? <TitleTag className="font-heading text-base font-semibold text-foreground">{title}</TitleTag> : null}
         {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -62,7 +82,7 @@ export function DataTableToolbar<TValue extends DataTableValue>({
           <div className="relative min-w-0 sm:w-64">
             <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Buscar en la tabla"
+              aria-label={searchLabel}
               className="pl-9"
               placeholder={searchPlaceholder}
               value={globalFilter}
