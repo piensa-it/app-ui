@@ -12,9 +12,12 @@ reduced-motion policies, and selected visual baselines.
 
 ## 2. Security
 
-CodeQL scans JavaScript and TypeScript on pull requests, `main`, and weekly.
-Dependency Review blocks newly introduced dependencies with moderate-or-higher
-known vulnerabilities. Production dependencies are also checked by `npm audit`.
+CodeQL scans JavaScript and TypeScript on pull requests, `main`, and weekly
+(`.github/workflows/security.yml`). Production dependencies are checked by
+`npm audit --omit=dev --audit-level=high` in the Quality Gate
+(`.github/workflows/ci.yml`). There is no Dependency Review workflow in this
+repository — the only automated dependency vulnerability check is that
+`npm audit` step.
 
 ## 3. Dependabot
 
