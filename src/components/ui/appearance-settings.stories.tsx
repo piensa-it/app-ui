@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { AppearanceSettings, type AppearanceValue } from "./appearance-settings";
-import { UiProvider } from "@/components/providers/UiProvider";
+import { UiProvider } from "@/components/providers/ui-provider";
 import { Button } from "./button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Input } from "./input";

@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { UiProvider } from "../components/providers/UiProvider";
+import { UiProvider } from "../components/providers/ui-provider";
 import { UserMenu } from "../components/layout/user-menu";
 
 const usuario = { name: "Andrés Montoya", email: "andres@piensait.com", role: "Cajera", avatarColor: "350 75% 45%" };

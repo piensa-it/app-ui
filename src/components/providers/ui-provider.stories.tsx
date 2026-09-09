@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { UiProvider } from "./UiProvider";
+import { UiProvider } from "./ui-provider";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { confirmAlert } from "@/components/ui/alert-dialog";

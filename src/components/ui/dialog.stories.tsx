@@ -4,7 +4,7 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } fr
 import { Button } from "./button";
 import { Select } from "./select";
 import { Field } from "./field";
-import { Sheet, SheetHeader, SheetTitle, SheetDescription } from "./sidebar";
+import { Sheet, SheetHeader, SheetTitle, SheetDescription } from "./sheet";
 
 const meta = {
   title: "UI/Dialog",

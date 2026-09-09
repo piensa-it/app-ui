@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PublicFooter } from "../components/marketing/PublicFooter";
-import type { LinkComponent } from "../components/marketing/PublicHeader";
+import { PublicFooter } from "../components/marketing/public-footer";
+import type { LinkComponent } from "../components/marketing/public-header";
 
 const LinkDeMentira: LinkComponent = ({ to, children, ...rest }) => (
   <a href={to} data-router="propio" {...rest}>
