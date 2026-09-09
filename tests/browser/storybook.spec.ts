@@ -267,6 +267,53 @@ test.describe("Storybook browser gate", () => {
       maxDiffPixels: MAX_DIFF_PIXELS,
     });
   });
+
+  // El fundido de ImageCarouselBackdrop pasó de framer-motion a CSS puro
+  // (#64): dos capas superpuestas en vez de AnimatePresence. La captura no
+  // ve la transición (`stabilize` la apaga), pero sí que la capa asentada
+  // conserva la opacidad correcta por variante — el bug que motivó fijar
+  // `opacity` también en el estilo inline y no solo en el `@keyframes`.
+  test("keeps the marketing image carousel backdrop visually stable", async ({ page }) => {
+    await page.goto(storyUrl("marketing-imagecarouselbackdrop--duotone"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByText("Contenido encima")).toBeVisible();
+    await expect(story).toHaveScreenshot("image-carousel-backdrop-duotone.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  test("keeps the marketing image carousel backdrop (hero) visually stable", async ({ page }) => {
+    await page.goto(storyUrl("marketing-imagecarouselbackdrop--hero"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByText("Hero de landing page")).toBeVisible();
+    await expect(story).toHaveScreenshot("image-carousel-backdrop-hero.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  // La entrada del menú móvil de PublicHeader pasó de framer-motion a CSS
+  // puro (#64). La captura fija el estado abierto (layout + colores); la
+  // animación de entrada la cubre `motion.css`/`marketing.css` con su propio
+  // respeto de `prefers-reduced-motion`, no una captura de píxeles.
+  test("keeps the public header mobile menu visually stable", async ({ page }) => {
+    await page.setViewportSize({ width: 480, height: 720 });
+    await page.goto(storyUrl("marketing-publicheader--default"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await story.getByRole("button", { name: "Abrir menú" }).click();
+    await expect(story.getByRole("navigation", { name: "Navegación móvil" })).toBeVisible();
+    await expect(story).toHaveScreenshot("public-header-mobile-menu-open.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
 });
 
 test.describe("Checkbox — indeterminado (#144)", () => {

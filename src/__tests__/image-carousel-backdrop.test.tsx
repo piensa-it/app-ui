@@ -36,9 +36,10 @@ describe("ImageCarouselBackdrop", () => {
     });
 
     it("rota a la siguiente imagen tras intervalMs y vuelve a la primera al llegar al final", () => {
-      // AnimatePresence (mode="popLayout") mantiene la capa saliente en el DOM
-      // mientras se desvanece — la entrante convive con ella un instante, así
-      // que se comprueba que la nueva capa aparece, no que sea la única.
+      // Dos capas fijas conviven en el DOM (#64: fundido con CSS puro, no
+      // framer-motion) — la de atrás con la imagen anterior, la de delante
+      // con la nueva — así que se comprueba que la nueva capa aparece, no
+      // que sea la única.
       const { container } = render(
         <ImageCarouselBackdrop images={["/a.jpg", "/b.jpg"]} intervalMs={1000} />,
       );

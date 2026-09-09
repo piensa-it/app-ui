@@ -1,0 +1,49 @@
+/* Movimiento propio de marketing/: framer-motion sustituido por CSS puro
+   (#64). Solo dos casos, los dos sencillos — no justifican arrastrar un
+   runtime de animación en `dependencies` para reproducir un fundido y una
+   entrada de menú que CSS ya resuelve. Sigue el mismo patrón que
+   `ui/motion.css` (atributo `data-*` + `@keyframes` + respeto de
+   `prefers-reduced-motion`), pero vive aparte porque su anatomía es propia
+   de estos dos componentes, no un preset reutilizable del resto de la
+   librería. */
+
+[data-marketing-motion="carousel-fade"] {
+  animation: marketing-carousel-fade var(--marketing-fade-duration, 1500ms) ease-in-out both;
+}
+
+@keyframes marketing-carousel-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: var(--marketing-fade-opacity, 1);
+  }
+}
+
+[data-marketing-motion="menu-in"] {
+  animation: marketing-menu-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes marketing-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-marketing-motion="carousel-fade"] {
+    animation: none;
+    opacity: var(--marketing-fade-opacity, 1);
+  }
+
+  [data-marketing-motion="menu-in"] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

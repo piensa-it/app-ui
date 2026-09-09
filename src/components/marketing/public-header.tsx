@@ -1,9 +1,10 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
+
+import "./marketing.css";
 
 export interface LinkComponentProps {
   to: string;
@@ -44,6 +45,11 @@ export interface PublicHeaderProps {
  * Header público con comportamiento de scroll (blur + borde al hacer
  * scroll) y menú móvil. Sin acoplamiento a marca ni a router: recibe logo,
  * nombre y navegación por props, y el componente de link es inyectable.
+ *
+ * La entrada del menú móvil es CSS puro (`marketing.css`), no framer-motion
+ * (#64): `data-marketing-motion="menu-in"` remonta con la sección y anima
+ * opacidad + `translateY` una sola vez al montar (no necesita salida
+ * animada — el menú se desmonta de golpe al cerrar, igual que antes).
  */
 export const PublicHeader = ({
   logoSrc,
@@ -114,13 +120,7 @@ export const PublicHeader = ({
         </div>
 
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18 }}
-            className="border-t border-border py-3 md:hidden"
-          >
+          <div data-marketing-motion="menu-in" className="border-t border-border py-3 md:hidden">
             <nav aria-label="Navegación móvil" className="flex flex-col gap-1">
               {crossLink && (
                 <Link
@@ -133,7 +133,7 @@ export const PublicHeader = ({
               )}
               {mobileNav}
             </nav>
-          </motion.div>
+          </div>
         )}
       </div>
     </header>

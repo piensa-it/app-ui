@@ -359,6 +359,67 @@ de equivalencias y cómo migrar.
 
 ---
 
+## Dependencias de terceros
+
+### `framer-motion` salió de `dependencies` (#64)
+
+Hasta la 1.1.0, `framer-motion` era dependencia de producción y solo la
+usaban dos archivos: `PublicHeader` (entrada del menú móvil) y
+`ImageCarouselBackdrop` (fundido del carrusel). El resto del sistema de
+movimiento (`Motion`, `Stagger`, `Reveal`, `AnimatedNumber`) ya era CSS puro.
+
+Con `preserveModules`, el bundle nunca fue el problema: medido con el mismo
+consumidor mínimo que usa `verify:package`, importar `Button` (o cualquier
+componente fuera de `marketing/`) se llevaba **0 bytes** de framer-motion
+tanto antes como después del cambio — la dependencia solo entraba al bundle
+de un consumidor que importara `PublicHeader` o `ImageCarouselBackdrop`. El
+problema real era el **árbol de dependencias**: al vivir en `dependencies`,
+`npm install` bajaba framer-motion + `motion-dom` + `motion-utils` (~10,5 MB
+en `node_modules`) para **el 100% de los consumidores**, usen o no
+marketing — más superficie de auditoría y de CVEs por una animación que CSS
+ya resuelve.
+
+Se sustituyó por CSS puro en los dos archivos (`marketing/marketing.css`,
+mismo patrón `data-*` + `@keyframes` que `ui/motion.css`, con
+`prefers-reduced-motion` respetado) y se quitó `framer-motion` de
+`dependencies`. No es un cambio incompatible: el aspecto y comportamiento de
+ambos componentes se conserva (capturas comparadas en
+`tests/browser/storybook.spec.ts` — `image-carousel-backdrop-*` y
+`public-header-mobile-menu-open`), y ninguna prop pública cambió.
+
+Se descartaron las otras dos salidas que planteaba la incidencia:
+moverla a `peerDependencies` (rompe a quien no la tenga instalada — exige
+mayor de versión, no esta incidencia) y dejarla como estaba (el peso de
+bundle ya era cero, pero el de instalación —10,5 MB para todos— no lo
+justificaba frente a una alternativa sin ese costo y sin cambio de
+comportamiento).
+
+### Dos linajes headless: Ark UI y tres primitivas de Radix
+
+`@radix-ui/react-label`, `@radix-ui/react-separator` y `@radix-ui/react-slot`
+conviven con Ark UI (usadas en `label.tsx`, `separator.tsx`, `button.tsx` y
+`sidebar-nav.tsx`). La incidencia #64 preguntaba si sustituirlas por su
+equivalente de Ark UI es parte de este mismo trabajo. Decisión: **no** — se
+abre aparte (#167), con criterio distinto para cada una:
+
+- **`react-slot`** tiene motivo real para quedarse: `asChild` (usado por
+  `Button`) y `Slottable` son su aporte, y Ark UI no expone un equivalente
+  directo. Sustituirlo no es "cambiar de proveedor", es rediseñar cómo
+  `Button` compone con el elemento que recibe — cambio de mayor alcance que
+  una limpieza de dependencias.
+- **`react-label`** y **`react-separator`** sí tienen equivalente en Ark UI,
+  pero migrarlas cambia el DOM que renderizan (atributos `data-*`,
+  estructura interna) — con Ark UI hay que reverificar la anatomía real antes
+  de tematizar (ver `.claude/CLAUDE.md`, "Ark UI, verificar antes de
+  tematizar"), no es una sustitución mecánica de import.
+
+Migrar las tres exige su propia investigación de anatomía y sus propias
+pruebas visuales — mezclarlo con la salida de framer-motion habría hecho un
+solo PR difícil de revisar y de revertir por partes. Motivo suficiente para
+una incidencia nueva, no para resolverlo aquí.
+
+---
+
 ## Cómo cambiar estas reglas
 
 Un cambio aquí afecta a tres aplicaciones a la vez. El procedimiento es el
