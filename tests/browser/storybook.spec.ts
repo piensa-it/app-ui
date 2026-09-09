@@ -538,15 +538,22 @@ test.describe("UserMenu", () => {
 test.describe("AvatarPicker", () => {
   // Foto o iniciales sobre color, una sola elección. La captura fija los ocho
   // colores por defecto y la vista previa, que es el mismo Avatar de UserMenu.
-  test("con iniciales se mantiene visualmente estable", async ({ page }) => {
-    await page.goto(storyUrl("ui-avatarpicker--iniciales"));
-    await stabilize(page);
-    await expect(page.getByRole("radiogroup", { name: "Color de las iniciales" })).toBeVisible();
-    await expect(page.locator("#storybook-root")).toHaveScreenshot("avatar-picker.png", {
-      animations: "disabled",
-      maxDiffPixels: MAX_DIFF_PIXELS,
+  //
+  // Los dos temas, no solo claro (#125): la elegida se marca con un visto en
+  // un disco blanco, no con el anillo de foco, así que hace falta ver el
+  // disco sobre los ocho colores en los dos temas — es lo único que cambia
+  // con el tema, porque el disco ya no depende de `--raised` ni de `--ground`.
+  for (const tema of ["light", "dark"] as const) {
+    test(`con iniciales se mantiene visualmente estable en tema ${tema}`, async ({ page }) => {
+      await page.goto(storyUrl("ui-avatarpicker--iniciales", `theme:${tema};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await expect(page.getByRole("radiogroup", { name: "Color de las iniciales" })).toBeVisible();
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`avatar-picker-${tema}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
     });
-  });
+  }
 });
 
 test.describe("AppearanceSettings", () => {
