@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-09
+
 ### Added
 
 - **`DataTable` acepta jerarquía de N niveles vía `getSubRows`** (#135). El origen es la tabla de árbol de Lynx (`TreeTable.tsx`), escrita a mano y con ella todo lo que trae `DataTable` sin escribir dos veces: búsqueda, paginación, columnas configurables, pie de totales, densidad. Se decidió que la jerarquía fuera un parámetro y no un componente aparte —`PivotTable`, evaluado como precedente, no comparte ni siquiera TanStack Table con `DataTable` y le faltan nueve de sus once capacidades: es un caso genuinamente distinto, mientras que un árbol es la misma tabla con un enlace al padre—. Duplicar en un `TreeTable` habría significado tres sitios donde corregir cada bug de la tabla en vez de uno. **El caso plano no cambia**: sin `getSubRows`, `DataTable` se comporta exactamente igual que antes, verificado comparando el HTML renderizado contra `main`, no solo con las pruebas ya existentes. La preocupación de que la jerarquía "se mezclara" con lo de siempre se resolvió sin forkear código: por dentro, `data-table.tsx` (604 líneas) se partió en `data-table-toolbar.tsx`, `data-table-preferences.ts` y `lib/tree.ts`, cada uno con una responsabilidad; por fuera, la documentación vive en su propia sección de Storybook, «UI/DataTable/Jerarquía», para que se encuentre tan fácil como si fuera un componente aparte.
