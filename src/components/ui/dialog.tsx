@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
 import { focusRingOutside } from "@/lib/recipes/focus";
+import { actionFooterVariants } from "@/lib/recipes/action-footer";
 
 export interface DialogProps extends Omit<ArkDialog.RootProps, "open" | "onOpenChange"> {
   open: boolean;
@@ -101,7 +102,7 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("mt-ui-md flex flex-col-reverse gap-ui-xs sm:flex-row sm:justify-end", className)} {...props} />
+  <div className={cn(actionFooterVariants(), className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 

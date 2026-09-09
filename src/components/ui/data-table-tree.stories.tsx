@@ -229,3 +229,40 @@ export const AccionesPorFila: Story = {
     </DataTable>
   ),
 };
+
+/**
+ * `selectable` funciona igual en modo jerárquico: `enableSubRowSelection`
+ * (el valor de fábrica de TanStack) hace que marcar un edificio marque todos
+ * sus locales y sublocales, y un edificio con solo parte de su rama marcada
+ * sale indeterminado — se ve en la casilla del edificio antes de expandirlo.
+ * Sin esta prop, la casilla de cada fila solo marca esa fila (útil cuando
+ * una pantalla quiere lo contrario: seleccionar hojas sin arrastrar al
+ * padre).
+ */
+export const Seleccionable: Story = {
+  name: "Selección de filas (jerárquica)",
+  render: () => (
+    <DataTable
+      value={buildTree(activosPlanos.slice(0, 12))}
+      getSubRows={(activo: TreeRow<Activo>) => activo.children}
+      getRowId={(activo: TreeRow<Activo>) => activo.id}
+      defaultExpandedDepth={1}
+      title="Activos inmobiliarios"
+      description="Marcar un edificio marca su rama entera; un edificio a medias sale indeterminado."
+      selectable
+      getRowLabel={(activo: TreeRow<Activo>) => activo.nombre}
+      selectionActions={(rows: TreeRow<Activo>[]) => (
+        <Button variant="destructive" size="sm" onClick={() => alert(`Borrar ${rows.length} activos`)}>
+          <Trash aria-hidden="true" /> Borrar
+        </Button>
+      )}
+    >
+      <Column field="nombre" header="Nombre" tree />
+      <Column
+        field="tipo"
+        header="Tipo"
+        body={(activo: TreeRow<Activo>) => <Badge variant={TIPO_VARIANT[activo.tipo]}>{activo.tipo}</Badge>}
+      />
+    </DataTable>
+  ),
+};

@@ -538,15 +538,22 @@ test.describe("UserMenu", () => {
 test.describe("AvatarPicker", () => {
   // Foto o iniciales sobre color, una sola elección. La captura fija los ocho
   // colores por defecto y la vista previa, que es el mismo Avatar de UserMenu.
-  test("con iniciales se mantiene visualmente estable", async ({ page }) => {
-    await page.goto(storyUrl("ui-avatarpicker--iniciales"));
-    await stabilize(page);
-    await expect(page.getByRole("radiogroup", { name: "Color de las iniciales" })).toBeVisible();
-    await expect(page.locator("#storybook-root")).toHaveScreenshot("avatar-picker.png", {
-      animations: "disabled",
-      maxDiffPixels: MAX_DIFF_PIXELS,
+  //
+  // Los dos temas, no solo claro (#125): la elegida se marca con un visto en
+  // un disco blanco, no con el anillo de foco, así que hace falta ver el
+  // disco sobre los ocho colores en los dos temas — es lo único que cambia
+  // con el tema, porque el disco ya no depende de `--raised` ni de `--ground`.
+  for (const tema of ["light", "dark"] as const) {
+    test(`con iniciales se mantiene visualmente estable en tema ${tema}`, async ({ page }) => {
+      await page.goto(storyUrl("ui-avatarpicker--iniciales", `theme:${tema};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+      await expect(page.getByRole("radiogroup", { name: "Color de las iniciales" })).toBeVisible();
+      await expect(page.locator("#storybook-root")).toHaveScreenshot(`avatar-picker-${tema}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
     });
-  });
+  }
 });
 
 test.describe("AppearanceSettings", () => {
@@ -576,6 +583,54 @@ test.describe("DataTable — Jerarquía", () => {
     await expect(story.getByText("Edificio Norte")).toBeVisible();
     await expect(story.getByRole("button", { name: "Colapsar Edificio Norte" })).toBeVisible();
     await expect(story).toHaveScreenshot("data-table-tree.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+});
+
+test.describe("DataTable — Selección (#137)", () => {
+  // Lo nuevo de #137 solo existe CON selección activa: sin ella la tabla es
+  // pixel a pixel la de antes (verificado aparte comparando HTML contra
+  // main, no con esta captura). Dos capturas, no una: cada una fija algo que
+  // la otra no puede mostrar a la vez.
+
+  // Plana: marcar la cabecera selecciona la página (5 de 20) y dispara el
+  // aviso para extender a todo lo filtrado — la barra transformada (cuenta +
+  // "Exportar"/"Borrar") y el aviso son los dos elementos nuevos que fija
+  // esta captura.
+  test("con selección activa, la barra transformada y el aviso de extender se mantienen estables", async ({
+    page,
+  }) => {
+    await page.goto(storyUrl("ui-datatable--seleccionable"));
+    await stabilize(page);
+    const story = page.locator("#storybook-root");
+
+    await story.getByRole("checkbox", { name: "Seleccionar todas las filas de esta página" }).click();
+    await expect(story.getByText("5 seleccionadas")).toBeVisible();
+    await expect(story.getByText(/Seleccionadas las 5 de esta página/)).toBeVisible();
+
+    await expect(story).toHaveScreenshot("data-table-selection.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  // Jerárquica: marcar un local deja a su edificio a medias — el estado
+  // indeterminado de la casilla del padre es lo único que esta captura
+  // puede fijar y la anterior no.
+  test("en modo jerárquico, un padre a medias queda indeterminado de forma estable", async ({ page }) => {
+    await page.goto(storyUrl("ui-datatable-jerarquía--seleccionable"));
+    await stabilize(page);
+    const story = page.locator("#storybook-root");
+
+    // "Local A" es hoja (sin hijas) — a diferencia de "Local B", que tiene una
+    // bodega y arrastraría una segunda fila a la selección sin que se viera
+    // en pantalla (bodegas quedan colapsadas con `defaultExpandedDepth={1}`).
+    await story.locator('tr[data-row-id="edificio-1-local-a"]').getByRole("checkbox").click();
+    await expect(story.getByText("1 seleccionada")).toBeVisible();
+
+    await expect(story).toHaveScreenshot("data-table-selection-tree.png", {
       animations: "disabled",
       maxDiffPixels: MAX_DIFF_PIXELS,
     });

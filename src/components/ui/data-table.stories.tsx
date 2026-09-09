@@ -430,3 +430,50 @@ export const DetalleEnLineaMultiple: Story = {
     </DataTable>
   ),
 };
+
+/**
+ * `selectable` antepone la columna de casillas — no se declara con
+ * `<Column>`, la dibuja el propio armazón. Con 20 filas y páginas de 5, la
+ * casilla de cabecera solo marca la página visible; marcarla entera ofrece
+ * extender la selección a las 20 que cumplen el filtro (patrón Gmail/GitHub:
+ * de un clic, sin ese paso intermedio, es como se opera sobre miles de
+ * registros creyendo que eran diez). Prueba a filtrar con algo seleccionado:
+ * el contador dice cuánto de lo seleccionado queda fuera del filtro en vez
+ * de fingir que esas filas no cuentan — es la decisión de #137, ver el
+ * DocBlock de `selected` en `data-table.tsx`.
+ */
+export const Seleccionable: Story = {
+  name: "Selección de filas y acciones masivas",
+  render: () => (
+    <DataTable
+      value={usuariosErp}
+      title="Miembros del equipo"
+      searchable
+      rows={5}
+      getRowId={(usuario: Usuario) => usuario.correo}
+      selectable
+      getRowLabel={(usuario: Usuario) => usuario.nombre}
+      selectionActions={(rows: Usuario[]) => (
+        <>
+          <Button variant="outline" size="sm" onClick={() => alert(`Exportar ${rows.length} filas`)}>
+            <Download aria-hidden="true" /> Exportar
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => alert(`Borrar ${rows.length} filas`)}>
+            <Trash2 aria-hidden="true" /> Borrar
+          </Button>
+        </>
+      )}
+    >
+      <Column field="nombre" header="Nombre" sortable />
+      <Column field="correo" header="Correo" sortable />
+      <Column field="area" header="Área" sortable />
+      <Column
+        field="estado"
+        header="Estado"
+        body={(row: Usuario) => (
+          <Badge variant={row.estado === "activo" ? "success" : "outline"}>{row.estado}</Badge>
+        )}
+      />
+    </DataTable>
+  ),
+};

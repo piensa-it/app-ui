@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTree, collectExpandedIds, collectSearchExpandedIds, type TreeRow } from "../lib/tree";
+import { buildRowIndex, buildTree, collectExpandedIds, collectSearchExpandedIds, type TreeRow } from "../lib/tree";
 
 interface Unidad {
   id: string;
@@ -190,5 +190,63 @@ describe("collectSearchExpandedIds", () => {
 
   it("consulta vacía no expande nada", () => {
     expect(collectSearchExpandedIds(tree, "", ["nombre"], getSubRows)).toEqual({});
+  });
+});
+
+describe("buildRowIndex", () => {
+  it("sin getRowId usa el mismo esquema posicional que collectExpandedIds", () => {
+    const rows: Unidad[] = [{ id: "a", nombre: "A" }, { id: "b", nombre: "B" }];
+    const { byId, idOf } = buildRowIndex(rows);
+    expect(byId.get("0")).toBe(rows[0]);
+    expect(byId.get("1")).toBe(rows[1]);
+    expect(idOf.get(rows[0])).toBe("0");
+    expect(idOf.get(rows[1])).toBe("1");
+  });
+
+  it("en modo jerárquico sin getRowId usa índices unidos por '.' (padre.índice)", () => {
+    const getSubRows = (row: UnidadArbol) => row.children;
+    const tree = buildTree<Unidad>([
+      { id: "1", nombre: "Edificio A" },
+      { id: "1.1", parentId: "1", nombre: "Torre 1" },
+    ]);
+    const { byId, idOf } = buildRowIndex(tree, getSubRows);
+    expect(byId.get("0")?.nombre).toBe("Edificio A");
+    expect(byId.get("0.0")?.nombre).toBe("Torre 1");
+    expect(idOf.get(tree[0].children[0])).toBe("0.0");
+  });
+
+  it("con getRowId indexa por el id real, plano", () => {
+    const rows: Unidad[] = [{ id: "x1", nombre: "Uno" }, { id: "x2", nombre: "Dos" }];
+    const { byId, idOf } = buildRowIndex(rows, undefined, (r) => r.id);
+    expect(byId.get("x1")).toBe(rows[0]);
+    expect(idOf.get(rows[1])).toBe("x2");
+    expect(byId.size).toBe(2);
+  });
+
+  it("en modo jerárquico recorre también las hijas, con id de padre.hijo", () => {
+    const getSubRows = (row: UnidadArbol) => row.children;
+    const getRowId = (row: UnidadArbol) => row.id;
+    const tree = buildTree<Unidad>([
+      { id: "1", nombre: "Edificio A" },
+      { id: "1.1", parentId: "1", nombre: "Torre 1" },
+      { id: "2", nombre: "Edificio B" },
+    ]);
+
+    const { byId, idOf } = buildRowIndex(tree, getSubRows, getRowId);
+
+    expect(byId.size).toBe(3);
+    expect(byId.get("1.1")?.nombre).toBe("Torre 1");
+    expect(idOf.get(tree[0].children[0])).toBe("1.1");
+  });
+
+  it("una fila repetida por referencia conserva el id de su última aparición en idOf", () => {
+    // Documenta el límite: `idOf` es un Map por identidad de objeto, así que
+    // si la MISMA referencia aparece dos veces con dos ids, sólo el segundo
+    // sobrevive para la vuelta fila→id. No ocurre con datos normales (cada
+    // fila de `value` es una única referencia), pero deja escrito el porqué
+    // de por qué `idOf` no es apto para filas duplicadas por valor.
+    const compartida: Unidad = { id: "dup", nombre: "Compartida" };
+    const { idOf } = buildRowIndex([compartida, compartida], undefined, (_row, index) => `id-${index}`);
+    expect(idOf.get(compartida)).toBe("id-1");
   });
 });
