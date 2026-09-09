@@ -1,6 +1,10 @@
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Toaster, toast } from "./toast";
 import { Button } from "./button";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./dialog";
+import { Field } from "./field";
+import { Input } from "./input";
 
 const meta = {
   title: "UI/Toast",
@@ -43,6 +47,56 @@ export const Default: Story = {
       </div>
     </>
   ),
+};
+
+/**
+ * #67: el caso real que hoy dispara casi todos los avisos de la librería —
+ * validar un formulario de captura dentro de un `Dialog` modal. Antes de
+ * portalizar `Toaster`, el aviso quedaba en el subárbol que el diálogo marca
+ * `aria-hidden="true"` mientras está abierto: un lector de pantalla no lo
+ * anunciaba y su botón de cerrar no era alcanzable. Cubierta además por
+ * `toast-under-dialog.test.tsx` (afirma la ausencia de ese `aria-hidden`) y
+ * por el gate de navegador en `tests/browser/storybook.spec.ts`.
+ */
+export const ConDialogoAlValidar: Story = {
+  name: "Con diálogo al validar",
+  render: () => {
+    const Demo = () => {
+      const [open, setOpen] = useState(false);
+      const [nombre, setNombre] = useState("");
+
+      const guardar = () => {
+        if (!nombre.trim()) {
+          toast.error({ summary: "No se pudo guardar", detail: "El nombre es obligatorio." });
+          return;
+        }
+        toast.success({ summary: "Guardado" });
+        setOpen(false);
+      };
+
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Capturar registro</Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogHeader>
+              <DialogTitle>Capturar registro</DialogTitle>
+              <DialogDescription>Guardar con el campo vacío dispara el aviso de error.</DialogDescription>
+            </DialogHeader>
+            <Field label="Nombre" required>
+              <Input value={nombre} onChange={(event) => setNombre(event.target.value)} />
+            </Field>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={guardar}>Guardar</Button>
+            </DialogFooter>
+          </Dialog>
+        </>
+      );
+    };
+    return <Demo />;
+  },
 };
 
 /** Cada toast dura 4 s por defecto (alineado con sonner); `duration` lo cambia por notificación. */
