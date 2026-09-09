@@ -75,6 +75,9 @@ export { Checkbox, type CheckboxProps } from "./components/ui/checkbox";
 export { RadioGroup, RadioGroupItem, type RadioGroupProps, type RadioGroupItemProps } from "./components/ui/radio-group";
 export { Switch, type SwitchProps } from "./components/ui/switch";
 export { Slider, type SliderProps } from "./components/ui/slider";
+export { NumberInput, type NumberInputProps } from "./components/ui/number-input";
+export { SearchInput, type SearchInputProps } from "./components/ui/search-input";
+export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from "./components/ui/breadcrumb";
 export { Dialog, DialogHeader, DialogFooter, DialogTitle, DialogDescription, type DialogProps } from "./components/ui/dialog";
 export {
   AppSwitcher,
