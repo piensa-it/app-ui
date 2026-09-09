@@ -5,6 +5,7 @@ import { Portal } from "@ark-ui/react/portal";
 import { cn } from "@/lib/utils";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
+import { actionFooterVariants } from "@/lib/recipes/action-footer";
 
 export interface ConfirmAlertOptions {
   title: string;
@@ -113,7 +114,7 @@ function AlertDialogHost() {
                 </ArkDialog.Description>
               ) : null}
             </div>
-            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <div className={actionFooterVariants()}>
               <ArkDialog.CloseTrigger asChild>
                 <Button
                   ref={cancelRef}
