@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.0.0";
+export const UI_LIBRARY_VERSION = "1.1.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,19 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés adoptar o retirar de tu aplicación.",
+      "Acciones masivas: si tenés pantallas donde se opera sobre varios registros a la vez, pasale `selectable` a la `DataTable`, `getRowId` con tu identificador, y `selectionActions` con los botones. Recibís las filas completas, no ids. Sin `selectable` la tabla se comporta igual que antes. Ojo con una decisión que conviene entender antes de usarla: la casilla de cabecera marca **la página**, no todo lo filtrado, y ofrece extender aparte — es lo que evita borrar tres mil registros creyendo que eran diez. Y la selección sobrevive al filtro, así que el contador avisa cuando parte de lo marcado queda fuera de la vista.",
+      "En una tabla jerárquica, marcar un padre marca su rama y un padre a medias sale indeterminado. Si armaste tu propia casilla de «seleccionar todo» con `Checkbox`, ahora podés pasarle `checked=\"indeterminate\"` en vez de simularlo.",
+      "Accesibilidad, sin que hagas nada: los avisos ya no quedan ocultos al lector de pantalla cuando se lanzan desde un diálogo, y las muestras de color del `AvatarPicker` se anuncian con su nombre en vez de con su código HSL. Si pasás `colors` propios, pasá también `colorLabels` para que los tuyos tengan nombre; sin ellos se anuncian por posición, nunca en HSL.",
+      "Si tus stories montaban su propio `AlertDialogHost` o `Toaster` además del de `UiProvider`, quitalos: se pintaba todo dos veces. Nos pasaba a nosotros en la documentación publicada.",
+      "El color elegido del `AvatarPicker` se marca ahora con un visto y no con un anillo, que era la geometría del foco. Si lo parcheaste, quitá el parche.",
+    ],
+  },
+  {
+    version: "1.0.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-09",
     migration: [
       "Esta versión ROMPE, a propósito y por última vez sin costar una mayor (ver DESIGN_SYSTEM.md > \"Compatibilidad\"): son las tres correcciones que había que hacer antes de prometer estabilidad. Los tres pasos son independientes entre sí — aplicalos en el orden que prefieras.",
       "Nombres de props (#62): `Slider.onValueChange` y `RadioGroup.onValueChange` pasan a llamarse `onChange`. La regla que decide para cualquier control, propio o de la librería: ¿el valor es un booleano de sí/no? → `checked`/`onCheckedChange` (Checkbox, Switch, sin cambios). ¿Es una selección de un conjunto? → `value`/`onChange` (RadioGroup, Slider, Select, MultiSelect, DatePicker, AutoComplete — los últimos cuatro ya usaban `onChange`, sin cambios). `Tabs` NO cambia pese a usar `onValueChange`: no es un control de formulario sino navegación, su valor no es un dato del modelo. Para migrar mecánicamente: `node node_modules/@piensa-it/ui-library/scripts/codemod-props-control.mjs --dry \"src/**/*.tsx\"` para ver qué tocaría, y sin `--dry` para aplicarlo. Es consciente de la etiqueta JSX: solo toca `onValueChange` dentro de un `<Slider ...>` o `<RadioGroup ...>`, así que no le hace nada a tus `Tabs`, `Accordion` ni a un handler propio que se llame igual por coincidencia. Revisá igual el diff antes de commitear. Límite del codemod: solo reescribe la etiqueta JSX literal `<Slider` / `<RadioGroup`; si envolviste alguno de los dos en tu propio componente, o le pasás las props por spread (`<Slider {...props} />`), no lo va a encontrar — revisá esos casos a mano.",

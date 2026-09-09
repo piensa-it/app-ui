@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-09
+
 ### Added
 
 - **`selectable`: selección de filas y acciones masivas en `DataTable`.** El interruptor es duro, igual que `getSubRows` para la jerarquía — sin él nada cambia (verificado comparando el HTML renderizado contra `main`, no solo con las pruebas). La columna de casillas la antepone el propio armazón; no se declara con `<Column>` porque no es ordenable, ni ocultable, ni configurable. La casilla de cabecera marca la página visible, no todo lo filtrado — el patrón de Gmail/GitHub, para no operar sobre miles de filas creyendo que eran diez —, y ofrece un aviso para extender la selección a todo lo que cumple el filtro. En modo jerárquico, marcar un padre marca su rama (`enableSubRowSelection`, el valor de fábrica de TanStack) y un padre a medias sale indeterminado — requirió ampliar antes `Checkbox` a `checked="indeterminate"` (#144). La selección sobrevive a ordenar, filtrar y paginar (se apoya en `getRowId`, #136); el contador dice la verdad cuando parte de lo seleccionado queda fuera del filtro actual («N seleccionadas, M fuera del filtro actual») en vez de fingir que esas filas no cuentan — la alternativa (limpiar la selección al filtrar) se descartó por ser el error caro que la incidencia pedía evitar explícitamente. La barra superior sustituye el título y las acciones normales por la cuenta y `selectionActions` mientras hay selección; el buscador se queda, a propósito, porque sin él el contador de "fuera del filtro" no se podría ni ejercitar. `selectionActions` recibe las filas seleccionadas completas, nunca ids.
