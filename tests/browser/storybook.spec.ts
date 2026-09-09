@@ -539,3 +539,20 @@ test.describe("AppearanceSettings", () => {
     });
   }
 });
+
+test.describe("DataTable — Jerarquía", () => {
+  // #135: la sangría por nivel, el control de expandir de "Edificio Norte" y
+  // el botón de orden de "Nombre" son lo que esta captura fija — es la story
+  // que combina búsqueda, orden y paginación sobre un árbol de tres niveles.
+  test("el árbol de tres niveles se mantiene visualmente estable", async ({ page }) => {
+    await page.goto(storyUrl("ui-datatable-jerarquía--arbol-completo"));
+    await stabilize(page);
+    const story = page.locator("#storybook-root");
+    await expect(story.getByText("Edificio Norte")).toBeVisible();
+    await expect(story.getByRole("button", { name: "Colapsar Edificio Norte" })).toBeVisible();
+    await expect(story).toHaveScreenshot("data-table-tree.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+});
