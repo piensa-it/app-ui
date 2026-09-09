@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { UserMenu } from "./user-menu";
-import { UiProvider } from "@/components/providers/UiProvider";
+import { UiProvider } from "@/components/providers/ui-provider";
 import { HelpIcon } from "@/icons";
 
 const meta = {

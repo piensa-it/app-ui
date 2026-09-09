@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Sheet, SheetTitle, SheetHeader, SheetDescription, SheetFooter } from "../components/ui/sidebar";
+import { Sheet, SheetTitle, SheetHeader, SheetDescription, SheetFooter } from "../components/ui/sheet";
 
 describe("Sheet — props del panel", () => {
   it("style, data-* y className llegan al elemento role=dialog", async () => {

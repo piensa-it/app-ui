@@ -18,7 +18,7 @@ export {
 } from "./version";
 
 // --- Proveedor raíz ---
-export { UiProvider, type UiProviderProps, type UiDensity } from "./components/providers/UiProvider";
+export { UiProvider, type UiProviderProps, type UiDensity } from "./components/providers/ui-provider";
 
 // --- Primitivas simples (Tailwind puro) ---
 export { Button, buttonVariants, type ButtonProps } from "./components/ui/button";
@@ -84,7 +84,7 @@ export {
   type AppSwitcherConfirm,
 } from "./components/ui/app-switcher";
 export { AlertDialogHost, confirmAlert, type ConfirmAlertOptions } from "./components/ui/alert-dialog";
-export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sidebar";
+export { Sheet, SheetHeader, SheetTitle, SheetDescription, SheetFooter, type SheetProps } from "./components/ui/sheet";
 export { Popover, PopoverTrigger, PopoverContent, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps } from "./components/ui/popover";
 export {
   Menu,
@@ -230,12 +230,12 @@ export {
   type SettingsSection,
 } from "./components/layout/settings-page";
 export { initialsFrom } from "./lib/initials";
-export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/GlobalErrorBoundary";
+export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/global-error-boundary";
 
 // --- Marketing / sitios públicos ---
-export { PublicHeader, type PublicHeaderProps, type LinkComponent, type LinkComponentProps } from "./components/marketing/PublicHeader";
-export { PublicFooter, type PublicFooterProps } from "./components/marketing/PublicFooter";
-export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/ImageCarouselBackdrop";
+export { PublicHeader, type PublicHeaderProps, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
+export { PublicFooter, type PublicFooterProps } from "./components/marketing/public-footer";
+export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/image-carousel-backdrop";
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";

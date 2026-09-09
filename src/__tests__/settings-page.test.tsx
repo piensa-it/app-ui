@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { UiProvider } from "../components/providers/UiProvider";
+import { UiProvider } from "../components/providers/ui-provider";
 import { SettingsPage, type SettingsSection } from "../components/layout/settings-page";
 import { ProfileForm } from "../components/ui/profile-form";
 

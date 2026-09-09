@@ -2,7 +2,7 @@ import * as React from "react";
 import { Menu as MenuIcon, PanelLeft } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Sheet } from "@/components/ui/sidebar";
+import { Sheet } from "@/components/ui/sheet";
 import { SidebarProvider, type SidebarState } from "./sidebar-context";
 
 /** Carácter cromático del menú lateral. Ver `[data-sidebar]` en globals.css. */

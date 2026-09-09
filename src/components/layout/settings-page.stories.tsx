@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { SettingsPage, type SettingsPageProps } from "./settings-page";
 import { PageContainer } from "./page-container";
-import { UiProvider } from "@/components/providers/UiProvider";
+import { UiProvider } from "@/components/providers/ui-provider";
 import { AppearanceSettings, type AppearanceValue } from "@/components/ui/appearance-settings";
 import { ProfileForm, type ProfileFormValue } from "@/components/ui/profile-form";
 import { EmptyState } from "@/components/ui/empty-state";

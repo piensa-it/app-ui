@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PublicFooter } from "./PublicFooter";
+import { PublicFooter } from "./public-footer";
 
 const placeholderLogo =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23334155'/%3E%3Ctext x='18' y='24' font-size='16' fill='white' text-anchor='middle' font-family='sans-serif'%3EP%3C/text%3E%3C/svg%3E";

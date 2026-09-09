@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { GlobalErrorBoundary } from "./GlobalErrorBoundary";
+import { GlobalErrorBoundary } from "./global-error-boundary";
 
 const BombaDeTiempo = (): never => {
   throw new Error("Error simulado para documentación — falló la carga de datos del dashboard.");

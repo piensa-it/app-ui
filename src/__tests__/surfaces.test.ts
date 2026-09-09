@@ -16,7 +16,7 @@ describe("cada componente usa el nivel que le corresponde", () => {
     ["Dialog", "src/components/ui/dialog.tsx"],
     ["AlertDialog", "src/components/ui/alert-dialog.tsx"],
     ["Popover", "src/components/ui/popover.tsx"],
-    ["Sheet", "src/components/ui/sidebar.tsx"],
+    ["Sheet", "src/components/ui/sheet.tsx"],
     ["Toast", "src/components/ui/toast.tsx"],
     ["paneles flotantes (Menu, Select, MultiSelect, AutoComplete, DatePicker)", "src/lib/recipes/field-control.ts"],
   ];
@@ -39,7 +39,7 @@ describe("cada componente usa el nivel que le corresponde", () => {
     const files = [
       "src/components/ui/card.tsx",
       "src/components/ui/dialog.tsx",
-      "src/components/ui/sidebar.tsx",
+      "src/components/ui/sheet.tsx",
       "src/components/ui/popover.tsx",
     ];
     for (const file of files) {
