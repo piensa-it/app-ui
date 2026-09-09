@@ -91,14 +91,45 @@ const WIDTHS: Record<AppShellLayout, { expanded: string; collapsed: string }> = 
 const storageKeyFor = (key: string) => `ui-shell:${key}:collapsed`;
 const groupsKeyFor = (key: string) => `ui-shell:${key}:groups`;
 
-function readStoredGroups(key: string | undefined): readonly string[] {
-  if (!key || typeof window === "undefined") return [];
+/**
+ * Lee la preferencia de secciones guardada, en cualquiera de sus dos formatos
+ * (#94).
+ *
+ * Hasta la 0.13 se guardaba solo un array con los ids cerrados: un id ausente
+ * significaba "abierta", así que no había forma de recordar que una sección
+ * que nació con `defaultOpen={false}` se hubiera abierto — de ahí el bug. El
+ * formato nuevo es un mapa `id → abierta`, que sí distingue "nunca se tocó"
+ * (ausente, manda `defaultOpen`) de "se dejó abierta explícitamente".
+ *
+ * Las aplicaciones ya tienen datos guardados en el formato viejo: se leen tal
+ * cual (un id del array se traduce a `false`) y, en el primer `toggleGroup`
+ * posterior, `groupsKeyFor` se reescribe en el formato nuevo — sin migración
+ * explícita ni pérdida de la preferencia guardada.
+ */
+function readStoredGroups(key: string | undefined): Readonly<Record<string, boolean>> {
+  if (!key || typeof window === "undefined") return {};
   try {
     const stored = window.localStorage.getItem(groupsKeyFor(key));
-    const parsed = stored ? JSON.parse(stored) : [];
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+    if (!stored) return {};
+    const parsed: unknown = JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      // Formato viejo (<0.14): array de ids cerrados.
+      const map: Record<string, boolean> = {};
+      for (const id of parsed) {
+        if (typeof id === "string") map[id] = false;
+      }
+      return map;
+    }
+    if (parsed && typeof parsed === "object") {
+      const map: Record<string, boolean> = {};
+      for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+        if (typeof value === "boolean") map[id] = value;
+      }
+      return map;
+    }
+    return {};
   } catch {
-    return [];
+    return {};
   }
 }
 
@@ -176,15 +207,16 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     // de formas, oscuro, que es la regla.
     const tone = (sidebarTone ?? (twoLevel ? "light" : "dark")) === "light" ? "light" : undefined;
 
-    // Las secciones cerradas se recuerdan junto al plegado del menú: es la
-    // misma preferencia de este dispositivo sobre esta aplicación.
-    const [closedGroups, setClosedGroups] = React.useState<readonly string[]>(() =>
+    // Las secciones se recuerdan junto al plegado del menú: es la misma
+    // preferencia de este dispositivo sobre esta aplicación. Mapa `id →
+    // abierta`, no solo las cerradas — ver `readStoredGroups`.
+    const [groupPreferences, setGroupPreferences] = React.useState<Readonly<Record<string, boolean>>>(() =>
       readStoredGroups(storageKey),
     );
 
     const toggleGroup = (groupId: string, open: boolean) => {
-      setClosedGroups((current) => {
-        const next = open ? current.filter((id) => id !== groupId) : [...current, groupId];
+      setGroupPreferences((current) => {
+        const next = { ...current, [groupId]: open };
         if (storageKey && typeof window !== "undefined") {
           try {
             window.localStorage.setItem(groupsKeyFor(storageKey), JSON.stringify(next));
@@ -232,7 +264,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       rail: railOnly,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: false,
-      closedGroups,
+      groupPreferences,
       toggleGroup,
     };
     // En el panel móvil hay sitio: el riel se abre como el menú normal, con
@@ -242,7 +274,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
       rail: false,
       closeMobile: () => setMobileOpen(false),
       inMobilePanel: true,
-      closedGroups,
+      groupPreferences,
       toggleGroup,
     };
 
