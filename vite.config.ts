@@ -137,5 +137,30 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    coverage: {
+      // Vitest 4 trae `all: true` por defecto: sin esto el informe solo
+      // contaría los archivos que algún test llega a importar, y un
+      // componente sin ninguna prueba no bajaría la cifra — la razón por la
+      // que la 86,62% de la incidencia original (#51) no reflejaba la
+      // realidad. `all: true` es explícito aquí para que quede claro que es
+      // intencional, no un valor por defecto silencioso.
+      all: true,
+      // El playground (src/App.tsx, no se publica) y los ejemplos de
+      // src/docs/example/** no son parte del contrato público: incluirlos
+      // arrastra la cifra sin decir nada sobre qué tan protegida está la
+      // librería (#51).
+      exclude: ["src/App.tsx", "src/main.tsx", "src/docs/example/**"],
+      // Partidos de la cifra real medida tras excluir playground y ejemplos
+      // (`npm run test:coverage`, 2026-09-09: 93,23% sentencias / 84,72%
+      // ramas / 89,49% funciones / 95,03% líneas), no de un número redondo
+      // inventado (#51). Bajarlos requiere justificar por qué en el PR que
+      // los toque.
+      thresholds: {
+        statements: 93,
+        branches: 84,
+        functions: 89,
+        lines: 95,
+      },
+    },
   },
 }));
