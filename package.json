@@ -1,12 +1,12 @@
 {
   "name": "@piensa-it/ui-library",
   "description": "Accessible React components, design tokens, layouts, and motion primitives for maintainable product interfaces.",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": false,
   "type": "module",
   "license": "MIT",
   "author": "Piensa IT",
-  "homepage": "https://piensait-ui.netlify.app",
+  "homepage": "https://ui.piensait.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/piensa-it/app-ui.git"

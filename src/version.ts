@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.11.0";
+export const UI_LIBRARY_VERSION = "0.12.0";
 
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
@@ -21,14 +21,47 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
     version: UI_LIBRARY_VERSION,
     channel: "current",
     migration: [
-      "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés retirar si mantenías tu propia tabla, y el único cambio de comportamiento bajo un nombre que no cambia.",
-      "`preferencesKey` ahora recuerda tres cosas —columnas visibles, tamaño de página y orden— bajo `ui-table:<clave>:prefs`. La clave anterior se sigue leyendo y NO se borra, así que nadie pierde lo suyo; no hay nada que hacer salvo lo del punto siguiente.",
-      "Si construís `preferencesKey` con algo variable —la empresa activa, el módulo, una pestaña—, pasá `key={preferencesKey}` al `DataTable`: la tabla lee las preferencias una sola vez al montar, y sin remontarla escribiría las de la clave vieja sobre la nueva. Ya pasaba antes con las columnas; ahora se lleva también el orden.",
-      "Filas que abren un panel: retirá tu manejador de clic en `<tr>` y pasá `onRowClick`. El componente ya ignora los clics nacidos en un botón, un enlace o un ítem de menú portado, que es la parte que cuesta acertar.",
-      "Detalle desplegable bajo la fila: retirá tu implementación y pasá `renderExpanded`. Pasá también `getRowId`, o la fila abierta se identifica por su posición y el detalle salta de registro si los datos se reordenan.",
-      "Columnas que se ordenan por un valor calculado —una etiqueta traducida, dos campos concatenados, un booleano como número—: usá `accessor` en vez de `field`. Declarar los dos a la vez es error de compilación.",
+      "Todo es aditivo: subir no requiere cambios. Una `DataTable` sin `getSubRows` se comporta exactamente igual que en 0.11.0, y nada de esto cambia lo que ya usaba la jerarquía.",
+      "Tablas jerárquicas: si tenés una tabla de árbol escrita a mano, ya podés retirarla. Pasá `getSubRows` —el interruptor del modo jerárquico—, `getRowId` con el identificador de tus filas, y marcá con `tree` la columna que lleva la sangría y el control de expandir. El resto de columnas se declaran igual que siempre.",
+      "Si tus datos vienen planos con `parentId` —lo que sale de una consulta SQL— usá `buildTree(rows, { id, parentId })`, que exporta la librería. No admitimos las dos formas a propósito: una sola entrada en el componente y la conversión probada aparte, incluidos los datos sucios (huérfanas se muestran como raíces, los ciclos se cortan, los ids repetidos descartan la segunda aparición).",
+      "Buscar, ordenar y paginar ya funcionan sobre el árbol sin que hagas nada: la búsqueda deja visibles a los ancestros de lo encontrado, ordenar reordena entre hermanos sin aplanar, y paginar reparte por raíz, así que una familia nunca queda partida entre dos páginas. Ojo con esto último: el paginador cuenta raíces, no filas, así que «5 por página» puede pintar bastantes más filas.",
+      "`defaultExpandedDepth` fija qué niveles arrancan abiertos; con `preferencesKey` la expansión se recuerda por dispositivo, junto a las columnas. Si querés llevar tú el estado, pasá `expanded` y `onExpandedChange`.",
+      "Accesibilidad: cada fila anota `aria-expanded`, `aria-level`, `aria-posinset` y `aria-setsize`. NO es un `treegrid` completo —no hay navegación de rejilla con flechas—, así que no lo anuncies como tal ni construyas encima asumiéndolo.",
+      "`getRowId` es nuevo y sirve también en tablas planas: sin él TanStack identifica las filas por índice, y los índices se reasignan al ordenar o filtrar.",
+      "Retirá también, si mantenías tu propia tabla: filas que abren un panel llevan `onRowClick` —el componente ya ignora los clics nacidos en un botón, un enlace, un ítem de menú portado o el chevron del árbol—; el detalle desplegable bajo la fila lleva `renderExpanded` (con `getRowId`, o la fila abierta se identifica por posición y salta de registro al reordenar) y convive con la jerarquía: una fila del árbol puede tener detalle además de hijas. Columnas que se ordenan por un valor calculado —una etiqueta traducida, dos campos concatenados, un booleano como número, incluso dentro de un árbol— usan `accessor` en vez de `field`; declarar los dos a la vez es error de compilación.",
+      "`preferencesKey` ahora recuerda cuatro cosas —columnas visibles, expansión, tamaño de página y orden— bajo `ui-table:<clave>:prefs`. Las claves anteriores (`:columns`, `:expanded`) se siguen leyendo y NO se borran, así que nadie pierde lo suyo. Si construís `preferencesKey` con algo variable —la empresa activa, el módulo, una pestaña—, pasá `key={preferencesKey}` al `DataTable`: la tabla lee las preferencias una sola vez al montar, y sin remontarla escribiría las de la clave vieja sobre la nueva.",
       "Si tus pruebas localizan el buscador de una tabla por su nombre accesible, pasá `searchLabel`: por defecto todas las tablas se llaman «Buscar en la tabla».",
       "Si encabezabas la tabla con un `<h3>` propio, pasá `title` con `titleAs=\"h3\"` y retirá el tuyo: el componente ya pinta la tarjeta y su cabecera.",
+      "Ancho de la pantalla de ajustes: NO ensanches su `PageContainer` para llenar la ventana. `default` es el correcto, y el tope nuevo de `Field` ya evita que un campo se estire. Reservá `wide` para cuando alguna sección traiga una tabla o una rejilla que de verdad aproveche el ancho.",
+      "Disposición horizontal, opcional: si la querés en el perfil —rótulo y ayuda a la izquierda, control acotado a la derecha—, pasá `orientation=\"horizontal\"` **junto con** `descriptions`. Sin las descripciones no la actives: la columna izquierda se queda con solo el rótulo y el bloque se ve descuadrado, como un fallo de alineación. Los textos son tuyos; la librería no los inventa.",
+      "Controles compuestos: si armaste una fila propia con `Field` envolviendo algo que no es un único control enfocable —un `AvatarPicker`, un grupo de radios a mano—, pasale `compositeControl`. Sin él, su `<label for>` apunta a un elemento que no existe: al pulsarlo no pasa nada y no hay asociación accesible.",
+      "Si parcheaste la fila del avatar de `ProfileForm` porque el rótulo salía encima en vez de al lado, quitá el parche: era un defecto nuestro y está corregido.",
+      "Perfil y configuración: sustituí el armazón de tus dos pantallas por `SettingsPage`, dentro de tu `PageContainer`. Va `title`, `description` y `sections`; cada sección lleva `id` y `content`. Los `id` conocidos —`account`, `appearance`, `security`, `notifications`— ya traen rótulo e icono, así que no les pases `label`; una sección propia tuya sí necesita el suyo.",
+      "Guardado: dale a cada sección `onSave`, `dirty` y `saving` y `SettingsPage` le pinta el pie con Guardar y Cancelar. Una sección sin `onSave` no lleva pie. El guardado es por sección, no global: cada una resuelve su error por su cuenta. Ojo, sin `dirty` el botón nunca se habilita.",
+      "Cambios sin guardar: con `dirty` puesto, cambiar de pestaña pide confirmación sola (`guardUnsaved`, activo de fábrica) y reutiliza `confirmAlert`, así que necesitás `UiProvider` montado. Cubre solo el cambio de pestaña: si querés proteger también la salida de la pantalla, eso sigue siendo tuyo —tu router o `beforeunload`—.",
+      "Datos de la persona: sustituí tu formulario de perfil por `ProfileForm` como contenido de la sección `account`. Trae avatar, nombre, correo, teléfono y cargo; lo tuyo —documento, sede, contraseña— entra por `children` y hereda la rejilla, con `span=\"full\"` si lo querés a lo ancho. Guardá `avatarFile` solo cuando venga: aparece nada más cuando el cambio fue subir o quitar la foto.",
+      "Apariencia: no estrena componente. Poné tu `AppearanceSettings` de siempre como contenido de la sección `appearance` y ganás su rótulo, su icono y su sitio.",
+      "Sección atada a la URL: si querés que la pestaña abierta viva en la ruta, pasá `section` y `onSectionChange`. Sin ellas `SettingsPage` la lleva sola.",
+      "Pestañas: el indicador de la pestaña activa no se pintaba y ahora sí. Si parcheaste eso en tu aplicación, quitá el parche.",
+      "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",
+      "Cabecera del menú: sustituí `SidebarBrand` por `SidebarIdentity` en `brand`: `system` (nombre y logo), `company` con caption «Compañía», tus opciones y el `badge` de entorno por compañía, y `module` solo si tenés módulos. La empresa se cambia ahí y en ningún otro sitio; la persona vive en `UserMenu`.",
+      "Menú: agrupá los enlaces en `SidebarNavGroup` con `collapsible` y `groupId`, y pasá `storageKey` al `AppShell` para que se recuerde.",
+      "Forma y color: elegí `layout` en `AppShell` (docked, floating, rail, framed o rail-panel), `sidebarTone` si querés el menú claro, y `data-ui-look` (classic, soft, deep, flat) y `data-ui-palette` (ocho, con cyan y sun) en tu raíz. Si ya tenés `AppearanceSettings`, añadí `look` a `sections`.",
+      "Indicadores: dale a cada `Stat` un `icon` del catálogo y un `tone` solo cuando la cifra sea noticia. No pongas botón de ocultar: si una pantalla los muestra lo decide tu configuración técnica.",
+      "Tablas: usá la `DataTable` de la librería sin envolverla en `Card` ni en un `div` con borde; columnas numéricas con `align=\"right\"`; badges de estado con las variantes de `Badge`, sin grises crudos.",
+      "Paletas: Océano, Esmeralda y Ámbar se oscurecen 4–5 puntos en claro para cumplir AA; si usás una de las tres, tus botones salen un pelo más oscuros. Nada que hacer.",
+    ],
+  },
+  {
+    version: "0.11.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-08",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios. `ProfileForm` sigue en vertical, exactamente como en 0.10.0.",
+      "Ancho de la pantalla de ajustes: NO ensanches su `PageContainer` para llenar la ventana. `default` es el correcto, y el tope nuevo de `Field` ya evita que un campo se estire. Reservá `wide` para cuando alguna sección traiga una tabla o una rejilla que de verdad aproveche el ancho.",
+      "Disposición horizontal, opcional: si la querés en el perfil —rótulo y ayuda a la izquierda, control acotado a la derecha—, pasá `orientation=\"horizontal\"` **junto con** `descriptions`. Sin las descripciones no la actives: la columna izquierda se queda con solo el rótulo y el bloque se ve descuadrado, como un fallo de alineación. Los textos son tuyos; la librería no los inventa.",
+      "Controles compuestos: si armaste una fila propia con `Field` envolviendo algo que no es un único control enfocable —un `AvatarPicker`, un grupo de radios a mano—, pasale `compositeControl`. Sin él, su `<label for>` apunta a un elemento que no existe: al pulsarlo no pasa nada y no hay asociación accesible.",
+      "Si parcheaste la fila del avatar de `ProfileForm` porque el rótulo salía encima en vez de al lado, quitá el parche: era un defecto nuestro y está corregido.",
     ],
   },
   {
@@ -44,13 +77,6 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
       "Apariencia: no estrena componente. Poné tu `AppearanceSettings` de siempre como contenido de la sección `appearance` y ganás su rótulo, su icono y su sitio.",
       "Sección atada a la URL: si querés que la pestaña abierta viva en la ruta, pasá `section` y `onSectionChange`. Sin ellas `SettingsPage` la lleva sola.",
       "Pestañas: el indicador de la pestaña activa no se pintaba y ahora sí. Si parcheaste eso en tu aplicación, quitá el parche.",
-      "Barra superior: a la izquierda `ScreenSearch` (las pantallas en `groups`, `onSelect` navega con tu router; Ctrl K); a la derecha solo `NotificationsMenu` (tus avisos en `items`) y `UserMenu`. Periodo, buscadores de datos y botones de crear bajan al `PageHeader` de su pantalla.",
-      "Cabecera del menú: sustituí `SidebarBrand` por `SidebarIdentity` en `brand`: `system` (nombre y logo), `company` con caption «Compañía», tus opciones y el `badge` de entorno por compañía, y `module` solo si tenés módulos. La empresa se cambia ahí y en ningún otro sitio; la persona vive en `UserMenu`.",
-      "Menú: agrupá los enlaces en `SidebarNavGroup` con `collapsible` y `groupId`, y pasá `storageKey` al `AppShell` para que se recuerde.",
-      "Forma y color: elegí `layout` en `AppShell` (docked, floating, rail, framed o rail-panel), `sidebarTone` si querés el menú claro, y `data-ui-look` (classic, soft, deep, flat) y `data-ui-palette` (ocho, con cyan y sun) en tu raíz. Si ya tenés `AppearanceSettings`, añadí `look` a `sections`.",
-      "Indicadores: dale a cada `Stat` un `icon` del catálogo y un `tone` solo cuando la cifra sea noticia. No pongas botón de ocultar: si una pantalla los muestra lo decide tu configuración técnica.",
-      "Tablas: usá la `DataTable` de la librería sin envolverla en `Card` ni en un `div` con borde; columnas numéricas con `align=\"right\"`; badges de estado con las variantes de `Badge`, sin grises crudos.",
-      "Paletas: Océano, Esmeralda y Ámbar se oscurecen 4–5 puntos en claro para cumplir AA; si usás una de las tres, tus botones salen un pelo más oscuros. Nada que hacer.",
     ],
   },
   {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Checkbox } from "../components/ui/checkbox";
 
@@ -15,6 +15,47 @@ describe("Checkbox", () => {
   it("refleja el estado checked", () => {
     render(<Checkbox checked readOnly />);
     expect(screen.getByRole("checkbox")).toBeChecked();
+  });
+});
+
+describe("Checkbox — estado indeterminado", () => {
+  it("con checked=\"indeterminate\" el input nativo queda .indeterminate === true", async () => {
+    render(<Checkbox checked="indeterminate" readOnly aria-label="Seleccionar todo" />);
+    const input = screen.getByRole("checkbox") as HTMLInputElement;
+    // Ark aplica `el.indeterminate` desde un efecto (microtask) del machine,
+    // no de forma síncrona al montar — hay que esperar a que corra.
+    await waitFor(() => expect(input.indeterminate).toBe(true));
+    expect(input.checked).toBe(false);
+  });
+
+  it("con checked=\"indeterminate\" el control expone data-state=indeterminate", async () => {
+    render(<Checkbox checked="indeterminate" readOnly aria-label="Seleccionar todo" />);
+    const input = screen.getByRole("checkbox");
+    const control = input.closest("label")?.querySelector('[data-part="control"]');
+    await waitFor(() => expect(control).toHaveAttribute("data-state", "indeterminate"));
+  });
+
+  it("un click sobre un checkbox indeterminado lo resuelve a checked=true, no a \"indeterminate\"", async () => {
+    let received: boolean | undefined;
+    render(
+      <Checkbox
+        checked="indeterminate"
+        onCheckedChange={(value) => {
+          received = value;
+        }}
+        aria-label="Seleccionar todo"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("checkbox"));
+    expect(received).toBe(true);
+  });
+
+  it("checked=false (no indeterminate) deja .indeterminate en false", async () => {
+    render(<Checkbox checked={false} readOnly aria-label="Seleccionar todo" />);
+    const input = screen.getByRole("checkbox") as HTMLInputElement;
+    await waitFor(() => expect(input).toBeInTheDocument());
+    expect(input.indeterminate).toBe(false);
   });
 });
 

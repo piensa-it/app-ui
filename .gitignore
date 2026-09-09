@@ -12,6 +12,11 @@ playwright-report/
 test-results/
 .playwright-mcp/
 
+# Capturas de referencia de macOS (#141): son específicas de cada Mac, no de
+# la plataforma, y nadie las compara en CI (browser-gate corre en Linux). Las
+# genera sola `npm run test:browser` en la primera corrida de cada máquina.
+tests/browser/__screenshots__/**/*-darwin.png
+
 # Entorno
 .env
 .env.local

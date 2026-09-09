@@ -7,7 +7,7 @@
 - **Frontend**: React 19 (soporta 18 y 19 vía `peerDependencies`) + TypeScript 5.9 + Vite 8 (SWC), en **modo librería** (no SPA)
 - **Componentes**: [Ark UI](https://ark-ui.com) (`@ark-ui/react`, headless — mismo linaje que Chakra UI, construido sobre Zag.js), temado 100% con Tailwind directamente sobre sus atributos `data-scope`/`data-part`/`data-state` (sin capa de indirección tipo `pt`). Componentes de datos que Ark UI no cubre: `DataTable` sobre **TanStack Table** (headless) y `Chart` sobre **Recharts** (SVG, tematizable con CSS variables — a diferencia de Chart.js/canvas). Los componentes simples (Button, Card, Badge, Input) siguen siendo Tailwind puro.
 - **Estilos**: Tailwind CSS 4 (el preset publicado se carga con `@config`, así que sigue siendo un `.js`), tokens vía CSS variables (theming por marca)
-- **Documentación**: Storybook 10 — sitio público en https://piensait-ui.netlify.app, autodesplegado por Netlify en cada push a `main`
+- **Documentación**: Storybook 10 — sitio público en https://ui.piensait.com, publicado por el job `deploy-docs` de `.github/workflows/ci.yml` en cada push a `main`, solo si calidad y navegador pasaron
 - **Tests**: Vitest 4 + Testing Library
 - **Empaquetado**: `vite-plugin-dts` genera los `.d.ts`; build ESM + CJS
 
@@ -26,9 +26,18 @@ npm run test:browser:docker         # Las mismas, en el Linux exacto de CI
 npm run test:browser:docker:update  # Regenera las capturas de referencia de Linux
 ```
 
-Las capturas comparadas se guardan por plataforma (`*-darwin.png`,
-`*-linux.png`) porque macOS y Linux no rasterizan las letras igual. Las que
-mira CI son las de Linux: regeneralas con Docker, no a mano.
+Las capturas comparadas se generan por plataforma (macOS y Linux no
+rasterizan las letras igual), pero solo se **versionan** las de Linux
+(`*-linux.png`): son las únicas que mira `browser-gate` en CI, y se
+regeneran con Docker, no a mano. Las de macOS (`*-darwin.png`) están en
+`.gitignore` y no se suben: son específicas de cada Mac, no de la
+plataforma —dos Macs distintas ya difieren en miles de píxeles de contorno
+de letras (#141)—, así que versionarlas rompía `npm run test:browser` para
+cualquiera que no fuera quien las generó. `npm run test:browser` las crea
+solas en la primera corrida de cada máquina y compara contra sí misma en
+las siguientes — esa primera corrida se reporta en rojo (Playwright avisa
+"A snapshot doesn't exist ..., writing actual."), es esperado, no una
+regresión: se vuelve a correr y ya pasa en limpio.
 
 ## Estructura del proyecto
 

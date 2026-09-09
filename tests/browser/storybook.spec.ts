@@ -167,6 +167,95 @@ test.describe("Storybook browser gate", () => {
     });
   });
 
+  // #132: la incidencia medía 959 px fijos de contenido de 1280 a 1920 px de
+  // ventana, y ensanchar `PageContainer` a `wide` solo estiraba el control de
+  // ~470 a ~780 px —peor, no mejor—. Esta story es `width="default"` a
+  // propósito (`wide` es para secciones con tablas o rejillas anchas, no para
+  // un formulario de campos, ver su JSDoc), así que la ventana de 1920 no
+  // ensancha el contenedor —lo acota `PageContainer`—; lo que prueba es que
+  // ensanchar la ventana no vuelve a estirar el control aunque el contenedor
+  // se quede corto. Medido con la mutación real (quitar `max-w-md` del
+  // control): 632 px, muy por encima del tope de 468 que afirma esta prueba
+  // —sigue matando la mutación aunque el contenedor no sea `wide`—. Medir el
+  // DOM en vez de comparar solo capturas es a propósito (ver el criterio de
+  // aceptación de la incidencia): una captura no falla de forma legible
+  // cuando algo se estira un poco, un `toBeLessThanOrEqual` sí.
+  test("el control de un campo horizontal no crece más allá de su tope aunque la ventana sea de 1920 px", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1000 });
+    await page.goto(storyUrl("layout-settingspage--horizontal-con-descripciones"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    const nombre = story.getByLabel(/^Nombre/);
+    await expect(nombre).toBeVisible();
+    const caja = await nombre.boundingBox();
+    expect(caja).not.toBeNull();
+    // Tope real: 28rem (`max-w-md`, 448 px a 16 px de raíz). Un margen de
+    // 20 px cubre el borde y cualquier redondeo del navegador sin dejar
+    // pasar el bug (que estiraba el control a ~780 px a 1920 px de ventana
+    // con `PageContainer` `wide`, y a 632 px incluso con `default`).
+    expect(caja!.width).toBeLessThanOrEqual(468);
+    // Cota inferior de cordura: que el tope no haya colapsado el control.
+    expect(caja!.width).toBeGreaterThan(300);
+  });
+
+  for (const theme of ["light", "dark"] as const) {
+    test(`keeps the horizontal-with-descriptions settings page stable in ${theme} theme`, async ({ page }) => {
+      await page.goto(
+        storyUrl("layout-settingspage--horizontal-con-descripciones", `theme:${theme};palette:indigo;fontFamily:geist`),
+      );
+      await stabilize(page);
+
+      const story = page.locator("#storybook-root");
+      await expect(story.getByRole("tab", { name: "Cuenta" })).toBeVisible();
+      await expect(story).toHaveScreenshot(`settings-page-horizontal-descriptions-${theme}.png`, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
+  // El tope de ancho de `Field` horizontal es una garantía del componente,
+  // no de una página en particular: se comprueba aquí sobre
+  // `ui-field--tope-de-ancho` (sin ningún `PageContainer` de por medio, ver
+  // su JSDoc) para no mezclarlo con qué `width` conviene en una pantalla
+  // real —eso es harina de otro costal (la prueba de arriba, sobre
+  // `SettingsPage`)—. Cubre las dos columnas: medido con cada mutación por
+  // separado, sin `max-w-md` el control mide 1398 px y sin el tope de la
+  // columna del rótulo (volver a `0.4fr`) esa columna mide ~491 px — las dos
+  // muy por encima de sus topes.
+  test("Field mantiene los dos topes horizontales sin importar cuánto ancho le sobre al contenedor", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await page.goto(storyUrl("ui-field--tope-de-ancho"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    const control = story.locator("input");
+    await expect(control).toBeVisible();
+    const cajaControl = await control.boundingBox();
+    expect(cajaControl).not.toBeNull();
+    expect(cajaControl!.width).toBeLessThanOrEqual(468);
+    expect(cajaControl!.width).toBeGreaterThan(300);
+
+    const columnaDelRotulo = await control.evaluate((input) => {
+      // `input` → el `div` que envuelve el control (columna 2) → la raíz de
+      // `Field` (la rejilla de dos columnas) → su primer hijo, la columna
+      // del rótulo (columna 1).
+      const raizDelField = input.parentElement!.parentElement as HTMLElement;
+      const columna = raizDelField.firstElementChild as HTMLElement;
+      return columna.getBoundingClientRect().width;
+    });
+    // Tope real: 20rem = 320 px. Cota inferior subida a 280: a 160 px
+    // (10rem, el mínimo de `minmax`) esta prueba tiene que fallar, no dejar
+    // pasar un tope mucho más bajo que el que se documenta.
+    expect(columnaDelRotulo).toBeLessThanOrEqual(340);
+    expect(columnaDelRotulo).toBeGreaterThan(280);
+  });
+
   test("keeps the animated banner visually stable", async ({ page }) => {
     await page.goto(storyUrl("contenedores-animatedbanner--exito"));
     await stabilize(page);
@@ -177,6 +266,31 @@ test.describe("Storybook browser gate", () => {
       animations: "disabled",
       maxDiffPixels: MAX_DIFF_PIXELS,
     });
+  });
+});
+
+test.describe("Checkbox — indeterminado (#144)", () => {
+  // Ark expone el marcado visual del tercer estado (`data-state=indeterminate`,
+  // el icono `Minus`) desde antes de esta incidencia — lo que faltaba, y lo
+  // que un navegador real prueba mejor que jsdom, es la propiedad IDL
+  // `.indeterminate` del input nativo: es la que el árbol de accesibilidad
+  // traduce a `mixed` (comprobado con `element.evaluate` en el cuerpo de la
+  // incidencia). Sin captura comparada: nada cambia en píxeles, el icono ya
+  // se veía bien: lo que cambia es una propiedad del DOM, invisible a una
+  // captura.
+  test("el input nativo queda .indeterminate === true, no solo pintado", async ({ page }) => {
+    await page.goto(storyUrl("ui-checkbox--indeterminado"));
+    await stabilize(page);
+
+    const checkbox = page.getByRole("checkbox", { name: "Seleccionar todo" });
+    await expect(checkbox).toBeVisible();
+    expect(await checkbox.evaluate((el: HTMLInputElement) => el.indeterminate)).toBe(true);
+
+    // No hay `aria-checked="mixed"` como atributo: el navegador lo deriva
+    // de `.indeterminate` para el árbol de accesibilidad (ver JSDoc de
+    // `checked` en checkbox.tsx) — se comprueba en el snapshot de
+    // accesibilidad, no en el DOM.
+    await expect(checkbox).toMatchAriaSnapshot(`- checkbox "Seleccionar todo" [checked=mixed]`);
   });
 });
 
@@ -449,4 +563,96 @@ test.describe("AppearanceSettings", () => {
       });
     });
   }
+});
+
+test.describe("DataTable — Jerarquía", () => {
+  // #135: la sangría por nivel, el control de expandir de "Edificio Norte" y
+  // el botón de orden de "Nombre" son lo que esta captura fija — es la story
+  // que combina búsqueda, orden y paginación sobre un árbol de tres niveles.
+  test("el árbol de tres niveles se mantiene visualmente estable", async ({ page }) => {
+    await page.goto(storyUrl("ui-datatable-jerarquía--arbol-completo"));
+    await stabilize(page);
+    const story = page.locator("#storybook-root");
+    await expect(story.getByText("Edificio Norte")).toBeVisible();
+    await expect(story.getByRole("button", { name: "Colapsar Edificio Norte" })).toBeVisible();
+    await expect(story).toHaveScreenshot("data-table-tree.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+});
+
+test.describe("Anillo de foco (#139)", () => {
+  // El hueco del offset (`ring-offset-2`) no llevaba color en varias copias
+  // escritas a mano de la recipe `focusRingOutside` — en tema oscuro se veía
+  // un aro blanco de 2 px alrededor del control (el valor por defecto de
+  // `--tw-ring-offset-color` en Tailwind 4). Un solo documento solo puede
+  // tener un elemento con foco real a la vez, así que para juntar varios
+  // controles enfocados en una misma captura se fuerza `:focus-visible` vía
+  // CDP (`CSS.forcePseudoState`) — el mecanismo que usan las devtools del
+  // navegador para lo mismo. El `Switch` es la excepción: su anillo depende
+  // de `data-focus-visible`, un estado que pone Ark UI (no el pseudo-elemento
+  // nativo), así que ese atributo se fija a mano.
+  test("ningún control deja el hueco del offset sin color en tema oscuro", async ({ page }) => {
+    await page.goto(storyUrl("guías-anillo-de-foco--galeria", "theme:dark;palette:indigo;fontFamily:geist"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Guardar cambios" })).toBeVisible();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send("DOM.enable");
+    await client.send("CSS.enable");
+    // Un solo `DOM.getDocument` para toda la prueba: pedirlo de nuevo en
+    // cada llamada (una por control) reemplaza el árbol que CDP tiene en
+    // memoria y con él los `nodeId` ya forzados — comprobado, así es como el
+    // anillo de Tabs/Pagination/Accordion (los primeros de la lista)
+    // desaparecía de la captura aunque `getComputedStyle` siguiera
+    // reportando el `box-shadow` correcto justo después de forzarlo.
+    const { root } = await client.send("DOM.getDocument", { depth: -1, pierce: true });
+
+    const forceFocusVisible = async (selector: string) => {
+      const { nodeId } = await client.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+      if (!nodeId) throw new Error(`No se encontró "${selector}" para forzar :focus-visible`);
+      await client.send("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: ["focus-visible", "focus"] });
+    };
+
+    // Button, Tabs, Pagination y Accordion usan `focus-visible:` directo —
+    // forzar el pseudo-elemento nativo alcanza.
+    await forceFocusVisible('[data-testid="focus-ring-button"] button');
+    await forceFocusVisible('[data-testid="focus-ring-tabs"] [role="tab"]');
+    await forceFocusVisible('[data-testid="focus-ring-pagination"] button');
+    await forceFocusVisible('[data-testid="focus-ring-accordion"] button');
+    // Slider: el thumb es el propio elemento con `role="slider"` y foco real.
+    await forceFocusVisible('[data-testid="focus-ring-slider"] [role="slider"]');
+    // RadioGroup: el anillo vive en `peer-focus-visible:`, una selección CSS
+    // nativa sobre el `<input type="radio">` sr-only que precede al círculo
+    // visual (ver el JSDoc de `RadioGroupItem`) — forzar `:focus-visible` en
+    // el input basta para que la clase `peer-focus-visible:` del hermano se
+    // aplique, sin tocar el DOM a mano.
+    await forceFocusVisible('[data-testid="focus-ring-radio-group"] input[type="radio"]');
+    // Switch: `data-[focus-visible]:` es un estado que expone Ark UI/Zag, no
+    // el pseudo-elemento `:focus-visible` — no hay nada que forzar por CDP,
+    // así que se fija el atributo directamente sobre la parte "control"
+    // (anatomía verificada arriba, en `switch.ts`: `data-part="control"`).
+    await story.locator('[data-testid="focus-ring-switch"] [data-part="control"]').evaluate((el) => {
+      el.setAttribute("data-focus-visible", "");
+    });
+
+    // `CSS.forcePseudoState` actualiza el estilo calculado de inmediato (se
+    // puede leer con `getComputedStyle` justo después), pero el frame
+    // pintado que captura `toHaveScreenshot` puede quedarse atrás si no se
+    // le da un giro al bucle de render — comprobado: sin este doble
+    // `requestAnimationFrame`, el anillo de Tabs/Pagination/Accordion no
+    // aparece en la captura aunque `getComputedStyle` ya reporte el
+    // box-shadow correcto.
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+
+    await expect(story).toHaveScreenshot("focus-ring-gallery-dark.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
 });

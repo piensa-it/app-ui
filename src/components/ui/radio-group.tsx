@@ -62,7 +62,10 @@ const RadioGroupItem = React.forwardRef<HTMLLabelElement, RadioGroupItemProps>(
           "after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:duration-normal",
           "peer-checked:border-primary",
           "peer-checked:after:scale-100",
-          "peer-focus-visible:outline-hidden peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+          // El foco vive en `ItemHiddenInput` (sr-only) y llega aquí vía `peer-focus-visible:`,
+          // no `focus-visible:` directo — no encaja en `focusRingOutside` tal cual, así que se
+          // repiten sus clases con el prefijo `peer-` en vez de forzar la recipe.
+          "peer-focus-visible:outline-hidden peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background",
           transition,
         )}
       />

@@ -177,4 +177,112 @@ describe("ProfileForm", () => {
     montar({ fields: ["name", "name", "email"] });
     expect(screen.getAllByLabelText(/^Nombre/)).toHaveLength(1);
   });
+
+  /**
+   * `orientation` (#132): `vertical` es el valor de fábrica y tiene que
+   * seguir devolviendo EXACTAMENTE lo que había en 0.10.0 —nada cambia para
+   * quien no toca la prop—. `horizontal` es la capacidad nueva: rótulo a la
+   * izquierda, pensada para usarse con `descriptions` (sin ellas se ve
+   * descuadrada, ver el JSDoc de la prop). jsdom no mide layout (por eso el
+   * tope de ancho y el de la columna del rótulo se comprueban en
+   * `tests/browser`), así que aquí se comprueba lo que sí es observable
+   * desde el DOM: qué rótulos aparecen y en qué rejilla cae cada uno.
+   */
+  describe("orientation", () => {
+    it("vertical (por defecto) no agrega el rótulo del avatar y usa la rejilla a dos columnas", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} />);
+      expect(screen.queryByText("Foto")).not.toBeInTheDocument();
+      // `FormGrid` con `columns={2}` agrega `sm:grid-cols-2`; con
+      // `columns={1}` (el caso horizontal) no. Es la única marca observable
+      // en el DOM de en qué rejilla cae cada orientación.
+      const rejilla = container.querySelector(".grid-cols-1");
+      expect(rejilla?.className).toContain("sm:grid-cols-2");
+    });
+
+    it("vertical reproduce el orden de rótulos de 0.10.0: sin el del avatar", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} />);
+      const etiquetas = Array.from(container.querySelectorAll("label")).map((n) => n.textContent);
+      expect(etiquetas).toEqual(["Nombre*", "Correo", "Teléfono", "Cargo"]);
+    });
+
+    it("horizontal agrega el rótulo del avatar y pasa la rejilla a una sola columna", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="horizontal" />);
+      expect(screen.getByText("Foto")).toBeInTheDocument();
+      const rejilla = container.querySelector(".grid-cols-1");
+      expect(rejilla?.className).not.toContain("sm:grid-cols-2");
+    });
+
+    /**
+     * Regresión: la fila del avatar es la única que no recibe `description`
+     * ni `error`, así que un `Field` sin `orientation` pasada explícitamente
+     * cae en su propio valor por defecto (`vertical`) sin que ningún otro
+     * síntoma lo delate en las pruebas de arriba —el bug real de esta ronda
+     * dejaba el rótulo «Foto» encima del avatar en vez de al lado—. Se
+     * comprueba comparando la clase de rejilla horizontal del `Field` del
+     * avatar contra la de un campo de texto cualquiera en el mismo render:
+     * las dos tienen que traer el mismo `sm:grid-cols-[...]`.
+     */
+    it("la fila del avatar comparte la rejilla horizontal de dos columnas con el resto de campos", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="horizontal" />);
+      const filas = Array.from(container.querySelectorAll(".gap-field")).filter((el) =>
+        el.className.includes("sm:grid-cols-"),
+      );
+      // Una fila por el avatar y una por cada uno de los cuatro campos.
+      expect(filas).toHaveLength(5);
+      const clasesDeRejilla = new Set(filas.map((el) => el.className.match(/sm:grid-cols-\S+/)?.[0]));
+      expect(clasesDeRejilla.size).toBe(1);
+    });
+
+    it("`labels.avatar` sustituye el rótulo del bloque del avatar en horizontal", () => {
+      montar({ orientation: "horizontal", labels: { avatar: "Fotografía" } });
+      expect(screen.getByText("Fotografía")).toBeInTheDocument();
+    });
+
+    /**
+     * Regresión (revisión de #132): el rótulo «Foto» se pintaba con
+     * `<label htmlFor>` apuntando al `id` que `Field` le inyectaba a
+     * `AvatarPicker`, pero `AvatarPickerProps` no acepta `id` ni hace
+     * rest-spread —lo descarta—, así que ese `for` apuntaba a un elemento
+     * que nunca existió: un rótulo que no hace nada al pulsarlo y sin
+     * asociación accesible real. El grupo del avatar usa `compositeControl`
+     * (rótulo como `<span>` + `role="group"`) precisamente para no dejar
+     * ningún `label[for]` colgando.
+     */
+    it("el rótulo del avatar no deja un label[for] apuntando a un id que no existe", () => {
+      const { container } = render(<ProfileForm value={valor} onChange={vi.fn()} orientation="horizontal" />);
+      const labelsConFor = Array.from(container.querySelectorAll("label[for]"));
+      // Sanity: los cuatro campos de texto sí pintan `label[for]` — si esto
+      // diera 0, la prueba de abajo pasaría sin comprobar nada.
+      expect(labelsConFor.length).toBe(4);
+      for (const label of labelsConFor) {
+        const forId = label.getAttribute("for")!;
+        expect(container.querySelector(`[id="${forId}"]`)).not.toBeNull();
+      }
+      // Y el rótulo del avatar en concreto no es un `<label>`.
+      expect(screen.getByText("Foto").tagName).toBe("SPAN");
+    });
+  });
+
+  /**
+   * `descriptions` (#132): sin valores, la columna de ayuda no queda con un
+   * hueco vacío —no se pinta nada—; con ellos, el texto se asocia al campo
+   * correspondiente igual que hace `description` en `Field` directamente.
+   */
+  describe("descriptions", () => {
+    it("sin la prop, ningún campo tiene descripción", () => {
+      montar();
+      expect(screen.getByLabelText("Correo")).not.toHaveAccessibleDescription();
+    });
+
+    it("agrega la ayuda al campo correspondiente", () => {
+      montar({ descriptions: { email: "Lo usamos para avisos importantes." } });
+      expect(screen.getByText("Lo usamos para avisos importantes.")).toBeInTheDocument();
+      expect(screen.getByLabelText("Correo")).toHaveAccessibleDescription("Lo usamos para avisos importantes.");
+    });
+
+    it("un campo sin entrada en `descriptions` no muestra ayuda aunque otros sí la tengan", () => {
+      montar({ descriptions: { email: "Ayuda de correo." } });
+      expect(screen.getByLabelText("Teléfono")).not.toHaveAccessibleDescription();
+    });
+  });
 });
