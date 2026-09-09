@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { Menu, MenuTrigger, MenuContent, MenuItem } from "../components/ui/menu";
+import {
+  Menu,
+  MenuTrigger,
+  MenuContent,
+  MenuItem,
+  MenuItemGroup,
+  MenuItemGroupLabel,
+  MenuSeparator,
+  MenuCheckboxItem,
+  MenuRadioItemGroup,
+  MenuRadioItem,
+} from "../components/ui/menu";
 import { Button } from "../components/ui/button";
 
 describe("Menu", () => {
@@ -93,5 +104,84 @@ describe("Menu", () => {
     fireEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
 
     expect(onSelect).not.toHaveBeenCalled();
+  });
+});
+
+describe("Menu — subpartes de agrupación y opciones", () => {
+  it("MenuItemGroup + MenuItemGroupLabel agrupan ítems bajo un rótulo visible", async () => {
+    render(
+      <Menu open>
+        <MenuTrigger>
+          <Button>Acciones</Button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuItemGroup>
+            <MenuItemGroupLabel>Ordenar por</MenuItemGroupLabel>
+            <MenuItem value="nombre">Nombre</MenuItem>
+          </MenuItemGroup>
+        </MenuContent>
+      </Menu>,
+    );
+    expect(await screen.findByText("Ordenar por")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Nombre" })).toBeInTheDocument();
+  });
+
+  it("MenuSeparator se pinta entre ítems", async () => {
+    render(
+      <Menu open>
+        <MenuTrigger>
+          <Button>Acciones</Button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuItem value="a">A</MenuItem>
+          <MenuSeparator data-testid="separador" />
+          <MenuItem value="b">B</MenuItem>
+        </MenuContent>
+      </Menu>,
+    );
+    expect(await screen.findByTestId("separador")).toBeInTheDocument();
+  });
+
+  it("MenuCheckboxItem alterna checked e invoca onCheckedChange", async () => {
+    let marcado = false;
+    render(
+      <Menu open>
+        <MenuTrigger>
+          <Button>Vista</Button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuCheckboxItem value="mostrar-columna" checked={marcado} onCheckedChange={(value) => (marcado = value)}>
+            Mostrar columna
+          </MenuCheckboxItem>
+        </MenuContent>
+      </Menu>,
+    );
+
+    const item = await screen.findByRole("menuitemcheckbox", { name: "Mostrar columna" });
+    expect(item).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(item);
+    await waitFor(() => expect(marcado).toBe(true));
+  });
+
+  it("MenuRadioItemGroup + MenuRadioItem exponen selección única con role=menuitemradio", async () => {
+    render(
+      <Menu open>
+        <MenuTrigger>
+          <Button>Densidad</Button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuRadioItemGroup value="compacta">
+            <MenuRadioItem value="compacta">Compacta</MenuRadioItem>
+            <MenuRadioItem value="comoda">Cómoda</MenuRadioItem>
+          </MenuRadioItemGroup>
+        </MenuContent>
+      </Menu>,
+    );
+
+    const compacta = await screen.findByRole("menuitemradio", { name: "Compacta" });
+    const comoda = screen.getByRole("menuitemradio", { name: "Cómoda" });
+    expect(compacta).toHaveAttribute("aria-checked", "true");
+    expect(comoda).toHaveAttribute("aria-checked", "false");
   });
 });
