@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { confirmAlert } from "@/components/ui/alert-dialog";
 import { Tabs, TabPanel } from "@/components/ui/tabs";
+import { actionFooterVariants } from "@/lib/recipes/action-footer";
 import { PageHeader } from "./page-header";
 import { BellIcon, PaletteIcon, ShieldIcon, UserIcon } from "@/icons";
 
@@ -141,7 +142,7 @@ function SectionFooter({ onSave, onCancel, dirty, saving, text }: SectionFooterP
   };
 
   return (
-    <div className="mt-stack flex flex-col-reverse gap-ui-xs border-t border-border pt-ui-md sm:flex-row sm:justify-end">
+    <div className={actionFooterVariants({ separator: true })}>
       {onCancel ? (
         <Button
           type="button"
