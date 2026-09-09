@@ -22,7 +22,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <>
-      <Toaster />
+      {/* Sin <Toaster /> aquí: UiProvider —que envuelve toda story vía el
+          decorador de preview.tsx— ya monta uno. Repetirlo aquí montaba un
+          segundo Toaster suscrito al mismo `toaster`, así que cada aviso se
+          pintaba dos veces (hallazgo de #53, al correr axe sobre el overlay
+          abierto de verdad por primera vez). */}
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => toast.success({ summary: "Guardado", detail: "Los cambios se guardaron." })}>
           Éxito
@@ -46,7 +50,6 @@ export const Duracion: Story = {
   name: "Duración",
   render: () => (
     <>
-      <Toaster />
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => toast.info({ summary: "4 segundos (por defecto)" })}>
           Por defecto

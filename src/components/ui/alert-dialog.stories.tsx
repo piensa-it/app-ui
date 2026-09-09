@@ -22,7 +22,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <>
-      <AlertDialogHost />
+      {/* Sin <AlertDialogHost /> aquí: UiProvider —que envuelve toda story vía
+          el decorador de preview.tsx— ya monta uno. Repetirlo aquí montaba un
+          segundo host suscrito al mismo store, así que cada confirmAlert(...)
+          pintaba dos <alertdialog> idénticos a la vez (hallazgo de #53, al
+          correr axe sobre el overlay abierto de verdad por primera vez). */}
       <Button
         variant="destructive"
         onClick={() =>
@@ -43,7 +47,6 @@ export const Default: Story = {
 export const Superficies: Story = {
   render: () => (
     <>
-      <AlertDialogHost />
       <div className="flex flex-wrap gap-3">
         {(["default", "outline", "elevated"] as const).map((surface) => (
           <Button
