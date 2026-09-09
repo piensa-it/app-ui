@@ -305,12 +305,9 @@ export function DataTableToolbar<TValue extends DataTableValue>({
       </div>
       {showExtendSelectionBanner ? (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-subtle px-4 py-2 text-sm text-subtle-foreground">
-          <span>
-            Seleccionadas las {pageSelectedCount} de esta página. Seleccionar las {filteredSelectableCount} que
-            cumplen el filtro.
-          </span>
+          <span>Seleccionadas las {pageSelectedCount} de esta página.</span>
           <Button type="button" variant="plain" size="sm" onClick={onExtendSelectionToFiltered}>
-            Seleccionar las {filteredSelectableCount}
+            Seleccionar las {filteredSelectableCount} que cumplen el filtro
           </Button>
         </div>
       ) : null}
