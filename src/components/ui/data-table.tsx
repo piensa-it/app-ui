@@ -5,8 +5,10 @@ import {
   columnFilteringFeature,
   columnVisibilityFeature,
   globalFilteringFeature,
+  rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
+  createExpandedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
@@ -18,14 +20,17 @@ import {
   flexRender,
   type ColumnDef,
   type ColumnVisibilityState,
+  type ExpandedState,
   type SortingState,
+  type Updater,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination";
 import { DataTableToolbar, type DataTableDensity } from "@/components/ui/data-table-toolbar";
-import { useColumnVisibilityPreference } from "@/components/ui/data-table-preferences";
+import { useColumnVisibilityPreference, useExpandedPreference } from "@/components/ui/data-table-preferences";
+import { collectExpandedIds, collectSearchExpandedIds } from "@/lib/tree";
 
 /**
  * Desde la v9 de TanStack Table las features ya no vienen incluidas: hay que
@@ -38,10 +43,12 @@ const dataTableFeatures = tableFeatures({
   columnFilteringFeature,
   columnVisibilityFeature,
   globalFilteringFeature,
+  rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
+  expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   filterFns: { includesString: filterFn_includesString },
   sortFns: {
@@ -101,6 +108,12 @@ interface ColumnBase<TValue extends DataTableValue> {
   className?: string;
   /** Clases solo para el `<th>`. Si se omite, el encabezado hereda `className`. */
   headerClassName?: string;
+  /**
+   * Marca la columna que lleva la sangría y el control de expandir en una
+   * tabla jerárquica (con `getSubRows`). Sin efecto si `DataTable` no está en
+   * modo jerárquico. Si más de una columna la marca, gana la primera.
+   */
+  tree?: boolean;
 }
 
 /**
@@ -175,9 +188,30 @@ export interface DataTableProps<TValue extends DataTableValue> {
   className?: string;
   /**
    * Identidad estable de cada fila. Sin él, TanStack usa el índice, que cambia
-   * al ordenar o filtrar.
+   * al ordenar o filtrar. **Requisito**, no mejora, en modo jerárquico: sin
+   * ids estables la expansión se guarda contra la fila equivocada en cuanto
+   * se ordena, filtra o cambia de página.
    */
   getRowId?: (row: TValue, index: number) => string;
+  /**
+   * Accessor a las hijas de una fila (ej. `(fila) => fila.children`).
+   * **Activa el modo jerárquico** — sin esta prop, `DataTable` se comporta
+   * exactamente igual que antes de que existiera la jerarquía. `DataTable`
+   * solo entiende datos ya anidados; el caso plano con `parentId` se resuelve
+   * aparte con `buildTree`.
+   */
+  getSubRows?: (row: TValue) => TValue[] | undefined;
+  /**
+   * Profundidad expandida por defecto cuando no hay nada persistido ni
+   * controlado — `0` no expande nada, `Infinity` expande el árbol entero.
+   * Solo fija el estado **inicial**; no vuelve a aplicarse si cambia después
+   * de montar la tabla. @default 0
+   */
+  defaultExpandedDepth?: number;
+  /** Estado de expansión controlado. Sin esta prop, `DataTable` lo gestiona internamente (y lo persiste si hay `preferencesKey`). */
+  expanded?: ExpandedState;
+  /** Notifica cambios de expansión, se use o no de forma controlada. */
+  onExpandedChange?: (expanded: ExpandedState) => void;
 }
 
 /**
@@ -216,7 +250,15 @@ function DataTable<TValue extends DataTableValue>({
   onColumnVisibilityChange,
   className,
   getRowId,
+  getSubRows,
+  defaultExpandedDepth = 0,
+  expanded: controlledExpanded,
+  onExpandedChange,
 }: DataTableProps<TValue>) {
+  // `getSubRows` es el interruptor: sin él nada de lo que sigue en este
+  // componente se activa, y el render es el mismo de antes de la jerarquía.
+  const isHierarchical = typeof getSubRows === "function";
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: rows });
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -240,8 +282,74 @@ function DataTable<TValue extends DataTableValue>({
   );
   const [columnVisibility, setColumnVisibility] = useColumnVisibilityPreference(preferencesKey, defaultVisibility);
 
+  // Estado inicial cuando no hay nada persistido ni controlado: solo se
+  // evalúa una vez, dentro del `useState` perezoso de `useExpandedPreference`
+  // — `defaultExpandedDepth` fija el arranque, no se reaplica después.
+  const computeDefaultExpanded = React.useCallback((): ExpandedState => {
+    if (!isHierarchical) return {};
+    if (defaultExpandedDepth === Infinity) return true;
+    if (defaultExpandedDepth <= 0) return {};
+    return collectExpandedIds(value, defaultExpandedDepth, getSubRows!, getRowId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberadamente solo se usa como valor inicial, no se re-ejecuta ante cambios posteriores.
+  }, []);
+  const [realExpanded, setRealExpanded] = useExpandedPreference(
+    preferencesKey,
+    controlledExpanded,
+    onExpandedChange,
+    computeDefaultExpanded,
+  );
+
+  // Columnas con campo: son las únicas por las que se puede buscar (mismo
+  // criterio que usa TanStack para decidir qué columnas son "globalmente
+  // filtrables" por defecto).
+  const searchableFields = React.useMemo(
+    () => columnSpecs.filter((spec) => spec.props.field).map((spec) => spec.props.field as string),
+    [columnSpecs],
+  );
+
+  // TanStack decide qué filas *sobreviven* al filtro (`filterFromLeafRows`),
+  // no cuáles se ven expandidas — lo que casa con la búsqueda tiene que
+  // forzarse a mano. Se calcula aparte de `realExpanded` para no persistir
+  // una expansión que solo existe mientras dura la búsqueda.
+  const searchExpandedIds = React.useMemo(() => {
+    if (!isHierarchical || !globalFilter.trim()) return null;
+    return collectSearchExpandedIds(value, globalFilter, searchableFields, getSubRows!, getRowId);
+  }, [isHierarchical, globalFilter, value, searchableFields, getSubRows, getRowId]);
+
+  const effectiveExpanded = React.useMemo<ExpandedState>(() => {
+    if (!searchExpandedIds || realExpanded === true) return realExpanded;
+    return { ...searchExpandedIds, ...realExpanded };
+  }, [realExpanded, searchExpandedIds]);
+
+  const handleExpandedChange = React.useCallback(
+    (updater: Updater<ExpandedState>) => {
+      const next = typeof updater === "function" ? updater(effectiveExpanded) : updater;
+      if (next === true || !searchExpandedIds) {
+        setRealExpanded(next);
+        return;
+      }
+      // No se persiste lo que abrió la búsqueda — salvo que se haya tocado a
+      // mano, y entonces sí manda sobre el forzado. Colapsar una fila borra
+      // su clave del mapa (no la deja en `false`): hay que detectar esa
+      // ausencia aparte, comparando contra las claves que la búsqueda forzó,
+      // y guardar el `false` explícito nosotros — si no, en el siguiente
+      // render la búsqueda la vuelve a forzar a abrir.
+      const withoutSearchDefaults: Record<string, boolean> = {};
+      for (const id of Object.keys(searchExpandedIds)) {
+        if (!(id in next)) withoutSearchDefaults[id] = false;
+      }
+      for (const [id, isExpanded] of Object.entries(next)) {
+        if (searchExpandedIds[id] && isExpanded === true) continue;
+        withoutSearchDefaults[id] = isExpanded;
+      }
+      setRealExpanded(withoutSearchDefaults);
+    },
+    [effectiveExpanded, searchExpandedIds, setRealExpanded],
+  );
+
   const columnDefs = React.useMemo<Array<ColumnDef<typeof dataTableFeatures, TValue>>>(() => {
-    return columnSpecs.map((spec) => ({
+    const treeSpecIndex = isHierarchical ? columnSpecs.findIndex((spec) => spec.props.tree) : -1;
+    return columnSpecs.map((spec, index) => ({
       // Uno de los dos existe siempre: el tipo de `ColumnProps` exige `id`
       // cuando no hay `field`.
       id: (spec.props.id ?? spec.props.field) as string,
@@ -251,7 +359,33 @@ function DataTable<TValue extends DataTableValue>({
       header: () => spec.props.header,
       enableSorting: Boolean(spec.props.field) && (spec.props.sortable ?? false),
       enableHiding: spec.props.hideable ?? true,
-      cell: (ctx) => (spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "")),
+      cell: (ctx) => {
+        const content = spec.props.body ? spec.props.body(ctx.row.original) : String(ctx.getValue() ?? "");
+        if (index !== treeSpecIndex) return content;
+        const row = ctx.row;
+        const canExpand = row.getCanExpand();
+        const rowLabel = spec.props.field ? String(ctx.row.original[spec.props.field] ?? "") : `fila ${row.id}`;
+        return (
+          <span className="flex items-center gap-1.5" style={{ paddingLeft: `${row.depth * 1.5}rem` }}>
+            {canExpand ? (
+              <button
+                type="button"
+                onClick={row.getToggleExpandedHandler()}
+                aria-label={row.getIsExpanded() ? `Colapsar ${rowLabel}` : `Expandir ${rowLabel}`}
+                className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <ChevronRight
+                  aria-hidden="true"
+                  className={cn("size-4 transition-transform duration-fast", row.getIsExpanded() && "rotate-90")}
+                />
+              </button>
+            ) : (
+              <span aria-hidden="true" className="inline-block size-5 shrink-0" />
+            )}
+            <span className="min-w-0 truncate">{content}</span>
+          </span>
+        );
+      },
       meta: {
         // La alineación va primero para que `className` pueda anularla.
         className: cn(ALIGNMENTS[spec.props.align ?? "left"], spec.props.className),
@@ -264,7 +398,7 @@ function DataTable<TValue extends DataTableValue>({
           typeof spec.props.header === "string" ? spec.props.header : (spec.props.id ?? spec.props.field),
       },
     }));
-  }, [columnSpecs]);
+  }, [columnSpecs, isHierarchical]);
 
   // Con `paginator` desactivado ya no se puede omitir el row model de
   // paginación: en la v9 las features son estáticas. Se deja registrada y se
@@ -279,7 +413,13 @@ function DataTable<TValue extends DataTableValue>({
     features: dataTableFeatures,
     data: value,
     columns: columnDefs,
-    state: { sorting, pagination: effectivePagination, globalFilter, columnVisibility },
+    state: {
+      sorting,
+      pagination: effectivePagination,
+      globalFilter,
+      columnVisibility,
+      ...(isHierarchical ? { expanded: effectiveExpanded } : {}),
+    },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
@@ -293,6 +433,21 @@ function DataTable<TValue extends DataTableValue>({
     // Solo se pasa cuando viene: sin él, TanStack sigue identificando filas
     // por índice, igual que antes de que existiera esta prop.
     ...(getRowId ? { getRowId } : {}),
+    // Todo lo de abajo solo se activa en modo jerárquico — en plano, ni
+    // siquiera se le pasan estas opciones a TanStack, así que nada cambia.
+    ...(isHierarchical
+      ? {
+          getSubRows,
+          onExpandedChange: handleExpandedChange,
+          // «parent rows will be included so long as one of their child or
+          // grand-child rows is also included» — resuelve buscar sin romper
+          // el árbol.
+          filterFromLeafRows: true,
+          // «expanded rows will always render on their parent's page» —
+          // resuelve paginar por raíces sin partir familias.
+          paginateExpandedRows: false,
+        }
+      : {}),
   });
 
   // Las filas que quedan tras filtrar, en su orden actual: es lo que recibe el
@@ -411,6 +566,19 @@ function DataTable<TValue extends DataTableValue>({
                     "border-b border-border last:border-0 transition-colors duration-fast hover:bg-accent/50",
                     striped && "even:bg-muted/30",
                   )}
+                  // Sin `role="treegrid"` a propósito: exigiría navegación de
+                  // rejilla a nivel de celda y cambiaría el teclado del caso
+                  // plano. Sobre la tabla normal, el rol `row` sí admite estos
+                  // cuatro atributos — el lector anuncia nivel, posición y si
+                  // está desplegado sin tocar el teclado.
+                  {...(isHierarchical
+                    ? {
+                        "aria-level": row.depth + 1,
+                        "aria-setsize": row.getParentRow()?.subRows.length ?? totalRows,
+                        "aria-posinset": row.index + 1,
+                        ...(row.getCanExpand() ? { "aria-expanded": row.getIsExpanded() } : {}),
+                      }
+                    : {})}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
