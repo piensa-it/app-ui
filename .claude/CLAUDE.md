@@ -51,7 +51,7 @@ src/
 ├── components/
 │   ├── providers/UiProvider.tsx  # Toaster + AlertDialogHost (sin proveedor de tema — headless)
 │   ├── ui/              # primitivas simples (Tailwind puro) + wrappers Ark UI temados
-│   ├── layout/           # Layout, GlobalErrorBoundary
+│   ├── layout/           # AppShell, SettingsPage, GlobalErrorBoundary y demás piezas de armazón
 │   └── marketing/         # PublicHeader, PublicFooter, ImageCarouselBackdrop
 │       └── *.stories.tsx   # cada componente vive junto a su story
 ├── lib/                  # utils.ts (cn), iconConfig.ts, style-helpers.ts (focus ring, animaciones de overlay)

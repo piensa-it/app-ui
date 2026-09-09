@@ -56,8 +56,12 @@ the following status checks:
 - `pull-request-policy`
 - `quality-gate`
 - `browser-gate`
-- `dependency-review`
 - `CodeQL`
+
+There is no Dependency Review workflow in this repository (see
+`AUTOMATION.md`); the only automated dependency vulnerability check is
+`npm audit` inside `quality-gate`. Do not require a `dependency-review` check
+that does not exist.
 
 The ruleset must block force pushes and deletion, require linear history, and
 apply to administrators. Only the smallest emergency-maintainer group may have

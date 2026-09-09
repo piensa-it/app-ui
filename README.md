@@ -54,9 +54,12 @@ import "@piensa-it/ui-library/fonts.css";
 ### Cost
 
 The package ships one module per source file, so a bundler only keeps what an
-application imports. Measured on a Vite build that imports a single component:
+application imports. Measured on a Vite build that imports a single
+component, from before the packaging fix that shipped in `0.3.0` to after it
+(current releases keep the post-fix numbers; the pre-fix column is historical
+context, not a claim about the current version):
 
-| | 0.2.1 | 0.3.0 |
+| | Before 0.3.0 | From 0.3.0 onward |
 |---|---|---|
 | Library code pulled in by `Button` | ~140 KB (whole package) | 2.8 KB |
 | Library code pulled in by `DatePicker` | ~140 KB (whole package) | 10.8 KB |
@@ -359,8 +362,11 @@ Dependencies are installed into a Docker volume rather than the repository's
 `node_modules`, because the esbuild and rolldown binaries macOS installs do not
 run on Linux. They are reinstalled only when `package-lock.json` changes.
 
-Design rules are documented in [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), and
-component maturity is tracked in [COMPONENT_STATUS.md](./COMPONENT_STATUS.md).
+Design principles and governance are documented in
+[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md); the operative rules — surfaces,
+tokens, spacing, when to use what — are in [DESIGN.md](./DESIGN.md).
+Component maturity is tracked in
+[COMPONENT_STATUS.md](./COMPONENT_STATUS.md).
 
 ## Contributing
 
