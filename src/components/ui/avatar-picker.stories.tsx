@@ -57,11 +57,33 @@ export const ConFoto: Story = {
   ),
 };
 
-/** Una lista de colores propia, por ejemplo la de la marca. */
+/**
+ * Una lista de colores propia, por ejemplo la de la marca. Sin `colorLabels`
+ * cada muestra se anuncia por posición ("Color 2 de 3"), nunca por su HSL
+ * crudo (#161).
+ */
 export const ColoresPropios: Story = {
   name: "Colores propios",
   args: { colors: ["243 70% 52%", "205 88% 40%", "158 64% 32%"] },
   render: (args) => (
     <AvatarPicker name={args.name} colors={args.colors} value={{ color: "205 88% 40%" }} onChange={() => {}} />
+  ),
+};
+
+/** La misma lista de colores propia, ahora con `colorLabels`: cada muestra anuncia su propio nombre. */
+export const ColoresPropiosConNombre: Story = {
+  name: "Colores propios, con nombre",
+  args: {
+    colors: ["243 70% 52%", "205 88% 40%", "158 64% 32%"],
+    colorLabels: ["Índigo de marca", "Azul de marca", "Verde de marca"],
+  },
+  render: (args) => (
+    <AvatarPicker
+      name={args.name}
+      colors={args.colors}
+      colorLabels={args.colorLabels}
+      value={{ color: "205 88% 40%" }}
+      onChange={() => {}}
+    />
   ),
 };

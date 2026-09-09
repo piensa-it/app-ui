@@ -3,8 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { AvatarPicker } from "../components/ui/avatar-picker";
-import { DEFAULT_AVATAR_COLORS } from "../lib/avatar-colors";
+import { DEFAULT_AVATAR_COLOR_LABELS, DEFAULT_AVATAR_COLORS } from "../lib/avatar-colors";
 import { contrastRatio, parseHsl } from "../lib/color";
+
+/** El nombre accesible que produce `AvatarPicker` para la muestra `index` de `total`. */
+const nombreDeMuestra = (label: string | undefined, index: number, total: number) =>
+  label ? `${label}, color ${index + 1} de ${total}` : `Color ${index + 1} de ${total}`;
 
 beforeAll(() => {
   // jsdom no implementa `URL.createObjectURL`; basta con que devuelva algo
@@ -32,7 +36,8 @@ const montar = (props: Partial<React.ComponentProps<typeof AvatarPicker>> = {}) 
 describe("AvatarPicker · iniciales y colores", () => {
   it("las iniciales salen de la misma regla que SidebarBrand y UserMenu", () => {
     montar({ name: "Distribuidora El Poblado S.A.S." });
-    expect(screen.getByRole("radio", { name: DEFAULT_AVATAR_COLORS[0] })).toHaveTextContent("DE");
+    const nombre = nombreDeMuestra(DEFAULT_AVATAR_COLOR_LABELS[0], 0, DEFAULT_AVATAR_COLORS.length);
+    expect(screen.getByRole("radio", { name: nombre })).toHaveTextContent("DE");
   });
 
   it.each(DEFAULT_AVATAR_COLORS)("el color por defecto %s pasa contraste AA con texto blanco", (color) => {
@@ -44,19 +49,73 @@ describe("AvatarPicker · iniciales y colores", () => {
   it("ofrece los ocho colores y marca el elegido", () => {
     montar({ value: { color: DEFAULT_AVATAR_COLORS[3] } });
     const grupo = screen.getByRole("radiogroup", { name: "Color de las iniciales" });
+    const nombre = nombreDeMuestra(DEFAULT_AVATAR_COLOR_LABELS[3], 3, DEFAULT_AVATAR_COLORS.length);
     expect(within(grupo).getAllByRole("radio")).toHaveLength(8);
-    expect(within(grupo).getByRole("radio", { name: DEFAULT_AVATAR_COLORS[3] })).toHaveAttribute("aria-checked", "true");
+    expect(within(grupo).getByRole("radio", { name: nombre })).toHaveAttribute("aria-checked", "true");
   });
 
   it("elegir un color notifica el estado completo", async () => {
     const { onChange } = montar({ value: { color: DEFAULT_AVATAR_COLORS[0] } });
-    await userEvent.click(screen.getByRole("radio", { name: DEFAULT_AVATAR_COLORS[5] }));
+    const nombre = nombreDeMuestra(DEFAULT_AVATAR_COLOR_LABELS[5], 5, DEFAULT_AVATAR_COLORS.length);
+    await userEvent.click(screen.getByRole("radio", { name: nombre }));
     expect(onChange).toHaveBeenCalledWith({ file: null, color: DEFAULT_AVATAR_COLORS[5], src: undefined });
   });
 
   it("admite una lista de colores propia", () => {
     montar({ colors: ["200 50% 40%", "100 50% 30%"] });
     expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+});
+
+/**
+ * #161: cada muestra es un radio cuyo nombre accesible anunciaba el HSL
+ * crudo ("350 75% 45%"), inelegible con lector de pantalla. Estas pruebas
+ * afirman el nombre accesible real —comprobado por mutación: revertir
+ * `aria-label` en `avatar-picker.tsx` a `option` (el HSL) las hace fallar—
+ * y que quien pasa `colors` propios sigue teniendo algo elegible, con o sin
+ * nombres propios.
+ */
+describe("AvatarPicker · nombre accesible de cada muestra", () => {
+  it("ninguna muestra por defecto anuncia su HSL crudo", () => {
+    montar();
+    DEFAULT_AVATAR_COLORS.forEach((hsl) => {
+      expect(screen.queryByRole("radio", { name: hsl })).not.toBeInTheDocument();
+    });
+  });
+
+  it("cada muestra por defecto lleva su nombre en español y su posición", () => {
+    montar();
+    DEFAULT_AVATAR_COLOR_LABELS.forEach((label, index) => {
+      const nombre = nombreDeMuestra(label, index, DEFAULT_AVATAR_COLOR_LABELS.length);
+      expect(screen.getByRole("radio", { name: nombre })).toBeInTheDocument();
+    });
+  });
+
+  it("colores propios sin nombre siguen siendo elegibles, por posición y no por HSL", () => {
+    const colores = ["200 50% 40%", "100 50% 30%"];
+    montar({ colors: colores });
+    expect(screen.getByRole("radio", { name: "Color 1 de 2" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Color 2 de 2" })).toBeInTheDocument();
+    colores.forEach((hsl) => {
+      expect(screen.queryByRole("radio", { name: hsl })).not.toBeInTheDocument();
+    });
+  });
+
+  it("colores propios con `colorLabels` anuncian ese nombre, no HSL ni posición sola", () => {
+    montar({
+      colors: ["30 60% 40%", "260 40% 45%"],
+      colorLabels: ["Canela", "Berenjena"],
+    });
+    expect(screen.getByRole("radio", { name: "Canela, color 1 de 2" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Berenjena, color 2 de 2" })).toBeInTheDocument();
+  });
+
+  it("un color propio que coincide con uno de fábrica hereda su nombre sin pasar `colorLabels`", () => {
+    montar({ colors: [DEFAULT_AVATAR_COLORS[6], "10 50% 40%"] });
+    expect(
+      screen.getByRole("radio", { name: `${DEFAULT_AVATAR_COLOR_LABELS[6]}, color 1 de 2` }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Color 2 de 2" })).toBeInTheDocument();
   });
 });
 

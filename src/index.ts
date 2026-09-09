@@ -112,7 +112,7 @@ export { Tooltip, type TooltipProps } from "./components/ui/tooltip";
 export { Tabs, TabPanel, type TabsProps, type TabPanelProps } from "./components/ui/tabs";
 export { Accordion, AccordionTab, type AccordionProps, type AccordionTabProps } from "./components/ui/accordion";
 export { Avatar, type AvatarProps } from "./components/ui/avatar";
-export { DEFAULT_AVATAR_COLORS } from "./lib/avatar-colors";
+export { DEFAULT_AVATAR_COLORS, DEFAULT_AVATAR_COLOR_LABELS } from "./lib/avatar-colors";
 export { BUNDLED_PALETTES, FONT_PRESETS, BUNDLED_LOOKS } from "./lib/appearance-presets";
 export {
   AppearanceSettings,
