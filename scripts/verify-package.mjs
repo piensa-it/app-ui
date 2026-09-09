@@ -73,6 +73,28 @@ if (missingFiles.length > 0) {
   throw new Error(`El paquete no publicaría archivos requeridos: ${missingFiles.join(", ")}`);
 }
 
+// --- dist/index.d.ts es el ÚNICO punto de entrada de tipos ---
+// `dts({ rollupTypes: true })` en vite.config.ts usa api-extractor para
+// empaquetar todas las declaraciones en un solo dist/index.d.ts; sin eso el
+// build deja un .d.ts por cada módulo fuente (~180 archivos sueltos). Contar
+// cuántos .d.ts se publican de verdad discrimina esto sin envejecer mal si el
+// paquete crece por otros motivos (a diferencia de un umbral de tamaño).
+// vite-plugin-dts 5.x (que reescribió su interior como wrapper de
+// unplugin-dts) eliminó la opción `rollupTypes` sin avisar: la acepta y la
+// ignora en silencio, así que el build "funciona" pero deja de empaquetar.
+// Este chequeo existe para que eso no pase inadvertido otra vez (#57).
+const publishedDtsFiles = [...publishedFiles].filter((file) => file.endsWith(".d.ts"));
+if (publishedDtsFiles.length !== 1 || publishedDtsFiles[0] !== "dist/index.d.ts") {
+  throw new Error(
+    `Se esperaba publicar un único archivo de tipos (dist/index.d.ts, generado por ` +
+      `rollupTypes+api-extractor), pero el paquete publicaría ${publishedDtsFiles.length}: ` +
+      `${publishedDtsFiles.slice(0, 10).join(", ")}${publishedDtsFiles.length > 10 ? ", ..." : ""}. ` +
+      `Esto pasa si \`rollupTypes\` dejó de aplicarse — por ejemplo, vite-plugin-dts 5.x ya no lo ` +
+      `soporta (es un wrapper sobre unplugin-dts, que no tiene esa opción) y lo ignora sin error. ` +
+      `Revisa la versión de vite-plugin-dts instalada y la config de dts() en vite.config.ts.`,
+  );
+}
+
 const esm = readFileSync(new URL("dist/esm/index.js", rootUrl), "utf8");
 const versionSource = readFileSync(new URL("src/version.ts", rootUrl), "utf8");
 const sourceVersion = versionSource.match(/UI_LIBRARY_VERSION = "([^"]+)"/)?.[1];
