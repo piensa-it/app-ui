@@ -269,6 +269,31 @@ test.describe("Storybook browser gate", () => {
   });
 });
 
+test.describe("Checkbox — indeterminado (#144)", () => {
+  // Ark expone el marcado visual del tercer estado (`data-state=indeterminate`,
+  // el icono `Minus`) desde antes de esta incidencia — lo que faltaba, y lo
+  // que un navegador real prueba mejor que jsdom, es la propiedad IDL
+  // `.indeterminate` del input nativo: es la que el árbol de accesibilidad
+  // traduce a `mixed` (comprobado con `element.evaluate` en el cuerpo de la
+  // incidencia). Sin captura comparada: nada cambia en píxeles, el icono ya
+  // se veía bien: lo que cambia es una propiedad del DOM, invisible a una
+  // captura.
+  test("el input nativo queda .indeterminate === true, no solo pintado", async ({ page }) => {
+    await page.goto(storyUrl("ui-checkbox--indeterminado"));
+    await stabilize(page);
+
+    const checkbox = page.getByRole("checkbox", { name: "Seleccionar todo" });
+    await expect(checkbox).toBeVisible();
+    expect(await checkbox.evaluate((el: HTMLInputElement) => el.indeterminate)).toBe(true);
+
+    // No hay `aria-checked="mixed"` como atributo: el navegador lo deriva
+    // de `.indeterminate` para el árbol de accesibilidad (ver JSDoc de
+    // `checked` en checkbox.tsx) — se comprueba en el snapshot de
+    // accesibilidad, no en el DOM.
+    await expect(checkbox).toMatchAriaSnapshot(`- checkbox "Seleccionar todo" [checked=mixed]`);
+  });
+});
+
 test.describe("Tokens", () => {
   // Un cambio de token afecta a tres aplicaciones a la vez. Esta captura es la
   // red que evita enterarse en producción: cubre los tres niveles de la escala

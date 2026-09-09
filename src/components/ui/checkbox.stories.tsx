@@ -55,3 +55,31 @@ export const SoloAriaLabel: Story = {
   name: "Solo aria-label",
   args: { "aria-label": "Seleccionar fila", checked: true },
 };
+
+/**
+ * `checked="indeterminate"` — selección parcial, ej. un "seleccionar todo"
+ * con algunos hijos marcados (el caso de #144 y #137). Un clic del usuario
+ * siempre lo resuelve a marcado/desmarcado, nunca vuelve a "indeterminate"
+ * por sí solo: por eso este demo también ofrece un botón para restaurarlo,
+ * como haría un padre de `DataTable` al reevaluar la selección de sus hijos.
+ */
+export const Indeterminado: Story = {
+  render: () => {
+    const Demo = () => {
+      const [checked, setChecked] = useState<boolean | "indeterminate">("indeterminate");
+      return (
+        <div className="flex items-center gap-4">
+          <Checkbox checked={checked} onCheckedChange={setChecked} label="Seleccionar todo" />
+          <button
+            type="button"
+            className="text-sm text-primary underline"
+            onClick={() => setChecked("indeterminate")}
+          >
+            Volver a indeterminado
+          </button>
+        </div>
+      );
+    };
+    return <Demo />;
+  },
+};
