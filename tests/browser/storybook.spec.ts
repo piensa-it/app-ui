@@ -556,3 +556,78 @@ test.describe("DataTable — Jerarquía", () => {
     });
   });
 });
+
+test.describe("Anillo de foco (#139)", () => {
+  // El hueco del offset (`ring-offset-2`) no llevaba color en varias copias
+  // escritas a mano de la recipe `focusRingOutside` — en tema oscuro se veía
+  // un aro blanco de 2 px alrededor del control (el valor por defecto de
+  // `--tw-ring-offset-color` en Tailwind 4). Un solo documento solo puede
+  // tener un elemento con foco real a la vez, así que para juntar varios
+  // controles enfocados en una misma captura se fuerza `:focus-visible` vía
+  // CDP (`CSS.forcePseudoState`) — el mecanismo que usan las devtools del
+  // navegador para lo mismo. El `Switch` es la excepción: su anillo depende
+  // de `data-focus-visible`, un estado que pone Ark UI (no el pseudo-elemento
+  // nativo), así que ese atributo se fija a mano.
+  test("ningún control deja el hueco del offset sin color en tema oscuro", async ({ page }) => {
+    await page.goto(storyUrl("guías-anillo-de-foco--galeria", "theme:dark;palette:indigo;fontFamily:geist"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Guardar cambios" })).toBeVisible();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send("DOM.enable");
+    await client.send("CSS.enable");
+    // Un solo `DOM.getDocument` para toda la prueba: pedirlo de nuevo en
+    // cada llamada (una por control) reemplaza el árbol que CDP tiene en
+    // memoria y con él los `nodeId` ya forzados — comprobado, así es como el
+    // anillo de Tabs/Pagination/Accordion (los primeros de la lista)
+    // desaparecía de la captura aunque `getComputedStyle` siguiera
+    // reportando el `box-shadow` correcto justo después de forzarlo.
+    const { root } = await client.send("DOM.getDocument", { depth: -1, pierce: true });
+
+    const forceFocusVisible = async (selector: string) => {
+      const { nodeId } = await client.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+      if (!nodeId) throw new Error(`No se encontró "${selector}" para forzar :focus-visible`);
+      await client.send("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: ["focus-visible", "focus"] });
+    };
+
+    // Button, Tabs, Pagination y Accordion usan `focus-visible:` directo —
+    // forzar el pseudo-elemento nativo alcanza.
+    await forceFocusVisible('[data-testid="focus-ring-button"] button');
+    await forceFocusVisible('[data-testid="focus-ring-tabs"] [role="tab"]');
+    await forceFocusVisible('[data-testid="focus-ring-pagination"] button');
+    await forceFocusVisible('[data-testid="focus-ring-accordion"] button');
+    // Slider: el thumb es el propio elemento con `role="slider"` y foco real.
+    await forceFocusVisible('[data-testid="focus-ring-slider"] [role="slider"]');
+    // RadioGroup: el anillo vive en `peer-focus-visible:`, una selección CSS
+    // nativa sobre el `<input type="radio">` sr-only que precede al círculo
+    // visual (ver el JSDoc de `RadioGroupItem`) — forzar `:focus-visible` en
+    // el input basta para que la clase `peer-focus-visible:` del hermano se
+    // aplique, sin tocar el DOM a mano.
+    await forceFocusVisible('[data-testid="focus-ring-radio-group"] input[type="radio"]');
+    // Switch: `data-[focus-visible]:` es un estado que expone Ark UI/Zag, no
+    // el pseudo-elemento `:focus-visible` — no hay nada que forzar por CDP,
+    // así que se fija el atributo directamente sobre la parte "control"
+    // (anatomía verificada arriba, en `switch.ts`: `data-part="control"`).
+    await story.locator('[data-testid="focus-ring-switch"] [data-part="control"]').evaluate((el) => {
+      el.setAttribute("data-focus-visible", "");
+    });
+
+    // `CSS.forcePseudoState` actualiza el estilo calculado de inmediato (se
+    // puede leer con `getComputedStyle` justo después), pero el frame
+    // pintado que captura `toHaveScreenshot` puede quedarse atrás si no se
+    // le da un giro al bucle de render — comprobado: sin este doble
+    // `requestAnimationFrame`, el anillo de Tabs/Pagination/Accordion no
+    // aparece en la captura aunque `getComputedStyle` ya reporte el
+    // box-shadow correcto.
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+
+    await expect(story).toHaveScreenshot("focus-ring-gallery-dark.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+});

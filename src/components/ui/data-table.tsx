@@ -27,6 +27,7 @@ import {
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { Pagination } from "@/components/ui/pagination";
 import { DataTableToolbar, type DataTableDensity } from "@/components/ui/data-table-toolbar";
 import { useColumnVisibilityPreference, useExpandedPreference } from "@/components/ui/data-table-preferences";
@@ -372,7 +373,10 @@ function DataTable<TValue extends DataTableValue>({
                 type="button"
                 onClick={row.getToggleExpandedHandler()}
                 aria-label={row.getIsExpanded() ? `Colapsar ${rowLabel}` : `Expandir ${rowLabel}`}
-                className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={cn(
+                  "inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                  focusRingOutside,
+                )}
               >
                 <ChevronRight
                   aria-hidden="true"
@@ -515,7 +519,7 @@ function DataTable<TValue extends DataTableValue>({
                             // encabezado ordenable pierde las mayúsculas del <th>.
                             "uppercase",
                             "transition-colors duration-fast hover:text-foreground",
-                            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                            focusRingOutside,
                           )}
                           aria-label={`Ordenar por ${
                             (header.column.columnDef.meta as { ariaLabel?: string } | undefined)?.ariaLabel ?? header.id

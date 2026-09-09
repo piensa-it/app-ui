@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { backdropAnimation, dialogContentAnimation, elevationRing, overlayBackdrop } from "@/lib/style-helpers";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 export interface DialogProps extends Omit<ArkDialog.RootProps, "open" | "onOpenChange"> {
   open: boolean;
@@ -78,7 +79,8 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
                 className={cn(
                   "absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded-md text-muted-foreground transition-colors sm:right-4 sm:top-4",
                   "hover:bg-surface-hover hover:text-foreground",
-                  "hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "hover:opacity-100",
+                  focusRingOutside,
                 )}
               >
                 <X aria-hidden="true" className="size-5" />

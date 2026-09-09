@@ -3,6 +3,7 @@ import { type ColumnVisibilityState, type Table } from "@tanstack/react-table";
 import { RotateCcw, Search, Settings2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { DataTableFeatures, DataTableValue } from "@/components/ui/data-table";
@@ -79,7 +80,10 @@ export function DataTableToolbar<TValue extends DataTableValue>({
               <button
                 type="button"
                 aria-label="Configurar columnas"
-                className="inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-raised text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={cn(
+                  "inline-flex h-control-default w-control-default shrink-0 items-center justify-center rounded-md border border-input bg-raised text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground",
+                  focusRingOutside,
+                )}
               >
                 <Settings2 aria-hidden="true" className="size-4" />
               </button>

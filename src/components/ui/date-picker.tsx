@@ -10,6 +10,7 @@ import { splitAriaProps } from "@/lib/aria-props";
 import { elevationRing, popoverAnimation } from "@/lib/style-helpers";
 import { assignForwardedRef, useOverlayDismiss } from "@/lib/overlay-dismiss";
 import { fieldControlVariants, floatingPanelStyles, iconButtonStyles } from "@/lib/recipes/field-control";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 function toCalendarDate(date: Date): CalendarDate {
   return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
@@ -24,7 +25,7 @@ const monthYearCellTriggerClassName = cn(
   "transition-colors duration-normal ease-standard hover:bg-surface-hover hover:text-foreground",
   "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary/90",
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  focusRingOutside,
 );
 
 /**
@@ -45,7 +46,7 @@ function DatePickerViewNav() {
         className={cn(
           "min-h-control-default rounded-md px-3 text-sm font-semibold capitalize",
           "hover:bg-accent hover:text-accent-foreground",
-          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          focusRingOutside,
         )}
       >
         <ArkDatePicker.RangeText />
@@ -190,7 +191,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
                                     "data-[today]:font-semibold data-[today]:text-primary data-[today]:ring-1 data-[today]:ring-primary/30",
                                     "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary/90",
                                     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                                    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                    focusRingOutside,
                                   )}
                                 >
                                   {day.day}

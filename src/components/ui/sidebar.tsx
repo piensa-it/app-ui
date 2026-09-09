@@ -10,6 +10,7 @@ import {
   elevationRing,
   overlayBackdrop,
 } from "@/lib/style-helpers";
+import { focusRingOutside } from "@/lib/recipes/focus";
 
 /** Atributos HTML que llegan al panel (`role="dialog"`), no al Root de Ark. */
 type SheetPanelAttributes = Omit<
@@ -194,7 +195,8 @@ const Sheet = React.forwardRef<HTMLDivElement, SheetProps>(
                 className={cn(
                   "absolute right-4 top-4 rounded-sm opacity-70 transition-opacity",
                   surface ? "text-muted-foreground" : "text-current",
-                  "hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "hover:opacity-100",
+                  focusRingOutside,
                 )}
               >
                 <X className="h-4 w-4" />

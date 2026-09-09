@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { focusRingOutside } from "@/lib/recipes/focus";
 import { initialsFrom } from "@/lib/initials";
 import type { TokenColor } from "@/lib/palette";
 import { DEFAULT_AVATAR_COLORS } from "@/lib/avatar-colors";
@@ -188,8 +189,10 @@ export const AvatarPicker = React.forwardRef<HTMLDivElement, AvatarPickerProps>(
                   style={{ backgroundColor: `hsl(${option})` }}
                   className={cn(
                     "grid size-10 place-items-center rounded-lg text-ui-caption font-semibold text-white transition-transform duration-fast",
-                    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    focusRingOutside,
                     // La elegida se marca con anillo, no con otro color: el color ya es el dato.
+                    // `ring-offset-raised` asume superficie `raised`, que puede no ser la del
+                    // control — es el desvío descrito en #125, ajeno a #139, no se toca aquí.
                     selected ? "ring-2 ring-foreground ring-offset-2 ring-offset-raised" : "hover:scale-105",
                   )}
                 >
