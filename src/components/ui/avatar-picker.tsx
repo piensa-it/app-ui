@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
 import { initialsFrom } from "@/lib/initials";
 import type { TokenColor } from "@/lib/palette";
-import { DEFAULT_AVATAR_COLORS } from "@/lib/avatar-colors";
+import { DEFAULT_AVATAR_COLOR_NAME_BY_VALUE, DEFAULT_AVATAR_COLORS } from "@/lib/avatar-colors";
 import { Avatar } from "./avatar";
 import { Button } from "./button";
 import { CameraIcon, CheckIcon, CloseIcon } from "@/icons";
@@ -50,6 +50,13 @@ export interface AvatarPickerProps {
    * para texto blanco.
    */
   colors?: TokenColor[];
+  /**
+   * Nombre accesible de cada color de `colors`, mismo índice. Sin él, cada
+   * muestra se anuncia por posición («color 3 de 8»), nunca por su HSL
+   * crudo (#161). Los ocho colores por defecto ya traen nombre aunque no se
+   * pase esta prop; hace falta solo si `colors` trae los propios.
+   */
+  colorLabels?: string[];
   /** @default 2 */
   maxSizeMb?: number;
   labels?: AvatarPickerLabels;
@@ -89,7 +96,7 @@ const DEFAULT_LABELS: Required<AvatarPickerLabels> = {
  * ```
  */
 export const AvatarPicker = React.forwardRef<HTMLDivElement, AvatarPickerProps>(
-  ({ name, value, onChange, colors = DEFAULT_AVATAR_COLORS, maxSizeMb = 2, labels, className }, ref) => {
+  ({ name, value, onChange, colors = DEFAULT_AVATAR_COLORS, colorLabels, maxSizeMb = 2, labels, className }, ref) => {
     const text = { ...DEFAULT_LABELS, ...labels };
     const max = String(maxSizeMb);
     const inputRef = React.useRef<HTMLInputElement>(null);
@@ -176,15 +183,21 @@ export const AvatarPicker = React.forwardRef<HTMLDivElement, AvatarPickerProps>(
         {/* Con foto no hay color que elegir: es o una cosa o la otra. */}
         {src ? null : (
           <div role="radiogroup" aria-label={text.colors} className="flex flex-wrap gap-ui-xs">
-            {colors.map((option) => {
+            {colors.map((option, index) => {
               const selected = option === color;
+              // Nunca el HSL crudo (#161): el nombre propio si lo hay —el de
+              // `colorLabels` o, si el valor coincide con uno de fábrica, el
+              // suyo— y si no, la posición sola sigue siendo elegible.
+              const swatchName = colorLabels?.[index] ?? DEFAULT_AVATAR_COLOR_NAME_BY_VALUE.get(option);
+              const position = `color ${index + 1} de ${colors.length}`;
+              const label = swatchName ? `${swatchName}, ${position}` : `Color ${index + 1} de ${colors.length}`;
               return (
                 <button
                   key={option}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  aria-label={option}
+                  aria-label={label}
                   onClick={() => onChange({ file: null, color: option, src: value?.src })}
                   style={{ backgroundColor: `hsl(${option})` }}
                   className={cn(
