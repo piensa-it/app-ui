@@ -230,7 +230,6 @@ export {
   type SettingsSection,
 } from "./components/layout/settings-page";
 export { initialsFrom } from "./lib/initials";
-export { Layout, type LayoutProps } from "./components/layout/Layout";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/GlobalErrorBoundary";
 
 // --- Marketing / sitios públicos ---

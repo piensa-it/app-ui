@@ -147,7 +147,7 @@ export const AvatarPicker = React.forwardRef<HTMLDivElement, AvatarPickerProps>(
                 {text.upload}
               </Button>
               {src ? (
-                <Button type="button" size="sm" variant="ghost" onClick={remove}>
+                <Button type="button" size="sm" variant="plain" onClick={remove}>
                   <CloseIcon aria-hidden="true" />
                   {text.remove}
                 </Button>

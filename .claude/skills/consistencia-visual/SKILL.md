@@ -34,8 +34,8 @@ no una sugerencia. Antes de auditar, léelos: si cambiaron, la referencia cambi�
 **Variantes semánticas**: `solid`, `subtle`, `surface`, `outline`, `plain`,
 más `destructive` y `link` donde apliquen. Los campos de formulario usan el
 subconjunto `surface | outline | subtle`. Los alias `default`, `secondary` y
-`ghost` existen marcados `@deprecated` por compatibilidad con shadcn — un
-componente nuevo no debería nacer con ellos.
+`ghost` (compatibilidad con shadcn) se retiraron en la 1.0.0 — un componente
+nuevo no debería usarlos ni resucitarlos.
 
 **Tamaños**: `sm`, `md`, `lg`, con `xs` opcional. Default siempre `md`.
 

@@ -5,19 +5,19 @@ import { cn } from "@/lib/utils";
 import { transition } from "@/lib/style-helpers";
 import { radioControlSizeVariants } from "@/lib/recipes/radio-group";
 
-export interface RadioGroupProps extends Omit<ArkRadioGroup.RootProps, "value" | "onValueChange"> {
+export interface RadioGroupProps extends Omit<ArkRadioGroup.RootProps, "value" | "onValueChange" | "onChange"> {
   value?: string;
-  onValueChange?: (value: string) => void;
+  onChange?: (value: string) => void;
 }
 
 /** Agrupa varios `RadioGroupItem` sobre Ark UI (headless) — agrupación nativa vía `name`. */
 const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ className, value, onValueChange, ...props }, ref) => (
+  ({ className, value, onChange, ...props }, ref) => (
     <ArkRadioGroup.Root
       ref={ref}
       className={cn("grid gap-2", className)}
       value={value ?? null}
-      onValueChange={(details) => onValueChange?.(details.value ?? "")}
+      onValueChange={(details) => onChange?.(details.value ?? "")}
       {...props}
     />
   ),

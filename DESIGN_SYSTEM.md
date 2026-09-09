@@ -58,6 +58,25 @@ Componentes equivalentes usan las mismas convenciones para tamaño, variante,
 estado controlado, callbacks, errores y composición. El tipado público debe
 reflejar exactamente el valor recibido por el consumidor.
 
+**Naming de controles**, sin excepciones no documentadas: la pregunta que
+decide sola, sin mirar al componente hermano más parecido, es *¿el valor es
+un booleano de sí/no, o es una selección de un conjunto de opciones?*
+
+- Booleano de sí/no → `checked` / `onCheckedChange` (Checkbox, Switch) —
+  paridad con el `<input type="checkbox">` nativo, que ya usa `checked`.
+- Selección de un conjunto → `value` / `onChange` (RadioGroup, Slider,
+  Select, MultiSelect, DatePicker, AutoComplete), sin importar qué shape de
+  evento use Ark UI por debajo: el wrapper de la librería lo adapta.
+
+No se "normaliza" Checkbox/Switch a `value`/`onChange`: sería un cambio
+incompatible sin beneficio real, porque ambos representan lo mismo que su
+contraparte HTML nativa.
+
+Única excepción: `Tabs` usa `onValueChange` pese a ser una selección, porque
+no es un control de formulario sino navegación — su valor no es un dato del
+modelo. Ver `src/version.ts` (entrada 1.0.0) para el razonamiento completo
+antes de reabrirla.
+
 ## Dirección visual
 
 ### Color
@@ -137,18 +156,30 @@ activo.
 - Los estilos compartidos viven en tokens y recetas; no se duplican entre
   componentes equivalentes.
 
-## Compatibilidad antes de 1.0
+## Compatibilidad
 
-Hasta publicar `1.0.0`, se permiten cambios incompatibles cuando corrigen un
-contrato confuso o consolidan el sistema. Todo cambio debe:
+`1.0.0` no es un sello de madurez, es una promesa de estabilidad: a partir de
+ahí, todo cambio incompatible cuesta una versión mayor. Sin excepción de "es
+solo para corregir un error de diseño" — esa puerta se usó, a propósito, una
+única vez para llegar a la 1.0.0 (#150) y quedó cerrada.
 
-1. Incluir una nota de migración.
-2. Mantener un alias deprecated durante al menos una versión menor cuando sea
-   razonable.
+Un cambio incompatible, sea cual sea la versión que lo publica, debe:
+
+1. Incluir una nota de migración en `src/version.ts`, escrita para que
+   alguien migre leyéndola sin abrir el diff: qué buscar y con qué
+   sustituirlo, orden por orden.
+2. Mantener un alias `@deprecated` durante al menos una versión menor cuando
+   sea razonable, **con la versión de retirada declarada desde que se marca**
+   — nunca un alias deprecado sin fecha: eso es arrastrarlo indefinidamente,
+   porque retirarlo después ya cuesta una mayor.
 3. Actualizar tests, stories, documentación y tipos en el mismo PR.
 4. Evitar aliases cuando conservarlos perpetúe un comportamiento incorrecto.
+5. Valorar un codemod cuando el cambio sea mecánico (renombrar una prop, una
+   clase). Si se descarta, decirlo y explicar por qué.
 
-Después de `1.0.0`, los cambios incompatibles requieren una versión mayor.
+Antes de `1.0.0` esto se relajaba para permitir consolidar el sistema barato,
+mientras cada ruptura no costaba todavía una mayor. Esa ventana ya se usó y
+se cerró con la propia 1.0.0: no hay una "próxima vez que es gratis".
 
 ## Presupuestos de calidad
 

@@ -5,7 +5,6 @@ import { disabledStyles, interactiveTransition } from "./interactive";
 
 /**
  * Variantes semánticas inspiradas en Park UI: solid, subtle, surface, outline, plain.
- * Se mantienen alias shadcn (default, secondary, ghost) por compatibilidad.
  */
 export const buttonVariants = cva(
   [
@@ -26,12 +25,6 @@ export const buttonVariants = cva(
         outline:
           "border border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/80",
         plain: "text-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/80",
-        /** @deprecated Usa `solid`. */
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95",
-        /** @deprecated Usa `subtle`. */
-        secondary: "bg-subtle text-subtle-foreground hover:bg-subtle-hover active:bg-subtle-hover",
-        /** @deprecated Usa `plain`. */
-        ghost: "text-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/80",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:bg-destructive/95",
         link: "text-primary underline-offset-4 shadow-none hover:underline",
       },
@@ -40,8 +33,6 @@ export const buttonVariants = cva(
         sm: "h-9 min-w-9 px-3 text-sm [&_svg]:size-4",
         md: "h-control-default min-w-control-default px-3.5 text-sm [&_svg]:size-5",
         lg: "h-control-comfortable min-w-control-comfortable px-4 text-base [&_svg]:size-5",
-        /** @deprecated Usa `md`. */
-        default: "h-control-default min-w-control-default px-3.5 text-sm [&_svg]:size-5",
         icon: "h-control-default w-control-default [&_svg]:size-5",
       },
     },

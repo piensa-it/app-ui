@@ -314,7 +314,7 @@ export const FilaClicable: Story = {
         hideable={false}
         body={() => (
           <Button
-            variant="ghost"
+            variant="plain"
             size="sm"
             onClick={() => window.alert("Eliminar (no abre el detalle)")}
           >

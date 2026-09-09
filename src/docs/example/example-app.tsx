@@ -453,7 +453,7 @@ function VistaNuevoMovimiento({ onCancelar, staggerGap }: { onCancelar: () => vo
 
             <Toolbar>
               <Button type="submit">Guardar movimiento</Button>
-              <Button type="button" variant="ghost" onClick={onCancelar}>
+              <Button type="button" variant="plain" onClick={onCancelar}>
                 Cancelar
               </Button>
               {enviado && !errorConcepto && !errorValor ? (

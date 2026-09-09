@@ -5,21 +5,21 @@ import { cn } from "@/lib/utils";
 import { sliderTrackSizeVariants, sliderThumbSizeVariants } from "@/lib/recipes/slider";
 import { focusRingOutside } from "@/lib/recipes/focus";
 
-export interface SliderProps extends Omit<ArkSlider.RootProps, "value" | "onValueChange" | "children"> {
+export interface SliderProps extends Omit<ArkSlider.RootProps, "value" | "onValueChange" | "onChange" | "children"> {
   value?: number[];
-  onValueChange?: (value: number[]) => void;
+  onChange?: (value: number[]) => void;
   /** @default "md" */
   size?: "sm" | "md" | "lg";
 }
 
 /** Control deslizante sobre Ark UI (headless), con el tema Tailwind de la librería. Soporta uno o varios thumbs. */
 const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
-  ({ className, value, onValueChange, size = "md", ...props }, ref) => (
+  ({ className, value, onChange, size = "md", ...props }, ref) => (
     <ArkSlider.Root
       ref={ref}
       className={cn("relative flex w-full flex-col gap-2 py-1", className)}
       value={value}
-      onValueChange={(details) => onValueChange?.(details.value)}
+      onValueChange={(details) => onChange?.(details.value)}
       {...props}
     >
       <ArkSlider.Control className="relative flex h-control-default w-full touch-none items-center">

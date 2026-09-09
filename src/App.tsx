@@ -9,7 +9,9 @@ import {
   CardContent,
   Input,
   Separator,
-  Layout,
+  AppShell,
+  SidebarNav,
+  SidebarNavItem,
   UiProvider,
   Select,
   Checkbox,
@@ -45,18 +47,22 @@ const App = () => {
 
   return (
     <UiProvider>
-      <Layout
+      <AppShell
         brand={<span className="text-lg font-bold">Piensa IT · UI Library</span>}
-        footer="Playground de desarrollo — @piensa-it/ui-library"
+        sidebar={
+          <SidebarNav>
+            <SidebarNavItem active>Playground</SidebarNavItem>
+          </SidebarNav>
+        }
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-8 py-8">
           <section className="flex flex-col gap-3">
             <h2 className="font-heading text-xl font-semibold">Botones</h2>
             <div className="flex flex-wrap gap-3">
               <Button>Default</Button>
-              <Button variant="secondary">Secondary</Button>
+              <Button variant="subtle">Secondary</Button>
               <Button variant="outline">Outline</Button>
-              <Button variant="ghost">Ghost</Button>
+              <Button variant="plain">Ghost</Button>
               <Button variant="destructive">Destructive</Button>
               <Button variant="link">Link</Button>
               <Button onClick={() => toast.success({ summary: "Listo", detail: "Notificación de prueba." })}>
@@ -137,7 +143,7 @@ const App = () => {
             </Tabs>
           </section>
         </div>
-      </Layout>
+      </AppShell>
     </UiProvider>
   );
 };
