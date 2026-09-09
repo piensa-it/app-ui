@@ -45,8 +45,11 @@ jobs:
       - name: TypeScript strict check
         run: npm run typecheck
 
-      - name: Tests
-        run: npm run test:run
+      - name: Tests con cobertura
+        run: npm run test:coverage
+
+      - name: Contrato público (stories y pruebas de humo)
+        run: npm run verify:contract
 
       - name: Build de la librería
         run: npm run verify:package

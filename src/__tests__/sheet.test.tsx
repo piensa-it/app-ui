@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Sheet, SheetTitle } from "../components/ui/sidebar";
+import { Sheet, SheetTitle, SheetHeader, SheetDescription, SheetFooter } from "../components/ui/sidebar";
 
 describe("Sheet — props del panel", () => {
   it("style, data-* y className llegan al elemento role=dialog", async () => {
@@ -72,5 +72,39 @@ describe("Sheet — superficie propia", () => {
     );
     const panel = await screen.findByRole("dialog");
     expect(panel).toHaveClass("fixed", "left-0");
+  });
+});
+
+describe("Sheet — subpartes de composición", () => {
+  it("SheetHeader, SheetDescription y SheetFooter componen dentro del panel, y el panel queda descrito", async () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetHeader data-testid="header">
+          <SheetTitle>Orden #123</SheetTitle>
+          <SheetDescription>Detalle completo del pedido.</SheetDescription>
+        </SheetHeader>
+        <SheetFooter data-testid="footer">
+          <button type="button">Cerrar orden</button>
+        </SheetFooter>
+      </Sheet>,
+    );
+
+    const panel = await screen.findByRole("dialog");
+    const descripcion = screen.getByText("Detalle completo del pedido.");
+    expect(panel).toHaveAttribute("aria-describedby", descripcion.id);
+    expect(screen.getByTestId("header")).toHaveClass("flex", "flex-col");
+    expect(screen.getByTestId("footer")).toContainElement(screen.getByRole("button", { name: "Cerrar orden" }));
+  });
+
+  it("SheetHeader y SheetFooter reenvían className", async () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetHeader data-testid="header" className="mi-header" />
+        <SheetFooter data-testid="footer" className="mi-footer" />
+      </Sheet>,
+    );
+    await screen.findByRole("dialog");
+    expect(screen.getByTestId("header")).toHaveClass("mi-header");
+    expect(screen.getByTestId("footer")).toHaveClass("mi-footer");
   });
 });
