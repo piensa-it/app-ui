@@ -89,7 +89,7 @@ function ProfessionalForm({ compact = false }: { compact?: boolean }) {
         </section>
 
         <section className="grid gap-4 border-t border-border pt-6">
-          <RadioGroup value={plan} onValueChange={setPlan}>
+          <RadioGroup value={plan} onChange={setPlan}>
             <RadioGroupItem value="basic" label="Básico" description="Para equipos pequeños que están comenzando." />
             <RadioGroupItem value="professional" label="Profesional" description="Controles avanzados, reportes y automatización." />
           </RadioGroup>

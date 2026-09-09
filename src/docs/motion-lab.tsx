@@ -75,7 +75,7 @@ function EntradaDePagina() {
       controles={
         <>
           <Control etiqueta="Retraso entre bloques" valor={`${gap} ms`}>
-            <Slider aria-label={["Retraso entre bloques"]} min={0} max={200} step={10} value={[gap]} onValueChange={([v]) => setGap(v)} />
+            <Slider aria-label={["Retraso entre bloques"]} min={0} max={200} step={10} value={[gap]} onChange={([v]) => setGap(v)} />
           </Control>
           <Repetir onClick={() => setReplay((k) => k + 1)} />
         </>
@@ -157,7 +157,7 @@ function Enfasis() {
       controles={
         <>
           <Control etiqueta="Preset">
-            <RadioGroup value={preset} onValueChange={(v) => setPreset(v as MotionPreset)}>
+            <RadioGroup value={preset} onChange={(v) => setPreset(v as MotionPreset)}>
               {PRESETS.map((p) => (
                 <RadioGroupItem key={p.id} value={p.id} label={p.label} description={p.description} size="sm" />
               ))}
@@ -192,7 +192,7 @@ function Enfasis() {
             />
           </Control>
           <Control etiqueta="Sobre qué">
-            <RadioGroup value={objetivo} onValueChange={(v) => setObjetivo(v as Objetivo)} className="grid-cols-3">
+            <RadioGroup value={objetivo} onChange={(v) => setObjetivo(v as Objetivo)} className="grid-cols-3">
               <RadioGroupItem value="icono" label="Icono" size="sm" />
               <RadioGroupItem value="cifra" label="Cifra" size="sm" />
               <RadioGroupItem value="tarjeta" label="Tarjeta" size="sm" />
@@ -245,7 +245,7 @@ function Cifras() {
       controles={
         <>
           <Control etiqueta="Duración del conteo" valor={`${duracion} ms`}>
-            <Slider aria-label={["Duración del conteo"]} min={0} max={2000} step={100} value={[duracion]} onValueChange={([v]) => setDuracion(v)} />
+            <Slider aria-label={["Duración del conteo"]} min={0} max={2000} step={100} value={[duracion]} onChange={([v]) => setDuracion(v)} />
           </Control>
           <Button variant="outline" size="sm" onClick={() => setValor(nuevoValor(valor))}>
             <RestoreIcon aria-hidden="true" />
@@ -287,7 +287,7 @@ function AparicionAlDesplazar() {
       controles={
         <>
           <Control etiqueta="Cuántas veces">
-            <RadioGroup value={once} onValueChange={(v) => setOnce(v as "true" | "false")}>
+            <RadioGroup value={once} onChange={(v) => setOnce(v as "true" | "false")}>
               <RadioGroupItem value="true" label="Solo la primera vez" description="Lo normal en una página." size="sm" />
               <RadioGroupItem value="false" label="Cada vez que entra" description="Para comparar el efecto." size="sm" />
             </RadioGroup>

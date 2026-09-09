@@ -69,10 +69,12 @@ counted: they are resolved from the application's own `node_modules`.
 
 ```tsx
 import {
+  AppShell,
   Button,
   Card,
   CardContent,
-  Layout,
+  SidebarNav,
+  SidebarNavItem,
   UiProvider,
 } from "@piensa-it/ui-library";
 import "@piensa-it/ui-library/styles.css";
@@ -80,17 +82,30 @@ import "@piensa-it/ui-library/styles.css";
 export function App() {
   return (
     <UiProvider>
-      <Layout brand={<span>Acme</span>}>
+      <AppShell
+        brand={<span>Acme</span>}
+        sidebar={
+          <SidebarNav>
+            <SidebarNavItem active>Inicio</SidebarNavItem>
+          </SidebarNav>
+        }
+      >
         <Card>
           <CardContent>
             <Button>Continue</Button>
           </CardContent>
         </Card>
-      </Layout>
+      </AppShell>
     </UiProvider>
   );
 }
 ```
+
+`AppShell` is the application armature — sidebar, top bar and content area,
+with collapse state, mobile panel and chrome tone already solved. There is no
+bare `Layout` anymore; it solved the same problem with less, and kept the
+duplication alive. See `Layout/AppShell` in Storybook for `sidebarFooter`,
+`topbar`, module rails and the other shapes it supports.
 
 Always import public APIs from the package root. Internal paths are not part of
 the compatibility contract.

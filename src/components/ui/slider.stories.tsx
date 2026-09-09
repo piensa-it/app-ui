@@ -18,7 +18,7 @@ export const Default: Story = {
   render: () => {
     const Demo = () => {
       const [value, setValue] = useState([40]);
-      return <Slider value={value} onValueChange={setValue} />;
+      return <Slider value={value} onChange={setValue} />;
     };
     return <Demo />;
   },

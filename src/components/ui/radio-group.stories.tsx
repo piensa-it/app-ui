@@ -20,7 +20,7 @@ export const Default: Story = {
     const Demo = () => {
       const [value, setValue] = useState("mensual");
       return (
-        <RadioGroup name="plan" value={value} onValueChange={setValue}>
+        <RadioGroup name="plan" value={value} onChange={setValue}>
           <RadioGroupItem value="mensual" label="Mensual" />
           <RadioGroupItem value="anual" label="Anual" />
         </RadioGroup>

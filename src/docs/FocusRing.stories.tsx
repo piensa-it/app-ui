@@ -59,7 +59,7 @@ function FocusRingGallery() {
 
       <section className="grid gap-2" data-testid="focus-ring-radio-group">
         <p className="text-sm font-medium text-muted-foreground">RadioGroup (peer-focus-visible)</p>
-        <RadioGroup name="plan" value={plan} onValueChange={setPlan}>
+        <RadioGroup name="plan" value={plan} onChange={setPlan}>
           <RadioGroupItem value="mensual" label="Mensual" />
           <RadioGroupItem value="anual" label="Anual" />
         </RadioGroup>
@@ -72,7 +72,7 @@ function FocusRingGallery() {
 
       <section className="grid gap-2" data-testid="focus-ring-slider">
         <p className="text-sm font-medium text-muted-foreground">Slider</p>
-        <Slider value={volume} onValueChange={setVolume} />
+        <Slider value={volume} onChange={setVolume} />
       </section>
 
       <section className="grid gap-2" data-testid="focus-ring-pagination">

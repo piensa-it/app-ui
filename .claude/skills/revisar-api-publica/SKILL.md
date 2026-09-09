@@ -61,9 +61,10 @@ aunque el diff se vea inocente.
 - Un export que desapareció o cambió de nombre.
 - Una prop renombrada, eliminada, o que pasó de opcional a requerida.
 - Un valor de variante o tamaño eliminado.
-- Un alias `@deprecated` eliminado (`default`, `secondary`, `ghost`, `size:
-  default`). Están ahí para no romper a quien migró desde shadcn — quitarlos es
-  una decisión de versión mayor, no una limpieza.
+- Un alias `@deprecated` eliminado. Mientras exista, está ahí para no romper a
+  quien depende de él (el retiro de `default`, `secondary`, `ghost` y `size:
+  default` de `button.ts` en la 1.0.0 es el ejemplo canónico) — quitarlo es una
+  decisión de versión mayor, no una limpieza.
 - Un token CSS eliminado o renombrado.
 - Un rango de `peerDependencies` subido.
 - Un cambio en el mapa `exports` de package.json.

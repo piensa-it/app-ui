@@ -27,7 +27,8 @@
   "files": [
     "dist",
     "tailwind-preset.js",
-    "scripts/codemod-espaciado.mjs"
+    "scripts/codemod-espaciado.mjs",
+    "scripts/codemod-props-control.mjs"
   ],
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",

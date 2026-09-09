@@ -210,17 +210,17 @@ export const AccionesPorFila: Story = {
         body={(activo: TreeRow<Activo>) => (
           <div className="flex gap-1">
             <Button
-              variant="ghost"
+              variant="plain"
               size="icon"
               aria-label={`Agregar hijo a ${activo.nombre}`}
               onClick={() => {}}
             >
               <FolderPlus />
             </Button>
-            <Button variant="ghost" size="icon" aria-label={`Editar ${activo.nombre}`} onClick={() => {}}>
+            <Button variant="plain" size="icon" aria-label={`Editar ${activo.nombre}`} onClick={() => {}}>
               <Pencil />
             </Button>
-            <Button variant="ghost" size="icon" aria-label={`Borrar ${activo.nombre}`} onClick={() => {}}>
+            <Button variant="plain" size="icon" aria-label={`Borrar ${activo.nombre}`} onClick={() => {}}>
               <Trash />
             </Button>
           </div>

@@ -94,7 +94,7 @@ export const AnalyticsCard: Story = {
     description: "Rendimiento acumulado durante el semestre.",
     value: "$37,2 M",
     trend: "+12,4%",
-    actions: <Button aria-label="Más opciones" size="icon" variant="ghost"><MoreHorizontal /></Button>,
+    actions: <Button aria-label="Más opciones" size="icon" variant="plain"><MoreHorizontal /></Button>,
   },
 };
 

@@ -138,18 +138,25 @@ import "@piensa-it/ui-library/styles.css";
 ```
 
 ```tsx
-import { UiProvider, Button, Card, CardContent, Layout } from "@piensa-it/ui-library";
+import { UiProvider, Button, Card, CardContent, AppShell, SidebarNav, SidebarNavItem } from "@piensa-it/ui-library";
 
 function App() {
   return (
     <UiProvider>
-      <Layout brand={<span>Mi Producto</span>}>
+      <AppShell
+        brand={<span>Mi Producto</span>}
+        sidebar={
+          <SidebarNav>
+            <SidebarNavItem active>Inicio</SidebarNavItem>
+          </SidebarNav>
+        }
+      >
         <Card>
           <CardContent>
             <Button>Continuar</Button>
           </CardContent>
         </Card>
-      </Layout>
+      </AppShell>
     </UiProvider>
   );
 }

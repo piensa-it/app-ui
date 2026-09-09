@@ -15,6 +15,37 @@ export interface LibraryRelease {
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
 export const UI_LIBRARY_VERSION = "0.13.0";
 
+/**
+ * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
+ * solo de que el PR de release las mueva al frente de `UI_LIBRARY_RELEASES`
+ * y bombee `UI_LIBRARY_VERSION` (junto con `package.json`) a `"1.0.0"`. Se
+ * dejan fuera del array por ahora a propósito: `version.test.ts` exige que
+ * `UI_LIBRARY_RELEASES[0].version === UI_LIBRARY_VERSION`, y este PR tiene
+ * instrucción explícita de no tocar `package.json` ni bombear versión — eso
+ * es aparte, después de revisar el resto.
+ *
+ * A diferencia de toda entrada anterior, esta NO es aditiva: rompe deliberadamente
+ * (ver DESIGN_SYSTEM.md > "Compatibilidad" — la puerta de "antes de 1.0 se permite
+ * romper" se usa aquí por última vez y se cierra con esta misma versión).
+ *
+ * Al hacer el release, además de anteponer esta constante y bombear
+ * `UI_LIBRARY_VERSION`/`package.json`: la entrada que hoy es `channel:
+ * "current"` (la de `UI_LIBRARY_VERSION`, más abajo) hay que bajarla a mano a
+ * `"maintenance"` — nada lo hace solo, y dos entradas en `"current"` a la vez
+ * es un estado inválido que ningún test cubre todavía.
+ */
+export const UI_LIBRARY_RELEASE_1_0_0: LibraryRelease = {
+  version: "1.0.0",
+  channel: "current",
+  migration: [
+    "Esta versión ROMPE, a propósito y por última vez sin costar una mayor (ver DESIGN_SYSTEM.md > \"Compatibilidad\"): son las tres correcciones que había que hacer antes de prometer estabilidad. Los tres pasos son independientes entre sí — aplicalos en el orden que prefieras.",
+    "Nombres de props (#62): `Slider.onValueChange` y `RadioGroup.onValueChange` pasan a llamarse `onChange`. La regla que decide para cualquier control, propio o de la librería: ¿el valor es un booleano de sí/no? → `checked`/`onCheckedChange` (Checkbox, Switch, sin cambios). ¿Es una selección de un conjunto? → `value`/`onChange` (RadioGroup, Slider, Select, MultiSelect, DatePicker, AutoComplete — los últimos cuatro ya usaban `onChange`, sin cambios). `Tabs` NO cambia pese a usar `onValueChange`: no es un control de formulario sino navegación, su valor no es un dato del modelo. Para migrar mecánicamente: `node node_modules/@piensa-it/ui-library/scripts/codemod-props-control.mjs --dry \"src/**/*.tsx\"` para ver qué tocaría, y sin `--dry` para aplicarlo. Es consciente de la etiqueta JSX: solo toca `onValueChange` dentro de un `<Slider ...>` o `<RadioGroup ...>`, así que no le hace nada a tus `Tabs`, `Accordion` ni a un handler propio que se llame igual por coincidencia. Revisá igual el diff antes de commitear. Límite del codemod: solo reescribe la etiqueta JSX literal `<Slider` / `<RadioGroup`; si envolviste alguno de los dos en tu propio componente, o le pasás las props por spread (`<Slider {...props} />`), no lo va a encontrar — revisá esos casos a mano.",
+    "`Layout` se retira (#54): sale del barrel junto con `LayoutProps`. Sustituilo por `AppShell` — resolvía lo mismo con menos, y mantenerlos a los dos vivos era la fuente de confusión que motivó el retiro. `AppShell` pide `sidebar` (un `SidebarNav`) además de `brand`; si tu `Layout` no tenía menú lateral, envolvé tu contenido en un `SidebarNav` mínimo con un solo `SidebarNavItem`, o si de verdad no querés menú, armá tu propio header con `div`/`header` — la librería ya no ofrece un armazón sin menú. Ver el Quick start del README o Storybook > `Layout/AppShell` para un ejemplo completo, incluida la barra superior, el plegado recordado por dispositivo y las formas (`docked`, `floating`, `rail`, `framed`, `rail-panel`).",
+    "Alias de `Button` retirados: `variant=\"default\"` → `variant=\"solid\"`, `variant=\"secondary\"` → `variant=\"subtle\"`, `variant=\"ghost\"` → `variant=\"plain\"`, `size=\"default\"` → `size=\"md\"`. Buscá esos cuatro strings en tu código — `grep -rn 'variant=\"default\"\\|variant=\"secondary\"\\|variant=\"ghost\"\\|size=\"default\"' src` — y sustituilos uno a uno; no hay codemod para este paso porque los mismos strings literales (`\"default\"`, `\"secondary\"`) también los usan `Badge` y otros componentes con su propio significado, y un reemplazo automático sin distinguir el componente los rompería en silencio. El aspecto visual no cambia: cada alias apuntaba a la misma clase que su reemplazo.",
+    "Si mantenías tu propia tabla de naming como referencia, hay una nueva regla escrita para que decida sola, sin mirar al componente hermano — está en DESIGN_SYSTEM.md > \"APIs predecibles\".",
+  ],
+};
+
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {

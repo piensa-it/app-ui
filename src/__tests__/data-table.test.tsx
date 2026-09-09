@@ -733,7 +733,7 @@ describe("DataTable — columnas de presentación", () => {
           id="prioridad"
           header="Prioridad"
           body={() => (
-            <RadioGroup onValueChange={elegir}>
+            <RadioGroup onChange={elegir}>
               <RadioGroupItem value="alta" label="Alta" />
             </RadioGroup>
           )}
