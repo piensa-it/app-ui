@@ -1,5 +1,9 @@
 # Dependencias
-node_modules/
+# Con barra solo ignora el directorio. Sin ella cubre también un symlink
+# llamado `node_modules`, que es lo que se coló en #153 al enlazarlo desde un
+# worktree: apuntaba al propio repo, así que un clon nuevo se encontraba un
+# bucle de enlaces y fallaban vitest, tsc, eslint y storybook a la vez.
+node_modules
 
 # Build
 dist/
