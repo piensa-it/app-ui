@@ -46,7 +46,6 @@ issues: indica qué puede consumirse hoy y qué necesita trabajo antes de `1.0.0
 | Formulario | DatePicker | Experimental | Teclado completo, locale, constraints y mobile |
 | Datos | Chart | Experimental | Accesibilidad, responsive, leyenda y series |
 | Formulario | FileUpload | Experimental | Errores, drag and drop y progreso accesible |
-| Layout | Layout | Requiere migración | Container, slots responsive y uso de `cn` |
 | Layout | GlobalErrorBoundary | Requiere auditoría | Recuperación, contenido y telemetría inyectable |
 | Marketing | PublicHeader | Requiere auditoría | Navegación mobile, teclado y scroll behavior |
 | Marketing | PublicFooter | Requiere auditoría | Responsive, landmarks y contenido largo |
