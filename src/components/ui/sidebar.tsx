@@ -11,6 +11,7 @@ import {
   overlayBackdrop,
 } from "@/lib/style-helpers";
 import { focusRingOutside } from "@/lib/recipes/focus";
+import { actionFooterVariants } from "@/lib/recipes/action-footer";
 
 /** Atributos HTML que llegan al panel (`role="dialog"`), no al Root de Ark. */
 type SheetPanelAttributes = Omit<
@@ -253,13 +254,7 @@ const SheetFooter = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-      className,
-    )}
-    {...props}
-  />
+  <div className={cn(actionFooterVariants(), className)} {...props} />
 );
 SheetFooter.displayName = "SheetFooter";
 

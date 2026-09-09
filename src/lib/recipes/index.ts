@@ -1,3 +1,4 @@
+export { actionFooterVariants } from "./action-footer";
 export { focusRingInside, focusRingOutside } from "./focus";
 export { disabledStyles, interactiveTransition } from "./interactive";
 export { buttonVariants } from "./button";
