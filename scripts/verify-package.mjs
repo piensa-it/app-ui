@@ -180,6 +180,25 @@ if (!motionCss.includes("animation-play-state: paused")) {
   throw new Error("Motion debe conservar pausa real mediante animation-play-state.");
 }
 
+// El job `browser-gate` de CI corre dentro de la imagen oficial de Playwright,
+// y las capturas de referencia de Linux se generan con esa misma imagen en
+// local. Si la etiqueta se queda atrás al subir `@playwright/test`, CI y local
+// dejan de rasterizar igual y las capturas empiezan a fallar por una razón
+// que no tiene nada que ver con el cambio que las hizo fallar. Se comprueba
+// aquí para que la divergencia salte al subir la dependencia, no después.
+const playwrightVersion = JSON.parse(
+  readFileSync(new URL("node_modules/@playwright/test/package.json", rootUrl), "utf8"),
+).version;
+const workflow = readFileSync(new URL(".github/workflows/ci.yml", rootUrl), "utf8");
+const imagenEsperada = `mcr.microsoft.com/playwright:v${playwrightVersion}-noble`;
+if (!workflow.includes(imagenEsperada)) {
+  throw new Error(
+    `El job browser-gate debe usar ${imagenEsperada}, la misma imagen que ` +
+      `scripts/pruebas-navegador-docker.sh deriva de @playwright/test. ` +
+      `Actualiza la etiqueta en .github/workflows/ci.yml.`,
+  );
+}
+
 console.log(
   `Paquete verificado: ${packed.files.length} archivos, ${packed.size} bytes comprimidos, ` +
     `ESM ${esmBytes} bytes en ${publishedEsmFiles.length} módulos. ` +

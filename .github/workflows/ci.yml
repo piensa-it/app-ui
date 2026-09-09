@@ -59,6 +59,22 @@ jobs:
 
   browser-gate:
     runs-on: ubuntu-latest
+    # Corre DENTRO de la imagen oficial de Playwright, la misma que usa
+    # `npm run test:browser:docker` en local. Dos motivos:
+    #
+    # 1. Antes el job instalaba Chromium con `playwright install --with-deps`,
+    #    que hace `apt-get` contra el repositorio de Google. El 2026-09-09 ese
+    #    espejo sirvió un índice con el hash desajustado y el gate falló en
+    #    todos los PR por algo ajeno al código. La imagen ya trae navegador y
+    #    dependencias: no hay `apt` que pueda caerse.
+    # 2. Las capturas comparadas de Linux se generan en local con esa misma
+    #    imagen. Que CI use otra era pedir que dos entornos distintos
+    #    rasterizaran igual; ahora coinciden por construcción.
+    #
+    # La etiqueta debe seguir a la versión de `@playwright/test` en
+    # package.json; `verify:package` lo comprueba y falla si divergen.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -67,8 +83,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
       - name: Run browser and visual tests
         run: npm run test:browser
       - name: Upload Playwright report
