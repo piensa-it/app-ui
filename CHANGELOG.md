@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-09
+
 ## [0.13.0] - 2026-09-09
 
 Siete capacidades del `DataTable`, todas para que una aplicación pueda dejar de mantener su propia tabla. Salieron de medir la de CoreLink —588 líneas, 55 pantallas, 544 columnas— contra ésta, columna por columna y prop por prop (piensa-it/app-corelink#68). Nada de lo que usaba la 0.12.0 cambia de comportamiento, incluida la jerarquía de N niveles que trajo esa versión: ambos mecanismos de fila expandible —el árbol y `renderExpanded`— conviven en la misma tabla.

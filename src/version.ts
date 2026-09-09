@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "0.13.0";
+export const UI_LIBRARY_VERSION = "1.0.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -34,23 +34,24 @@ export const UI_LIBRARY_VERSION = "0.13.0";
  * `"maintenance"` — nada lo hace solo, y dos entradas en `"current"` a la vez
  * es un estado inválido que ningún test cubre todavía.
  */
-export const UI_LIBRARY_RELEASE_1_0_0: LibraryRelease = {
-  version: "1.0.0",
-  channel: "current",
-  migration: [
-    "Esta versión ROMPE, a propósito y por última vez sin costar una mayor (ver DESIGN_SYSTEM.md > \"Compatibilidad\"): son las tres correcciones que había que hacer antes de prometer estabilidad. Los tres pasos son independientes entre sí — aplicalos en el orden que prefieras.",
-    "Nombres de props (#62): `Slider.onValueChange` y `RadioGroup.onValueChange` pasan a llamarse `onChange`. La regla que decide para cualquier control, propio o de la librería: ¿el valor es un booleano de sí/no? → `checked`/`onCheckedChange` (Checkbox, Switch, sin cambios). ¿Es una selección de un conjunto? → `value`/`onChange` (RadioGroup, Slider, Select, MultiSelect, DatePicker, AutoComplete — los últimos cuatro ya usaban `onChange`, sin cambios). `Tabs` NO cambia pese a usar `onValueChange`: no es un control de formulario sino navegación, su valor no es un dato del modelo. Para migrar mecánicamente: `node node_modules/@piensa-it/ui-library/scripts/codemod-props-control.mjs --dry \"src/**/*.tsx\"` para ver qué tocaría, y sin `--dry` para aplicarlo. Es consciente de la etiqueta JSX: solo toca `onValueChange` dentro de un `<Slider ...>` o `<RadioGroup ...>`, así que no le hace nada a tus `Tabs`, `Accordion` ni a un handler propio que se llame igual por coincidencia. Revisá igual el diff antes de commitear. Límite del codemod: solo reescribe la etiqueta JSX literal `<Slider` / `<RadioGroup`; si envolviste alguno de los dos en tu propio componente, o le pasás las props por spread (`<Slider {...props} />`), no lo va a encontrar — revisá esos casos a mano.",
-    "`Layout` se retira (#54): sale del barrel junto con `LayoutProps`. Sustituilo por `AppShell` — resolvía lo mismo con menos, y mantenerlos a los dos vivos era la fuente de confusión que motivó el retiro. `AppShell` pide `sidebar` (un `SidebarNav`) además de `brand`; si tu `Layout` no tenía menú lateral, envolvé tu contenido en un `SidebarNav` mínimo con un solo `SidebarNavItem`, o si de verdad no querés menú, armá tu propio header con `div`/`header` — la librería ya no ofrece un armazón sin menú. Ver el Quick start del README o Storybook > `Layout/AppShell` para un ejemplo completo, incluida la barra superior, el plegado recordado por dispositivo y las formas (`docked`, `floating`, `rail`, `framed`, `rail-panel`).",
-    "Alias de `Button` retirados: `variant=\"default\"` → `variant=\"solid\"`, `variant=\"secondary\"` → `variant=\"subtle\"`, `variant=\"ghost\"` → `variant=\"plain\"`, `size=\"default\"` → `size=\"md\"`. Buscá esos cuatro strings en tu código — `grep -rn 'variant=\"default\"\\|variant=\"secondary\"\\|variant=\"ghost\"\\|size=\"default\"' src` — y sustituilos uno a uno; no hay codemod para este paso porque los mismos strings literales (`\"default\"`, `\"secondary\"`) también los usan `Badge` y otros componentes con su propio significado, y un reemplazo automático sin distinguir el componente los rompería en silencio. El aspecto visual no cambia: cada alias apuntaba a la misma clase que su reemplazo.",
-    "Si mantenías tu propia tabla de naming como referencia, hay una nueva regla escrita para que decida sola, sin mirar al componente hermano — está en DESIGN_SYSTEM.md > \"APIs predecibles\".",
-  ],
-};
-
 /** Historial público de líneas soportadas, de la más reciente a la más antigua. */
 export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Esta versión ROMPE, a propósito y por última vez sin costar una mayor (ver DESIGN_SYSTEM.md > \"Compatibilidad\"): son las tres correcciones que había que hacer antes de prometer estabilidad. Los tres pasos son independientes entre sí — aplicalos en el orden que prefieras.",
+      "Nombres de props (#62): `Slider.onValueChange` y `RadioGroup.onValueChange` pasan a llamarse `onChange`. La regla que decide para cualquier control, propio o de la librería: ¿el valor es un booleano de sí/no? → `checked`/`onCheckedChange` (Checkbox, Switch, sin cambios). ¿Es una selección de un conjunto? → `value`/`onChange` (RadioGroup, Slider, Select, MultiSelect, DatePicker, AutoComplete — los últimos cuatro ya usaban `onChange`, sin cambios). `Tabs` NO cambia pese a usar `onValueChange`: no es un control de formulario sino navegación, su valor no es un dato del modelo. Para migrar mecánicamente: `node node_modules/@piensa-it/ui-library/scripts/codemod-props-control.mjs --dry \"src/**/*.tsx\"` para ver qué tocaría, y sin `--dry` para aplicarlo. Es consciente de la etiqueta JSX: solo toca `onValueChange` dentro de un `<Slider ...>` o `<RadioGroup ...>`, así que no le hace nada a tus `Tabs`, `Accordion` ni a un handler propio que se llame igual por coincidencia. Revisá igual el diff antes de commitear. Límite del codemod: solo reescribe la etiqueta JSX literal `<Slider` / `<RadioGroup`; si envolviste alguno de los dos en tu propio componente, o le pasás las props por spread (`<Slider {...props} />`), no lo va a encontrar — revisá esos casos a mano.",
+      "Estado del menú lateral (#94): `SidebarState.closedGroups` pasa a `groupPreferences`. Antes era un array con los grupos cerrados; ahora es un mapa `id -> boolean`, porque el array no distinguía «cerrado a propósito» de «nunca tocado», y por eso un `SidebarNavGroup` con `defaultOpen={false}` no se podía abrir nunca. Solo te afecta si leés `useSidebar()` directamente o construís un `SidebarState` a mano: `closedGroups: [\"reportes\"]` pasa a `groupPreferences: { reportes: false }`. Lo que ya esté guardado en `localStorage` bajo tu `storageKey` se migra solo: se leen los dos formatos y la primera vez que alguien pliegue o despliegue un grupo se reescribe en el nuevo. Nadie pierde sus preferencias.",
+      "`Layout` se retira (#54): sale del barrel junto con `LayoutProps`. Sustituilo por `AppShell` — resolvía lo mismo con menos, y mantenerlos a los dos vivos era la fuente de confusión que motivó el retiro. `AppShell` pide `sidebar` (un `SidebarNav`) además de `brand`; si tu `Layout` no tenía menú lateral, envolvé tu contenido en un `SidebarNav` mínimo con un solo `SidebarNavItem`, o si de verdad no querés menú, armá tu propio header con `div`/`header` — la librería ya no ofrece un armazón sin menú. Ver el Quick start del README o Storybook > `Layout/AppShell` para un ejemplo completo, incluida la barra superior, el plegado recordado por dispositivo y las formas (`docked`, `floating`, `rail`, `framed`, `rail-panel`).",
+      "Alias de `Button` retirados: `variant=\"default\"` → `variant=\"solid\"`, `variant=\"secondary\"` → `variant=\"subtle\"`, `variant=\"ghost\"` → `variant=\"plain\"`, `size=\"default\"` → `size=\"md\"`. Buscá esos cuatro strings en tu código — `grep -rn 'variant=\"default\"\\|variant=\"secondary\"\\|variant=\"ghost\"\\|size=\"default\"' src` — y sustituilos uno a uno; no hay codemod para este paso porque los mismos strings literales (`\"default\"`, `\"secondary\"`) también los usan `Badge` y otros componentes con su propio significado, y un reemplazo automático sin distinguir el componente los rompería en silencio. El aspecto visual no cambia: cada alias apuntaba a la misma clase que su reemplazo.",
+      "Si mantenías tu propia tabla de naming como referencia, hay una nueva regla escrita para que decida sola, sin mirar al componente hermano — está en DESIGN_SYSTEM.md > \"APIs predecibles\".",
+    ],
+  },
+  {
+    version: "0.13.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-09",
     migration: [
       "Todo es aditivo: subir no requiere cambios. Nada de lo que usaba la 0.12.0 cambia de comportamiento, incluida la jerarquía de N niveles.",
       "Retirá también, si mantenías tu propia tabla: filas que abren un panel llevan `onRowClick` —el componente ya ignora los clics nacidos en un botón, un enlace, un ítem de menú portado o el chevron del árbol—; el detalle desplegable bajo la fila lleva `renderExpanded` (con `getRowId`, o la fila abierta se identifica por posición y salta de registro al reordenar) y convive con la jerarquía: una fila del árbol puede tener detalle además de hijas. Columnas que se ordenan por un valor calculado —una etiqueta traducida, dos campos concatenados, un booleano como número, incluso dentro de un árbol— usan `accessor` en vez de `field`; declarar los dos a la vez es error de compilación.",
