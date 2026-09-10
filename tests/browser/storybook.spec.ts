@@ -349,6 +349,84 @@ test.describe("Storybook browser gate", () => {
     expect(anchoAmplio).toBeGreaterThan(0);
   });
 
+  // #131: el segundo factor y el código de un solo uso. La story oscura usa
+  // `globals` a nivel de story (nada más en el repo lo hacía), así que la
+  // prueba además comprueba que de verdad se pintó oscura: si `globals` no
+  // surtiera efecto, la captura saldría clara y nadie se enteraría.
+  test("keeps the OTP form visually stable", async ({ page }) => {
+    await page.goto(storyUrl("ui-otpform--basico"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Verificar" })).toBeVisible();
+    await expect(story).toHaveScreenshot("otp-form.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  test("la story oscura del OTP se pinta oscura de verdad, y se mantiene estable", async ({ page }) => {
+    await page.goto(storyUrl("ui-otpform--oscuro", "palette:indigo;fontFamily:geist"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Verificar" })).toBeVisible();
+
+    // El tema lo pinta el decorador con una clase `dark` en un envoltorio
+    // (no en `<html>`, ver `.storybook/preview.tsx`). Sin esta comprobación,
+    // una captura clara pasaría por buena mientras la story dice ser oscura.
+    await expect(page.locator(".dark").first()).toBeVisible();
+
+    await expect(story).toHaveScreenshot("otp-form-dark.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  test("keeps the password reset form visually stable in both steps", async ({ page }) => {
+    await page.goto(storyUrl("ui-passwordresetform--pedir"));
+    await stabilize(page);
+    const story = page.locator("#storybook-root");
+    await expect(story.getByRole("button", { name: "Enviar instrucciones" })).toBeVisible();
+    await expect(story).toHaveScreenshot("password-reset-request.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+
+    await page.goto(storyUrl("ui-passwordresetform--enviado"));
+    await stabilize(page);
+    await expect(story.getByRole("status")).toBeVisible();
+    await expect(story).toHaveScreenshot("password-reset-sent.png", {
+      animations: "disabled",
+      maxDiffPixels: MAX_DIFF_PIXELS,
+    });
+  });
+
+  // Pegar el código entero es el criterio que jsdom no puede comprobar de
+  // verdad: allí el evento de pegado se simula. Aquí se pega con el
+  // portapapeles real del navegador.
+  test("PinInput reparte el código pegado entre las seis casillas", async ({ page, context }) => {
+    // Sin este permiso, `navigator.clipboard.writeText` lanza
+    // `NotAllowedError` incluso en 127.0.0.1, que sí es contexto seguro.
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto(storyUrl("ui-pininput--basico"));
+    await stabilize(page);
+
+    const story = page.locator("#storybook-root");
+    const casillas = story.getByRole("textbox");
+    await expect(casillas).toHaveCount(6);
+
+    await casillas.first().click();
+    await page.evaluate(() => navigator.clipboard.writeText("482913"));
+    await page.keyboard.press("ControlOrMeta+V");
+
+    // `toHaveValues` es para un `<select multiple>`, no para seis inputs;
+    // aquí se leen los valores directamente.
+    await expect
+      .poll(() => casillas.evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value)))
+      .toEqual(["4", "8", "2", "9", "1", "3"]);
+  });
+
   // La entrada del menú móvil de PublicHeader pasó de framer-motion a CSS
   // puro (#64). La captura fija el estado abierto (layout + colores); la
   // animación de entrada la cubre `motion.css`/`marketing.css` con su propio

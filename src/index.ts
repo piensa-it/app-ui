@@ -78,6 +78,14 @@ export { Slider, type SliderProps } from "./components/ui/slider";
 export { NumberInput, type NumberInputProps } from "./components/ui/number-input";
 export { SearchInput, type SearchInputProps } from "./components/ui/search-input";
 export { PasswordInput, type PasswordInputProps, type PasswordInputLabels } from "./components/ui/password-input";
+export { PinInput, type PinInputProps, type PinInputLabels } from "./components/ui/pin-input";
+export {
+  PasswordResetForm,
+  type PasswordResetFormProps,
+  type PasswordResetFormLabels,
+  type PasswordResetStep,
+} from "./components/ui/password-reset-form";
+export { OtpForm, type OtpFormProps, type OtpFormLabels } from "./components/ui/otp-form";
 export {
   LoginForm,
   type LoginFormProps,
