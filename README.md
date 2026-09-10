@@ -9,7 +9,8 @@ The library provides reusable UI components, design tokens, layouts, data
 visualization, and motion primitives without coupling applications to a router,
 backend, authentication provider, or product-specific business logic.
 
-> The public API is currently in `0.x`. Review release notes before upgrading.
+> The public API is stable as of `1.0.0`: every incompatible change costs a major
+> version. Review release notes before upgrading.
 
 ## Highlights
 
@@ -383,6 +384,18 @@ Quality, security, dependency, and release controls are described in
 After a version bump is merged into `main`, creating a GitHub Release triggers
 the package publishing workflow. Each push to `main` also refreshes the public
 Storybook on Netlify.
+
+The PR that bumps `version` in `package.json` gets one extra check that no
+other PR runs: `release-gate` executes `npm run verify:react18`, which installs
+React 18, type-checks the library, runs the suite, and compiles a real consumer
+`.tsx` against the built `dist/` with `@types/react` 18. `peerDependencies`
+declares `^18.3.1 || ^19.0.0`, and a support nobody exercises is a support in
+name only — that is exactly how the library stopped compiling under React 18
+types for three versions without anyone noticing (#172). It runs only here, and
+not on every push, because the impact was measured: the published
+`dist/index.d.ts` came out byte-identical with and without that break, so no
+consumer ever received anything broken. It is the promise's verification that
+had lapsed, not the promise itself.
 
 Version bumps no longer touch the visual baselines. Until 0.6.0 the sidebar
 footer printed the library version, so every release shifted three shell
