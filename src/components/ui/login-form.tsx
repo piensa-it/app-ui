@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { Alert } from "./alert";
+import { AuthErrorRegion } from "./auth-error-region";
 import { Button } from "./button";
 import { Checkbox } from "./checkbox";
 import { Field } from "./field";
@@ -143,14 +143,7 @@ export const LoginForm = React.forwardRef<HTMLFormElement, LoginFormProps>(
         className={cn("flex flex-col gap-ui-lg", className)}
         {...props}
       >
-        {/* Reservado siempre, ocupado solo con `error`: así el formulario no
-            da un salto bajo el cursor cuando aparece el mensaje. `role` lo
-            pone `Alert` (`destructive` ⇒ `alert`), y el contenedor vivo
-            existe desde el primer render, que es lo que hace que un lector
-            de pantalla anuncie el cambio en vez de callárselo. */}
-        <div aria-live="polite" className="empty:hidden">
-          {error ? <Alert variant="destructive">{error}</Alert> : null}
-        </div>
+        <AuthErrorRegion error={error} />
 
         <div className="flex flex-col gap-ui-md">
           <Field label={text.username}>

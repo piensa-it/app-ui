@@ -13,6 +13,8 @@ import { AnimatedBanner } from "../components/ui/animated-banner";
 import { Illustration } from "../components/ui/illustration";
 import { AuthLayout } from "../components/layout/auth-layout";
 import { LoginForm } from "../components/ui/login-form";
+import { OtpForm } from "../components/ui/otp-form";
+import { PasswordResetForm } from "../components/ui/password-reset-form";
 
 async function expectNoA11yViolations(container: HTMLElement) {
   const result = await axe.run(container, {
@@ -97,5 +99,40 @@ describe("accesibilidad base", () => {
     );
 
     await expectNoA11yViolations(container);
+  });
+
+  // Las otras dos ramas del flujo de entrada (#131), las dos con el error
+  // visible: es el estado que estrena la región viva y el `role="alert"`.
+  it("no detecta violaciones en el segundo factor ni en la recuperación", async () => {
+    const { container, unmount } = render(
+      <AuthLayout brand={<span>Piensa IT</span>}>
+        <OtpForm
+          value="4829"
+          onChange={() => {}}
+          onSubmit={() => {}}
+          sentTo="•••@piensait.com"
+          error="El código no es válido."
+          onResend={() => {}}
+          resendAvailableIn={30}
+          onBack={() => {}}
+        />
+      </AuthLayout>,
+    );
+    await expectNoA11yViolations(container);
+    unmount();
+
+    const recuperacion = render(
+      <AuthLayout brand={<span>Piensa IT</span>}>
+        <PasswordResetForm
+          step="sent"
+          value=""
+          onChange={() => {}}
+          onSubmit={() => {}}
+          sentTo="•••@piensait.com"
+          onBack={() => {}}
+        />
+      </AuthLayout>,
+    );
+    await expectNoA11yViolations(recuperacion.container);
   });
 });
