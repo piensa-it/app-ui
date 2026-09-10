@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+
+- **El PR de release comprueba React 18; ningún otro lo hace (#172).** El nuevo job `release-gate` corre `npm run verify:react18` solo cuando el PR sube `version` en `package.json`. Existía el script y no lo ejecutaba nadie —ni CI ni un hook—, y por eso el código de la librería dejó de compilar con los tipos de React 18 durante tres versiones. **Corrección de lo que dijo la entrada anterior:** «publicado así en 1.0.0 y 1.1.0» se lee como si a alguien le hubiera llegado algo roto, y no fue el caso. Medido antes de decidir dónde poner el job: el `dist/index.d.ts` publicado sale **idéntico byte a byte** con y sin ese fallo, así que ninguna aplicación —ni siquiera una en React 18— recibió nunca nada roto. Lo que había caducado era la comprobación de la promesa, no la promesa. Con ese impacto real, ~3 minutos en cada PR eran desproporcionados; justo antes de publicar, no.
+
 ### Added
 
 - **`PinInput`, `PasswordResetForm` y `OtpForm`: recuperar el acceso y el segundo factor (#131).** Las dos ramas del flujo de entrada que faltaban tras #130. Van dentro del mismo `AuthLayout`, así que no estrenan armazón, y ninguna trae lógica de autenticación.

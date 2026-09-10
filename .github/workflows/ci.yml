@@ -57,6 +57,55 @@ jobs:
       - name: Build del sitio de documentación (Storybook)
         run: npm run build-storybook
 
+  # Solo corre en el PR que sube `version` en package.json — el de release.
+  # Por qué aquí y no en cada push (#172): `verify:react18` existe desde hace
+  # tiempo pero no lo corría nadie, y por eso el código de la librería dejó de
+  # compilar con los tipos de React 18 durante tres versiones sin que se viera.
+  # Medido antes de decidir dónde ponerlo: el `dist/index.d.ts` publicado sale
+  # idéntico byte a byte con y sin ese fallo, así que a ningún consumidor le
+  # llegó nada roto — lo que estaba roto era la comprobación, no la promesa.
+  # Con ese impacto real, gastar ~3 minutos en cada PR era desproporcionado;
+  # justo antes de publicar, que es lo único que importa, no lo es.
+  #
+  # El día que la librería sea React 19 exclusivo (#174), este job se borra.
+  release-gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Hace falta el commit base para comparar la versión contra él.
+          fetch-depth: 0
+
+      - name: ¿Este PR sube la versión?
+        id: version
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git show "$BASE_SHA":package.json > /tmp/package.base.json
+          antes="$(node -p "require('/tmp/package.base.json').version")"
+          ahora="$(node -p "require('./package.json').version")"
+          if [ "$antes" = "$ahora" ]; then
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "La versión sigue en $ahora: este no es el PR de release, no se comprueba React 18."
+          else
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "Versión $antes → $ahora: es el PR de release, se comprueba React 18."
+          fi
+
+      - uses: actions/setup-node@v7
+        if: steps.version.outputs.bumped == 'true'
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+        if: steps.version.outputs.bumped == 'true'
+
+      - name: React 18 sigue soportado (lo declara peerDependencies)
+        if: steps.version.outputs.bumped == 'true'
+        run: npm run verify:react18
+
   browser-gate:
     runs-on: ubuntu-latest
     # Corre DENTRO de la imagen oficial de Playwright, la misma que usa
