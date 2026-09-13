@@ -998,3 +998,33 @@ test.describe("NumberInput", () => {
     await expect(page.getByText("Valor que recibe la aplicación: 12.75")).toBeVisible();
   });
 });
+
+test.describe("SearchSelect", () => {
+  // En jsdom, `user.type` pierde caracteres con este combobox (y con
+  // AutoComplete); por eso los tests unitarios asignan el texto de un golpe.
+  // Aquí se comprueba lo que de verdad importa —un lector de código de barras
+  // o alguien que teclea rápido— en el navegador real, tecla a tecla y sin pausa.
+  test("escribir de un tirón no pierde teclas, se busca por la descripción y se entrega el id", async ({ page }) => {
+    await page.goto(storyUrl("ui-searchselect--default"));
+    await stabilize(page);
+
+    const campo = page.getByRole("combobox", { name: "Cliente" });
+    await campo.pressSequentially("maria perez", { delay: 0 });
+    await expect(campo).toHaveValue("maria perez");
+    await expect(page.getByRole("option").first()).toContainText("María Pérez");
+
+    await campo.fill("");
+    await campo.pressSequentially("900000037", { delay: 0 });
+    await expect(campo).toHaveValue("900000037");
+    await expect(page.getByRole("option")).toHaveCount(1);
+    await page.getByRole("option").click();
+
+    await expect(campo).toHaveValue("María Pérez");
+    await expect(page.getByText("Valor que recibe la aplicación: 2")).toBeVisible();
+
+    // Texto sin elegir: al salir, el campo vuelve al registro elegido.
+    await campo.fill("zzz");
+    await page.keyboard.press("Escape");
+    await expect(campo).toHaveValue("María Pérez");
+  });
+});

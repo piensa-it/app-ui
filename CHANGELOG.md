@@ -6,6 +6,12 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-12
+
+### Added
+
+- **`SearchSelect`: elegir un registro de una lista grande escribiendo para buscarlo.** Resuelve la factura de venta con 10.000 clientes o ítems, donde `Select` obliga a hacer scroll y `AutoComplete` guarda texto libre en vez del registro. `onChange` entrega el **identificador** y la opción completa (para leer precio o NIT sin otra consulta); solo se puede elegir un registro existente, y al salir sin elegir el campo vuelve al que estaba. Cada opción admite una `description` (NIT, SKU) que distingue homónimos y también se busca. Sin `onSearch` filtra en local sin distinguir tildes ni mayúsculas; con `onSearch` delega al servidor con retardo (`searchDelay`, 300 ms) y muestra `loading`. Nunca pinta más de `maxResults` (50) opciones, y avisa cuántas quedaron fuera. `selectedOption` da el nombre del valor guardado al editar un documento, cuando todavía no está entre los resultados. Con `name`, el formulario envía el id, no el texto. El texto del campo no es controlado a propósito: se comprobó en Chromium que escribir de un tirón no pierde teclas (en jsdom sí las pierde, también el `AutoComplete` existente).
+
 ## [1.2.0] - 2026-09-12
 
 ### Changed
