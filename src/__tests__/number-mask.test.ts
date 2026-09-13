@@ -66,4 +66,20 @@ describe("createNumberMask", () => {
   it("no enmascara notaciones que cambiarían lo que se lee (compacta)", () => {
     expect(createNumberMask("es-CO", { notation: "compact" })).toBeNull();
   });
+  it("el cursor sin dígitos por delante queda tras el prefijo, y más allá del final se recorta", () => {
+    expect(cop.caretAfter("$ 12", 0)).toBe(2);
+    expect(cop.caretAfter("", 0)).toBe(0);
+    expect(cop.caretAfter("$ 12", 9)).toBe(4);
+  });
+
+  it("distingue el adorno (separador, símbolo) de lo que se escribe", () => {
+    expect(cop.isDecoration(".")).toBe(true);
+    expect(cop.isDecoration("$")).toBe(true);
+    expect(cop.isDecoration("5")).toBe(false);
+    expect(cop.isDecoration(",")).toBe(false);
+  });
+
+  it("no enmascara locales con otro sistema de numeración", () => {
+    expect(createNumberMask("ar-EG", { maximumFractionDigits: 0 })).toBeNull();
+  });
 });

@@ -937,8 +937,25 @@ test.describe("NumberInput", () => {
     const input = page.getByRole("spinbutton", { name: "Salario mensual" });
     const text = async () => (await input.inputValue()).replace(/[\u00a0\u202f]/g, " ");
     const caret = () => input.evaluate((el: HTMLInputElement) => el.selectionStart);
+    // Tras cada tecla, el componente reubica el cursor durante dos frames; quien
+    // escribe siempre deja pasar más que eso antes de mover el cursor. Colocarlo
+    // por JS sin esperar lo pisaría esa corrección — un artefacto del test, no
+    // del componente: teclado y clic sí la cancelan.
     const setCaret = (position: number) =>
-      input.evaluate((el: HTMLInputElement, p) => el.setSelectionRange(p, p), position);
+      input.evaluate(
+        (el: HTMLInputElement, p) =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                  el.setSelectionRange(p, p);
+                  resolve();
+                }),
+              ),
+            ),
+          ),
+        position,
+      );
 
     await input.click();
     await input.press("ControlOrMeta+a");

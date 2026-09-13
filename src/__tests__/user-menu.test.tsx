@@ -120,6 +120,12 @@ describe("UserMenu · lo que hay dentro, y en qué orden", () => {
 });
 
 describe("UserMenu · cerrar sesión", () => {
+  // El diálogo se abre mientras el menú todavía se está cerrando, y en ese
+  // intervalo el `<body>` conserva el `pointer-events: none` de la capa del menú.
+  // En un runner lento `userEvent` llegaba justo ahí y fallaba (visto en CI con
+  // React 18): se reintenta el clic hasta que el botón acepta el puntero.
+  const clicCuandoAcepte = (boton: HTMLElement) => waitFor(() => user.click(boton));
+
   it("sin confirmación, cierra al primer clic", async () => {
     const { onSignOut } = montar();
     await abrir();
@@ -136,7 +142,7 @@ describe("UserMenu · cerrar sesión", () => {
     expect(dialogo).toHaveTextContent("¿Cerrar la sesión?");
     // Es el AlertDialogHost de UiProvider, no una capa propia.
     expect(screen.getAllByRole("alertdialog")).toHaveLength(1);
-    await user.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
+    await clicCuandoAcepte(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
     await waitFor(() => expect(onSignOut).toHaveBeenCalledTimes(1));
   });
 
@@ -145,7 +151,7 @@ describe("UserMenu · cerrar sesión", () => {
     await abrir();
     await elegir("Cerrar sesión");
     const dialogo = await screen.findByRole("alertdialog");
-    await user.click(within(dialogo).getByRole("button", { name: "Cancelar" }));
+    await clicCuandoAcepte(within(dialogo).getByRole("button", { name: "Cancelar" }));
     expect(onSignOut).not.toHaveBeenCalled();
   });
 });

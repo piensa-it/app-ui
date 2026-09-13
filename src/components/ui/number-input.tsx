@@ -48,6 +48,24 @@ export interface NumberInputProps
   className?: string;
 }
 
+/**
+ * Opciones para Ark, ya resueltas por `Intl` (todas las claves con valor
+ * explícito). Ark/Zag cachea el formateador en la definición de la máquina
+ * —compartida por todos los `NumberInput` de la página— y decide si
+ * reutilizarlo con un `isEqual` que solo recorre las claves del objeto nuevo
+ * (y las props en `undefined` se descartan antes de llegar): así
+ * `{ maximumFractionDigits: 2 }` le parecía igual a
+ * `{ style: "currency", currency: "COP", maximumFractionDigits: 2 }`, y un
+ * campo de cantidad salía con `$` si antes se había pintado uno de moneda.
+ * Resueltas, las dos llevan `style` —y el resto de claves de su estilo— con
+ * valor, y la comparación ya no puede confundirlas.
+ */
+function resolveForArk(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormatOptions {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- `locale` no es una opción de formato
+  const { locale: _resolvedLocale, ...resolved } = new Intl.NumberFormat(locale, options).resolvedOptions();
+  return resolved as Intl.NumberFormatOptions;
+}
+
 const stepperClassName = cn(
   "inline-flex h-4 w-5 items-center justify-center rounded-sm text-muted-foreground hover:bg-surface-hover hover:text-foreground",
   "disabled:pointer-events-none disabled:opacity-40",
@@ -105,6 +123,11 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps -- `formatKey` compara las opciones por contenido, no por identidad
       [mask, locale, formatKey],
     );
+    const arkFormatOptions = React.useMemo(
+      () => (resolvedFormatOptions ? resolveForArk(locale, resolvedFormatOptions) : undefined),
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- ídem
+      [locale, formatKey],
+    );
     const formatter = React.useMemo(
       () => (resolvedFormatOptions ? new Intl.NumberFormat(locale, resolvedFormatOptions) : null),
       // eslint-disable-next-line react-hooks/exhaustive-deps -- ídem
@@ -123,6 +146,9 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
     const textNumber = React.useRef<number | undefined>(value);
     // Caracteres significativos antes del cursor, pendientes de reubicar tras enmascarar.
     const pendingCaret = React.useRef<number | null>(null);
+    // Cuenta teclas y clics: una corrección de cursor diferida solo se aplica si
+    // no llegó otra acción de la persona mientras esperaba su frame.
+    const interaction = React.useRef(0);
 
     // Un `value` que no salió de lo que se escribió (reset de formulario, carga
     // de datos) reemplaza el texto; el eco del propio `onChange` no, para no
@@ -194,6 +220,7 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
     const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLInputElement>) => {
       // Una tecla nueva manda sobre la corrección de cursor que quedara pendiente de la anterior.
       pendingCaret.current = null;
+      const turn = ++interaction.current;
       const input = event.currentTarget;
       const { selectionStart: start, selectionEnd: end, value: current } = input;
       if (start === null || end === null) return;
@@ -206,12 +233,17 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
       if (bound === undefined) {
         event.preventDefault();
         const edge = event.key === "Home" ? 0 : current.length;
-        if (event.shiftKey) {
-          const anchor = event.key === "Home" ? end : start;
+        const anchor = event.shiftKey ? (event.key === "Home" ? end : start) : edge;
+        const select = () =>
           input.setSelectionRange(Math.min(anchor, edge), Math.max(anchor, edge), event.key === "Home" ? "backward" : "forward");
-        } else {
-          input.setSelectionRange(edge, edge);
-        }
+        select();
+        // Si la tecla anterior dejó a Zag un reacomodo de cursor pendiente para el
+        // próximo frame, lo pisaría: se vuelve a aplicar cuando ya pasó.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            if (interaction.current === turn) select();
+          }),
+        );
         return;
       }
 
@@ -244,7 +276,7 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
         value={text}
         onValueChange={handleValueChange}
         locale={locale}
-        formatOptions={resolvedFormatOptions}
+        formatOptions={arkFormatOptions}
         // El `id` externo (el que inyecta `Field` para el `<label htmlFor>`) va al
         // input vía `ids`, no al `id` del Root — mismo motivo que en Select: Zag
         // localiza sus partes por id y sobreescribir el del Root no las mueve.
@@ -265,6 +297,7 @@ const NumberInput = React.forwardRef<HTMLDivElement, NumberInputProps>(
             onKeyDownCapture={handleKeyDownCapture}
             onPointerDownCapture={() => {
               pendingCaret.current = null;
+              interaction.current++;
             }}
             {...ariaProps}
             className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
