@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Entrada numérica sobre Ark UI, con `currency` como atajo para el caso más común: dinero.",
+          "Entrada numérica sobre Ark UI, con `currency` como atajo para el caso más común: dinero. Con `currency` o `formatOptions` el campo se enmascara mientras se escribe —separadores de miles de la `locale`, cursor en su sitio— y `onChange` entrega siempre un `number`, nunca el texto formateado.",
       },
     },
   },
@@ -35,9 +35,48 @@ export const Moneda: Story = {
     const Demo = () => {
       const [value, setValue] = useState<number | undefined>(1250000);
       return (
-        <Field label="Salario mensual" description="Separador de miles y decimales vienen de Intl.NumberFormat.">
-          <NumberInput value={value} onChange={setValue} currency="COP" locale="es-CO" aria-label="Salario mensual" />
+        <Field label="Salario mensual" description={`Valor que recibe la aplicación: ${value ?? "vacío"}`}>
+          <NumberInput value={value} onChange={setValue} currency="COP" locale="es-CO" hideControls aria-label="Salario mensual" />
         </Field>
+      );
+    };
+    return <Demo />;
+  },
+};
+
+/**
+ * Cantidad entera con separadores de miles: `formatOptions` sin decimales, sin
+ * `currency`. El punto del teclado numérico no escribe nada, porque el formato
+ * no admite decimales.
+ */
+export const Entero: Story = {
+  render: () => {
+    const Demo = () => {
+      const [value, setValue] = useState<number | undefined>(undefined);
+      return (
+        <Field label="Unidades en inventario" description={`Valor que recibe la aplicación: ${value ?? "vacío"}`}>
+          <NumberInput
+            value={value}
+            onChange={setValue}
+            locale="es-CO"
+            formatOptions={{ maximumFractionDigits: 0 }}
+            placeholder="0"
+            aria-label="Unidades en inventario"
+          />
+        </Field>
+      );
+    };
+    return <Demo />;
+  },
+};
+
+/** `mask={false}`: el formato se aplica solo al salir del campo, como hace Ark UI por defecto. */
+export const SinMascara: Story = {
+  render: () => {
+    const Demo = () => {
+      const [value, setValue] = useState<number | undefined>(undefined);
+      return (
+        <NumberInput value={value} onChange={setValue} currency="USD" locale="en-US" mask={false} placeholder="$0.00" aria-label="Monto" />
       );
     };
     return <Demo />;

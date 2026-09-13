@@ -926,3 +926,75 @@ test.describe("Anillo de foco (#139)", () => {
     });
   });
 });
+
+test.describe("NumberInput", () => {
+  // La máscara del NumberInput vive entre dos escritores del mismo `<input>`
+  // —el envoltorio y Zag, que reescribe el campo un frame después—, y el
+  // cursor solo se puede comprobar con un navegador de verdad: jsdom no pinta
+  // frames ni mueve la selección como Chromium.
+  test("NumberInput enmascara mientras se escribe y deja el cursor en su sitio", async ({ page }) => {
+    await page.goto(storyUrl("ui-numberinput--moneda"));
+    const input = page.getByRole("spinbutton", { name: "Salario mensual" });
+    const text = async () => (await input.inputValue()).replace(/[\u00a0\u202f]/g, " ");
+    const caret = () => input.evaluate((el: HTMLInputElement) => el.selectionStart);
+    // Tras cada tecla, el componente reubica el cursor durante dos frames; quien
+    // escribe siempre deja pasar más que eso antes de mover el cursor. Colocarlo
+    // por JS sin esperar lo pisaría esa corrección — un artefacto del test, no
+    // del componente: teclado y clic sí la cancelan.
+    const setCaret = (position: number) =>
+      input.evaluate(
+        (el: HTMLInputElement, p) =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                  el.setSelectionRange(p, p);
+                  resolve();
+                }),
+              ),
+            ),
+          ),
+        position,
+      );
+
+    await input.click();
+    await input.press("ControlOrMeta+a");
+    await input.press("Backspace");
+    await page.keyboard.type("1234567", { delay: 30 });
+    await expect.poll(text).toBe("$ 1.234.567");
+    await expect(page.getByText("Valor que recibe la aplicación: 1234567")).toBeVisible();
+
+    // Teclear en medio: el separador nuevo no empuja el cursor fuera de lugar.
+    const afterFour = (await text()).indexOf("4") + 1;
+    await setCaret(afterFour);
+    await page.keyboard.type("9");
+    await expect.poll(text).toBe("$ 12.349.567");
+    await expect.poll(caret).toBe((await text()).indexOf("9") + 1);
+
+    // Borrar justo detrás de un separador borra el dígito, no se atasca.
+    await setCaret((await text()).indexOf(".") + 1);
+    await input.press("Backspace");
+    await expect.poll(text).toBe("$ 1.349.567");
+    await expect.poll(caret).toBe(3);
+
+    // Sin `max`, End lleva el cursor al final (no salta a Number.MAX_SAFE_INTEGER).
+    await input.press("End");
+    await expect.poll(text).toBe("$ 1.349.567");
+    await expect.poll(caret).toBe((await text()).length);
+
+    // Decimales: la coma de es-CO, y el punto del teclado numérico también la escribe.
+    await page.keyboard.type(",5", { delay: 30 });
+    await expect.poll(text).toBe("$ 1.349.567,5");
+    await input.press("ControlOrMeta+a");
+    await input.press("Backspace");
+    await page.keyboard.type("12", { delay: 30 });
+    await input.press("NumpadDecimal");
+    await page.keyboard.type("75", { delay: 30 });
+    await expect.poll(text).toBe("$ 12,75");
+    await expect(page.getByText("Valor que recibe la aplicación: 12.75")).toBeVisible();
+
+    // Al salir, el formato completo de Intl; el número no cambia.
+    await input.blur();
+    await expect(page.getByText("Valor que recibe la aplicación: 12.75")).toBeVisible();
+  });
+});
