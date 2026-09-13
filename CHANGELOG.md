@@ -6,11 +6,19 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-12
+
 ### Changed
 
+- **`framer-motion` sale de las dependencias (#168).** Ya estaba externalizada y podada en el bundle, pero cada consumidor bajaba 10,5 MB en `node_modules`, usara o no las piezas de marketing. `PublicHeader` e `ImageCarouselBackdrop` animan ahora con CSS, que viaja dentro de `styles.css` y respeta `prefers-reduced-motion`; tres capturas comparadas nuevas fijan el aspecto.
+- **Archivos internos en kebab-case (#166)** y `Sheet` en `sheet.tsx`. Sin efecto para quien importa desde la raíz del paquete: los mismos símbolos exportados y los mismos ids de Storybook.
+- **Ola de mantenimiento de herramientas de desarrollo (#170):** ESLint 10, Vitest 5, jsdom 30, jest-dom 7. `verify:package` detecta ahora un `.d.ts` que deja de salir empaquetado en un único archivo (por eso `vite-plugin-dts` 5 quedó fuera). Nada de esto viaja al consumidor.
 - **El PR de release comprueba React 18; ningún otro lo hace (#172).** El nuevo job `release-gate` corre `npm run verify:react18` solo cuando el PR sube `version` en `package.json`. Existía el script y no lo ejecutaba nadie —ni CI ni un hook—, y por eso el código de la librería dejó de compilar con los tipos de React 18 durante tres versiones. **Corrección de lo que dijo la entrada anterior:** «publicado así en 1.0.0 y 1.1.0» se lee como si a alguien le hubiera llegado algo roto, y no fue el caso. Medido antes de decidir dónde poner el job: el `dist/index.d.ts` publicado sale **idéntico byte a byte** con y sin ese fallo, así que ninguna aplicación —ni siquiera una en React 18— recibió nunca nada roto. Lo que había caducado era la comprobación de la promesa, no la promesa. Con ese impacto real, ~3 minutos en cada PR eran desproporcionados; justo antes de publicar, no.
 
 ### Added
+
+- **`NumberInput` enmascara mientras se escribe.** Con `currency` o `formatOptions`, los separadores de miles de la `locale` aparecen tecla a tecla —antes solo al salir del campo, que es cuando Ark UI aplica `Intl.NumberFormat`— y el cursor se queda tras el mismo dígito aunque entre un separador nuevo. Borrar justo detrás de un separador borra el dígito en vez de atascarse, el punto del teclado numérico escribe el decimal de la locale (la coma en `es-CO`), y los decimales a medio escribir (`1.234,`) no se pisan con el eco de `onChange`. `onChange` entrega siempre un `number`, nunca el texto. La máscara sale entera de `Intl.NumberFormat` (`src/lib/number-mask.ts`), sin separadores escritos a mano, y se apaga con `mask={false}`; notaciones compacta o científica no se enmascaran, porque cambiarían lo que se lee. Nuevo `hideControls`, para montos donde nadie sube de uno en uno. El cursor se comprobó en Chromium (prueba de navegador nueva), no en jsdom, que no mueve la selección como un navegador.
+- **`NumberInput`, `SearchInput` y `Breadcrumb` (#169).** Tres de los patrones de #60. `SearchInput` avisa `onChange` con retardo (`delay`, 300 ms por defecto) para no disparar una consulta por tecla. `Breadcrumb` recibe `items` y el mismo `linkComponent` inyectable que `PublicHeader`, sin router propio.
 
 - **`PinInput`, `PasswordResetForm` y `OtpForm`: recuperar el acceso y el segundo factor (#131).** Las dos ramas del flujo de entrada que faltaban tras #130. Van dentro del mismo `AuthLayout`, así que no estrenan armazón, y ninguna trae lógica de autenticación.
   - `PinInput` se construye **primero y como control general**, no como pieza de autenticación: el segundo factor es su uso más obvio, pero sirve igual para confirmar una transferencia o autorizar una anulación, y por eso vive en `ui/` (hay una story que lo usa así). Casilla por carácter, el foco avanza solo, borrar retrocede, y pegar el código entero lo reparte —comprobado con el portapapeles real del navegador, porque en jsdom el pegado se simula—. Lleva `autoComplete="one-time-code"` e `inputMode="numeric"`, que es lo que hace que el teléfono ofrezca el código recién llegado por SMS; con `mask` las casillas son de contraseña, así que el navegador tampoco deja copiarlas. Es un control **compuesto**, así que dentro de un `Field` va con `compositeControl` — y no declara un segundo `role="group"` cuando el `Field` ya pone uno.
@@ -24,6 +32,9 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - `AuthLayout` deja el panel derecho como un hueco, no como una variante: recibe lo que sea —lo documentado es `ImageCarouselBackdrop`— y por debajo de `md` simplemente no se pinta, con el formulario ocupando el ancho. Comprobado midiendo el DOM a dos anchos en un navegador real, no por la clase: jsdom no aplica media queries.
 
 ### Fixed
+
+- **`NumberInput` leía mal un valor con decimales en locales con punto de miles.** Pasaba `String(value)` a Ark, y con `locale="es-CO"` `"1234.5"` se parseaba como `12345`. El texto lo lleva ahora el propio componente. Nunca llegó a publicarse: entró en #169, después de 1.1.0.
+- **`Home`/`End` escribían `9.007.199.254.740.991` en un `NumberInput` sin `max`.** Ark los trata como en un `spinbutton` (saltar al mínimo/máximo), y sin topes explícitos esos son ±`Number.MAX_SAFE_INTEGER`. Sin `min`/`max` mueven el cursor, como en cualquier campo de texto; con ellos, siguen saltando al tope.
 
 - **La librería no compilaba con los tipos de React 18**, que declara soportar en `peerDependencies`. `SettingsPage` usaba `useRef<HTMLDivElement>(null)`, que en los tipos de React 18 devuelve un `RefObject` de `current` **de solo lectura** —la asignación del callback ref no compila—; en los de React 19 sí es asignable, y por eso pasaba inadvertido. Roto desde 0.10.0 (#126), publicado así en 1.0.0 y 1.1.0. La causa de que nadie lo viera es que `verify:react18` **no está en CI**: existe el gate y hay que correrlo a mano.
 

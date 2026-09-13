@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.1.0";
+export const UI_LIBRARY_VERSION = "1.2.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,18 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código, salvo un caso de dependencias (el último punto). Lo que sigue es lo que podés adoptar o retirar de tu aplicación.",
+      "Campos numéricos con separadores: si tenés un input de dinero o cantidades formateado a mano (máscaras propias, `react-number-format`, `toLocaleString` en el `onChange`), reemplazalo por `NumberInput`. Para dinero: `<NumberInput value={monto} onChange={setMonto} currency=\"COP\" locale=\"es-CO\" hideControls />`. Para una cantidad entera: `formatOptions={{ maximumFractionDigits: 0 }}` sin `currency`. Los separadores aparecen mientras se escribe, y `onChange` te entrega un `number` (o `undefined` si el campo queda vacío), nunca el texto formateado: guardá ese número tal cual, sin parsear nada. Si preferís que formatee solo al salir del campo, `mask={false}`.",
+      "Pantalla de entrada: `AuthLayout`, `LoginForm` y `PasswordInput` reemplazan la pantalla de login que cada aplicación se escribía; `PasswordResetForm` y `OtpForm` cubren la recuperación y el segundo factor, sobre el control general `PinInput`. Ninguno trae lógica de autenticación: el envío, el paso (`step`) y la cuenta atrás del reenvío (`resendAvailableIn`) los manda tu aplicación. Para la sesión caducada no hay componente nuevo: `LoginForm` dentro de un `Dialog`.",
+      "Buscadores y navegación: `SearchInput` avisa con retardo (300 ms, `delay`), así que si tenías un debounce propio encima, quitalo o pasale `delay={0}`. `Breadcrumb` recibe `items` y tu `linkComponent`, igual que `PublicHeader`.",
+      "Dependencias: la librería ya no instala `framer-motion`. Si tu aplicación la importa por su cuenta sin tenerla en su propio `package.json` —funcionaba porque llegaba de rebote—, agregala (`npm i framer-motion`) antes de subir, o el build fallará por un import no resuelto.",
+    ],
+  },
+  {
+    version: "1.1.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-09",
     migration: [
       "Todo es aditivo: subir no requiere cambios. Lo que sigue es lo que podés adoptar o retirar de tu aplicación.",
       "Acciones masivas: si tenés pantallas donde se opera sobre varios registros a la vez, pasale `selectable` a la `DataTable`, `getRowId` con tu identificador, y `selectionActions` con los botones. Recibís las filas completas, no ids. Sin `selectable` la tabla se comporta igual que antes. Ojo con una decisión que conviene entender antes de usarla: la casilla de cabecera marca **la página**, no todo lo filtrado, y ofrece extender aparte — es lo que evita borrar tres mil registros creyendo que eran diez. Y la selección sobrevive al filtro, así que el contador avisa cuando parte de lo marcado queda fuera de la vista.",
