@@ -108,6 +108,7 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Formulario | Select | Sí | Sí (5) | No | 12 | Documentado y probado |
 | Formulario | MultiSelect | Sí | Sí (4) | No | 1 | Documentado y probado |
 | Formulario | AutoComplete | Sí | Sí (2) | No | 1 | Documentado y probado |
+| Formulario | SearchSelect | Sí | Sí (1) | No | 0 | Documentado y probado |
 | Formulario | Checkbox | Sí | Sí (1) | Sí | 5 | Estable |
 | Formulario | RadioGroup | Sí | Sí (1) | No | 2 | Documentado y probado |
 | Formulario | Switch | Sí | Sí (2) | No | 4 | Documentado y probado |

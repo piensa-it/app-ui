@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.2.0";
+export const UI_LIBRARY_VERSION = "1.3.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,15 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código.",
+      "Selectores de registros en listas grandes: si en un formulario elegís un cliente, un ítem o un proveedor con `Select` (hay que hacer scroll) o con `AutoComplete` (guarda el texto, no el registro), cambialo por `SearchSelect`. Cada opción es `{ value, label, description }` —en `description` poné el NIT o el SKU, que distingue homónimos y también se busca—, y `onChange(id, opcion)` te entrega el identificador y la opción completa. Con pocos miles de registros ya cargados alcanza con pasar `options`: filtra solo, sin distinguir tildes. Con más, o si no están en memoria, pasale `onSearch` —recibe el texto con 300 ms de retardo, así que no le pongas un debounce propio encima—, hacé vos la consulta y devolvela en `options` con `loading` mientras llega. Al editar un documento guardado, pasá `selectedOption` para que el campo sepa qué nombre mostrar antes de cualquier búsqueda.",
+    ],
+  },
+  {
+    version: "1.2.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-12",
     migration: [
       "Todo es aditivo: subir no requiere cambios de código, salvo un caso de dependencias (el último punto). Lo que sigue es lo que podés adoptar o retirar de tu aplicación.",
       "Campos numéricos con separadores: si tenés un input de dinero o cantidades formateado a mano (máscaras propias, `react-number-format`, `toLocaleString` en el `onChange`), reemplazalo por `NumberInput`. Para dinero: `<NumberInput value={monto} onChange={setMonto} currency=\"COP\" locale=\"es-CO\" hideControls />`. Para una cantidad entera: `formatOptions={{ maximumFractionDigits: 0 }}` sin `currency`. Los separadores aparecen mientras se escribe, y `onChange` te entrega un `number` (o `undefined` si el campo queda vacío), nunca el texto formateado: guardá ese número tal cual, sin parsear nada. Si preferís que formatee solo al salir del campo, `mask={false}`.",

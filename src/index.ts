@@ -71,6 +71,7 @@ export {
 export { Select, type SelectProps, type SelectOption } from "./components/ui/select";
 export { MultiSelect, type MultiSelectFieldProps } from "./components/ui/multi-select";
 export { AutoComplete, type AutoCompleteProps } from "./components/ui/autocomplete";
+export { SearchSelect, type SearchSelectProps, type SearchSelectOption } from "./components/ui/search-select";
 export { Checkbox, type CheckboxProps } from "./components/ui/checkbox";
 export { RadioGroup, RadioGroupItem, type RadioGroupProps, type RadioGroupItemProps } from "./components/ui/radio-group";
 export { Switch, type SwitchProps } from "./components/ui/switch";
