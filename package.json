@@ -140,7 +140,7 @@
     "postcss": "^8.5.26",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^6.30.6",
+    "react-router-dom": "^7.18.3",
     "storybook": "^10.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.8.3",
