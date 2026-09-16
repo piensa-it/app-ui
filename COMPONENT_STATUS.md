@@ -162,6 +162,12 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Marketing | Highlight | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | FeatureGrid | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | Hero | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | PageHero | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | StatRow | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | ProcessSteps | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | Checklist | Sí | Sí (2) | No | 1 | Documentado y probado |
+| Marketing | SplitSection | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | CtaBanner | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 
 ## Reparto
 

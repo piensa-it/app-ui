@@ -8,6 +8,12 @@ import { PublicFooter } from "../components/marketing/public-footer";
 import { PublicHeader } from "../components/marketing/public-header";
 import { FeatureGrid } from "../components/marketing/feature-grid";
 import { Hero } from "../components/marketing/hero";
+import { Checklist } from "../components/marketing/checklist";
+import { CtaBanner } from "../components/marketing/cta-banner";
+import { PageHero } from "../components/marketing/page-hero";
+import { ProcessSteps } from "../components/marketing/process-steps";
+import { SplitSection } from "../components/marketing/split-section";
+import { StatRow } from "../components/marketing/stat-row";
 import { Highlight, Section, SectionHeading } from "../components/marketing/section";
 
 /**
@@ -55,6 +61,22 @@ const secciones: [string, ReactElement][] = [
     <>
       <Hero eyebrow="A" title={<>B <Highlight>C</Highlight></>} actions={<a href="/d">D</a>} aside={<pre>E</pre>} footer={<p>F</p>} />
       <Hero title="G" />
+    </>,
+  ],
+  [
+    "StatRow, ProcessSteps y Checklist",
+    <>
+      <StatRow label="A" accent items={[{ value: "47", label: "B" }]} />
+      <ProcessSteps orientation="vertical" steps={[{ title: "A" }, { title: "B" }]} />
+      <Checklist columns={2} items={["A", { title: "B", description: "C" }]} />
+    </>,
+  ],
+  [
+    "SplitSection, PageHero y CtaBanner",
+    <>
+      <SplitSection title="A" media={<div>B</div>} reverse />
+      <PageHero eyebrow="A" title="B" breadcrumbs={<nav>C</nav>} />
+      <CtaBanner title="A" background="grid" actions={<a href="/b">B</a>} />
     </>,
   ],
   [

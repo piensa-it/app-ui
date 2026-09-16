@@ -269,6 +269,12 @@ export {
 } from "./components/marketing/section";
 export { FeatureGrid, type FeatureGridProps, type FeatureItem, type FeatureTone } from "./components/marketing/feature-grid";
 export { Hero, type HeroProps } from "./components/marketing/hero";
+export { PageHero, type PageHeroProps } from "./components/marketing/page-hero";
+export { StatRow, type StatRowProps, type StatItem } from "./components/marketing/stat-row";
+export { ProcessSteps, type ProcessStepsProps, type ProcessStep } from "./components/marketing/process-steps";
+export { Checklist, type ChecklistProps, type ChecklistItem } from "./components/marketing/checklist";
+export { SplitSection, type SplitSectionProps } from "./components/marketing/split-section";
+export { CtaBanner, type CtaBannerProps } from "./components/marketing/cta-banner";
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";

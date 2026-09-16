@@ -1050,7 +1050,7 @@ test.describe("SearchSelect", () => {
   });
 });
 
-test.describe("Secciones de marketing (#188, #189)", () => {
+test.describe("Secciones de marketing (#186)", () => {
   // Las piezas de landing dependen de fondos decorativos, degradados en el
   // texto y del bloque `inverted`: nada de eso lo ve jsdom. Las capturas fijan
   // escritorio en los dos temas.
@@ -1061,6 +1061,11 @@ test.describe("Secciones de marketing (#188, #189)", () => {
     ["marketing-featuregrid--tarjetas", "feature-grid-tarjetas"],
     ["marketing-featuregrid--unidas-con-estado", "feature-grid-unidas-con-estado"],
     ["marketing-featuregrid--numeradas-impares", "feature-grid-numeradas-impares"],
+    ["marketing-statrow--acento", "stat-row-acento"],
+    ["marketing-processsteps--tres-pasos", "process-steps-tres-pasos"],
+    ["marketing-splitsection--default", "split-section"],
+    ["marketing-pagehero--centrada", "page-hero-centrada"],
+    ["marketing-ctabanner--degradado", "cta-banner-degradado"],
   ] as const;
 
   for (const [story, nombre] of casos) {
@@ -1070,7 +1075,7 @@ test.describe("Secciones de marketing (#188, #189)", () => {
         await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
         await stabilize(page);
         const root = page.locator("#storybook-root");
-        await expect(root.getByRole("heading").first()).toBeVisible();
+        await expect(root.locator("[data-marketing-section]").first()).toBeVisible();
         await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, {
           animations: "disabled",
           maxDiffPixels: MAX_DIFF_PIXELS,

@@ -26,6 +26,13 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - `Highlight`: parte de un título en degradado de marca (hacia `--marketing-highlight-to`) o en color de acento, opcionalmente en cursiva.
   - `FeatureGrid` cubre las rejillas de las cuatro landings con los mismos datos. Variantes `card`, `list`, `joined` y `compact`, de 2 a 5 columnas, con la última fila centrada. Por tarjeta: ícono, numeración, insignia de estado, chip de código, viñetas, etiquetas, pie «etiqueta: valor», tono, atenuada y enlace.
 - **`Hero`, la portada de landing (#188).** Eyebrow, título `h1` con `Highlight`, descripción, acciones, nota bajo los botones, artefacto del producto en `aside` (dos columnas; sin él queda centrada), `footer` a todo el ancho para cifras y fondo decorativo.
+- **Más secciones de landing (#190, #191, #194, #195, #197, #201).**
+  - `PageHero`: cabecera de páginas interiores, sin artefacto.
+  - `StatRow`: cifras con rótulo, acento y divisores. El valor llega formateado, así que el HTML del servidor trae la cifra final.
+  - `ProcessSteps`: «cómo funciona» como lista ordenada «01, 02…» con ícono, horizontal o vertical. No se llama `Steps` para no chocar con un asistente por pasos.
+  - `Checklist`: garantías con check.
+  - `SplitSection`: texto y maqueta del producto lado a lado.
+  - `CtaBanner`: cierre con degradado de marca, rejilla o superficie sobria, con una o dos acciones.
 - **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
 
 ### Fixed
