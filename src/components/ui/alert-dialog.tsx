@@ -43,6 +43,10 @@ function getSnapshot() {
   return state;
 }
 
+function getServerSnapshot() {
+  return null;
+}
+
 /**
  * Abre un diálogo de confirmación modal (`role="alertdialog"`), con foco
  * inicial en el botón "más seguro" (cancelar) y sin cierre por click afuera,
@@ -59,7 +63,9 @@ function confirmAlert(options: ConfirmAlertOptions) {
  * `confirmAlert(...)` en cualquier parte de la app.
  */
 function AlertDialogHost() {
-  const current = React.useSyncExternalStore(subscribe, getSnapshot);
+  // En el servidor no hay diálogo abierto: sin este tercer argumento React
+  // no puede renderizar el host, y todo `UiProvider` rompía el SSR (#183).
+  const current = React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   // El store vive fuera de React y sobrevive al desmontaje de este

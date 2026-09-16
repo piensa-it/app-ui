@@ -6,6 +6,10 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`UiProvider` se puede renderizar en el servidor (#183).** `AlertDialogHost` usaba `useSyncExternalStore` sin `getServerSnapshot`, así que cualquier SSR, prerenderizado o isla de Astro que montara `UiProvider` fallaba con «Missing getServerSnapshot». Ya no hace falta montarlo solo después de hidratar. Pruebas nuevas: `renderToString` en entorno `node` (sin DOM), con y sin `density`, e hidratación sin avisos.
+
 ## [1.3.0] - 2026-09-12
 
 ### Added

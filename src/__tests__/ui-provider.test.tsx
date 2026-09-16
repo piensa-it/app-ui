@@ -46,3 +46,30 @@ describe("tokens de densidad", () => {
     expect(css).toContain('[data-ui-density="comfortable"]');
   });
 });
+
+describe("UiProvider — hidratación", () => {
+  it("hidrata el HTML del servidor sin avisos (#183)", async () => {
+    const { renderToString } = await import("react-dom/server");
+    const { hydrateRoot } = await import("react-dom/client");
+    const { act } = await import("react");
+    const { vi } = await import("vitest");
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const app = (
+      <UiProvider density="compact">
+        <p>hola</p>
+      </UiProvider>
+    );
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    const root = await act(async () => hydrateRoot(container, app));
+
+    expect(error).not.toHaveBeenCalled();
+    expect(container).toHaveTextContent("hola");
+    act(() => root.unmount());
+    container.remove();
+    error.mockRestore();
+  });
+});
