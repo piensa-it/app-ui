@@ -87,7 +87,13 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
+      // Dos entradas: el índice y `/diagramas` (#205), que es la única que
+      // importa React Flow y ELK. Con `preserveModules` comparten los módulos
+      // comunes (Button, Icon…) sin duplicarlos.
+      entry: {
+        index: path.resolve(__dirname, "src/index.ts"),
+        diagramas: path.resolve(__dirname, "src/diagramas.ts"),
+      },
       name: "PiensaItUiLibrary",
       formats: ["es", "cjs"],
       // Desde Vite 6 el CSS de una librería se nombra a partir del `fileName`

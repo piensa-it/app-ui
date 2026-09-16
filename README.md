@@ -52,6 +52,20 @@ you use one of the bundled font presets:
 import "@piensa-it/ui-library/fonts.css";
 ```
 
+Process maps and C4 diagrams (`ProcessMap`, `C4Diagram`) live in a separate
+entry point with two optional peer dependencies, so applications that do not
+draw diagrams never install or bundle them:
+
+```bash
+npm install @xyflow/react elkjs
+```
+
+```tsx
+import { ProcessMap } from "@piensa-it/ui-library/diagramas";
+
+<ProcessMap raiz={cicloDeLaEmpresa} grupos={carriles} onEnlace={navigate} />;
+```
+
 ### Cost
 
 The package ships one module per source file, so a bundler only keeps what an

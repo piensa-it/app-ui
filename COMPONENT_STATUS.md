@@ -170,20 +170,22 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Marketing | CtaBanner | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | ProductSignature | Sí | Sí (2) | Sí | 2 | Documentado y probado |
 | Marketing | LanguageSwitcher | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Diagramas | ProcessMap | Sí | Sí (1) | No | 1 | Documentado y probado |
+| Diagramas | C4Diagram | Sí | Sí (1) | No | 0 | Documentado y probado |
 
 ## Reparto
 
-De 68 componentes exportados (no cuenta utilidades, hooks, tokens ni el
+De 70 componentes exportados (no cuenta utilidades, hooks, tokens ni el
 catálogo de iconos — ver "Fuera de este inventario"):
 
 - **Estable**: 21
-- **Documentado y probado**: 47
+- **Documentado y probado**: 49
 - **Documentado sin prueba**: 0 (estado imposible desde #153, ver "Estados")
 - **Falta story**: 0 (estado imposible desde #153, ver "Estados")
 - **Deprecated**: 0
 
-Es decir: **47 de 68 (69 %) no llegan al nivel "Estable"** tal como se define
-arriba, pero los 68 cumplen el Definition of Done básico del repo (story +
+Es decir: **49 de 70 (70 %) no llegan al nivel "Estable"** tal como se define
+arriba, pero los 70 cumplen el Definition of Done básico del repo (story +
 prueba de humo) — eso ya no es una medición, es una garantía: `verify:contract`
 corre en el `quality-gate` de CI y bloquea el merge de cualquier PR que baje
 alguna de las dos señales. Ninguno está marcado "Estable" por opinión — los 21
@@ -234,9 +236,18 @@ regresión visual, que #153 no tocó.
   unitaria, no por los criterios de este documento. Ver `DESIGN.md` para las
   reglas de tokens.
 
+- **Punto de entrada `@piensa-it/ui-library/diagramas`** (#205): `ProcessMap`
+  y `C4Diagram` sí están en la tabla —`verify:contract` recorre también
+  `src/diagramas.ts`—, pero sus utilidades (`distribuirNivel`,
+  `validarDistribucion`, `distribucionASvg`, `resolverColores`,
+  `cargarMotorElk`, `medirNodo`) no: son funciones con prueba unitaria. La
+  prueba central es `src/__tests__/process-map-layout.test.ts`: con los datos
+  del Mapa de CoreLink, ninguna arista atraviesa un nodo ajeno, ninguna
+  etiqueta tapa un nodo y ningún par de nodos se solapa.
+
 ## Lectura honesta antes de `1.0.0`
 
-Menos de un tercio del catálogo (21 de 68, 31 %) cumple el criterio más
+Menos de un tercio del catálogo (21 de 70, 30 %) cumple el criterio más
 estricto. Eso no es necesariamente un bloqueo para `1.0.0` — "Estable" aquí
 exige captura de regresión visual, y el equipo, con razón, no la ha puesto en
 todo el catálogo porque es cara de mantener y la reserva para lo que ya causó
@@ -250,7 +261,7 @@ y prueba de humo, el Definition of Done básico del repo — ya no es una
 medición que pueda desactualizarse ni una promesa que dependa de que alguien
 se acuerde de escribir el test. Antes de #153 había 13 componentes (19 % del
 catálogo) que ni siquiera llegaban ahí; hoy `verify:contract` lo garantiza en
-CI para los 68, así que ese piso no puede volver a agrietarse sin que el
+CI para los 70, así que ese piso no puede volver a agrietarse sin que el
 build falle primero. Eso es lo que una 1.0.0 puede prometer sin mentir: no
 que todo esté verificado visualmente (no lo está, y decirlo sería la mentira
 que este documento existe para evitar), sino que nada exportado carece de
