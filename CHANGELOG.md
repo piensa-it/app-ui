@@ -19,6 +19,13 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - `version`: la versión de la app en monoespaciada.
   - `year`: año fijo, para que el HTML prerenderizado no quede con el año del build.
   - `labels`: los textos «Legal», «Síguenos», «Contacto» y los derechos reservados, para publicarlo en inglés.
+- **Secciones de landing: `Section`, `SectionHeading`, `Eyebrow`, `Highlight` y `FeatureGrid` (#189).**
+  - `Section`: ancho, márgenes y espacio vertical comunes, con `id` como ancla. Tono `default`, `muted` o `inverted` (bloque con los tokens oscuros dentro de una página clara). Fondo `grid`, `glow` o `grid-glow`.
+  - `SectionHeading`: eyebrow, título, subtítulo, acciones y línea de acento.
+  - `Eyebrow`: texto o pastilla con punto o ícono.
+  - `Highlight`: parte de un título en degradado de marca (hacia `--marketing-highlight-to`) o en color de acento, opcionalmente en cursiva.
+  - `FeatureGrid` cubre las rejillas de las cuatro landings con los mismos datos. Variantes `card`, `list`, `joined` y `compact`, de 2 a 5 columnas, con la última fila centrada. Por tarjeta: ícono, numeración, insignia de estado, chip de código, viñetas, etiquetas, pie «etiqueta: valor», tono, atenuada y enlace.
+- **`Hero`, la portada de landing (#188).** Eyebrow, título `h1` con `Highlight`, descripción, acciones, nota bajo los botones, artefacto del producto en `aside` (dos columnas; sin él queda centrada), `footer` a todo el ancho para cifras y fondo decorativo.
 - **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
 
 ### Fixed

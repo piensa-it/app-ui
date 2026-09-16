@@ -1049,3 +1049,43 @@ test.describe("SearchSelect", () => {
     await expect(campo).toHaveValue("María Pérez");
   });
 });
+
+test.describe("Secciones de marketing (#188, #189)", () => {
+  // Las piezas de landing dependen de fondos decorativos, degradados en el
+  // texto y del bloque `inverted`: nada de eso lo ve jsdom. Las capturas fijan
+  // escritorio en los dos temas.
+  const casos = [
+    ["marketing-hero--con-artefacto", "hero-con-artefacto"],
+    ["marketing-hero--con-cifras", "hero-con-cifras"],
+    ["marketing-section--tonos-y-fondos", "section-tonos-y-fondos"],
+    ["marketing-featuregrid--tarjetas", "feature-grid-tarjetas"],
+    ["marketing-featuregrid--unidas-con-estado", "feature-grid-unidas-con-estado"],
+    ["marketing-featuregrid--numeradas-impares", "feature-grid-numeradas-impares"],
+  ] as const;
+
+  for (const [story, nombre] of casos) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: 1366, height: 900 });
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.getByRole("heading").first()).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, {
+          animations: "disabled",
+          maxDiffPixels: MAX_DIFF_PIXELS,
+        });
+      });
+    }
+  }
+
+  test("el Hero en móvil pone el artefacto debajo del texto", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("marketing-hero--con-artefacto"));
+    await stabilize(page);
+    const titulo = await page.getByRole("heading", { level: 1 }).boundingBox();
+    const artefacto = await page.getByText("POST /v1/messages").boundingBox();
+    expect(titulo && artefacto).toBeTruthy();
+    expect(artefacto!.y).toBeGreaterThan(titulo!.y + titulo!.height);
+  });
+});

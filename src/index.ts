@@ -256,6 +256,19 @@ export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components
 export { PublicHeader, type PublicHeaderProps, type PublicHeaderLabels, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
 export { PublicFooter, type PublicFooterProps, type PublicFooterLabels } from "./components/marketing/public-footer";
 export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/image-carousel-backdrop";
+export {
+  Section,
+  SectionHeading,
+  Eyebrow,
+  Highlight,
+  type SectionProps,
+  type SectionHeadingProps,
+  type EyebrowProps,
+  type HighlightProps,
+  type MarketingBackground,
+} from "./components/marketing/section";
+export { FeatureGrid, type FeatureGridProps, type FeatureItem, type FeatureTone } from "./components/marketing/feature-grid";
+export { Hero, type HeroProps } from "./components/marketing/hero";
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";
