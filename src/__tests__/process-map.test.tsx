@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { C4Diagram, ProcessMap, cargarMotorElk, distribucionASvg, distribuirNivel, medirNodo, resolverColores, type ElementoC4 } from "../diagramas";
 import { cicloCoreLink, gruposCoreLink } from "../components/diagramas/ejemplos/mapa-corelink";
 import { etapasDeNivel } from "../components/diagramas/etapas";
+import { MARGEN_LIENZO, ZOOM_LEGIBLE, calcularEncuadre } from "../components/diagramas/encuadre";
 
 const motor = new ELK();
 
@@ -194,5 +195,47 @@ describe("C4Diagram", () => {
     await userEvent.click(screen.getByRole("button", { name: /API/ }));
     expect(screen.getByText("Componentes")).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: /Autenticación/ })).toBeInTheDocument();
+  });
+});
+
+describe("conexiones transversales", () => {
+  const visibles = () => [...document.querySelectorAll("[data-arista]")].map((e) => e.getAttribute("data-arista"));
+
+  it("en el nivel 1 se ocultan hasta resaltar un proceso, y el interruptor las muestra todas", async () => {
+    render(<ProcessMap raiz={cicloCoreLink} grupos={gruposCoreLink} motor={motor} />);
+    const tesoreria = await screen.findByRole("button", { name: /^Tesorería/ });
+    expect(visibles()).toHaveLength(8); // solo el flujo principal
+
+    fireEvent.mouseEnter(tesoreria);
+    // cxp>tes, cxc>tes y tes>cont aparecen; los procesos que no son vecinos se atenúan.
+    expect(visibles()).toHaveLength(11);
+    expect(screen.getByRole("button", { name: /^Ventas/ })).toHaveAttribute("data-atenuado", "true");
+    expect(screen.getByRole("button", { name: /^Cuentas por cobrar/ })).not.toHaveAttribute("data-atenuado");
+    fireEvent.mouseLeave(tesoreria);
+    expect(visibles()).toHaveLength(8);
+
+    await userEvent.click(screen.getByRole("switch", { name: "Mostrar todas las conexiones" }));
+    expect(visibles()).toHaveLength(17);
+  });
+
+  it("con conexionesTransversales=\"siempre\" se ven todas y no hay interruptor", async () => {
+    render(<ProcessMap raiz={cicloCoreLink} grupos={gruposCoreLink} motor={motor} conexionesTransversales="siempre" />);
+    await screen.findByRole("button", { name: /^Tesorería/ });
+    expect(visibles()).toHaveLength(17);
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+});
+
+describe("calcularEncuadre", () => {
+  it("si cabe, encuadra entero hasta zoom 1 y centrado", () => {
+    const e = calcularEncuadre(400, 200, { ancho: 1000, alto: 400 });
+    expect(e).toMatchObject({ zoom: 1, desborda: false, x: 300 });
+  });
+
+  it("si no cabe a lo ancho, nunca baja del zoom legible y alinea al principio", () => {
+    const e = calcularEncuadre(3000, 600, { ancho: 1200, alto: 700 });
+    expect(e.zoom).toBeCloseTo(ZOOM_LEGIBLE);
+    expect(14 * e.zoom).toBeGreaterThanOrEqual(12 - 1e-9);
+    expect(e).toMatchObject({ desborda: true, x: MARGEN_LIENZO });
   });
 });

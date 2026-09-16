@@ -3,8 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { tienda } from "../components/diagramas/ejemplos/c4-tienda";
 import { cicloCoreLink, gruposCoreLink, procesoCompras } from "../components/diagramas/ejemplos/mapa-corelink";
-import type { ElkNode } from "elkjs/lib/elk-api";
-import { PERFILES_ELK, distribuirNivel, limpiarPoligonal, medirNodo, type MotorDistribucion } from "../components/diagramas/layout";
+import { distribuirNivel, limpiarPoligonal, medirNodo, type MotorDistribucion } from "../components/diagramas/layout";
 import { validarDistribucion } from "../diagramas";
 import type { Distribucion, NodoProceso } from "../components/diagramas/types";
 
@@ -82,6 +81,7 @@ describe("distribuirNivel: el Mapa de CoreLink", () => {
           hasta: b.id,
           estilo: "continua",
           animada: false,
+          transversal: false,
           puntos: [
             { x: c.x - 10, y: c.y + c.alto / 2 },
             { x: c.x + c.ancho + 10, y: c.y + c.alto / 2 },
@@ -196,44 +196,31 @@ describe("distribuirNivel: los tres niveles de un C4", () => {
   });
 });
 
-describe("perfiles de ELK", () => {
-  const contando = (base: MotorDistribucion) => {
-    const perfiles: (string | undefined)[] = [];
-    return {
-      perfiles,
-      motor: {
-        layout: (grafo: ElkNode) => {
-          perfiles.push(grafo.children?.[0]?.layoutOptions?.["elk.layered.compaction.postCompaction.strategy"]);
-          return base.layout(grafo);
-        },
-      } satisfies MotorDistribucion,
-    };
-  };
-
-  it("el Mapa de CoreLink sale con el perfil compacto, al primer intento", async () => {
-    const { perfiles, motor: m } = contando(motor);
-    const d = await distribuirNivel(cicloCoreLink, m, { grupos: gruposCoreLink });
-    expect(perfiles).toEqual(["EDGE_LENGTH"]);
-    expect(d.ancho).toBeLessThan(2400);
+describe("filas y columnas", () => {
+  it("los carriles son filas en el orden de grupos y un proceso posterior queda más a la derecha", async () => {
+    const d = await distribuirNivel(cicloCoreLink, motor, { grupos: gruposCoreLink });
+    const n = (id: string) => d.nodos.find((x) => x.id === id)!;
+    expect(d.carriles.map((c) => c.id)).toEqual(["egreso", "transformacion", "ingreso"]);
+    const [egreso, transformacion, ingreso] = d.carriles;
+    expect(egreso.y + egreso.alto).toBeLessThanOrEqual(transformacion.y);
+    expect(transformacion.y + transformacion.alto).toBeLessThanOrEqual(ingreso.y);
+    // Mismo ancho: los carriles son filas completas.
+    expect(new Set(d.carriles.map((c) => Math.round(c.ancho))).size).toBe(1);
+    for (const [antes, despues] of [["log", "com"], ["com", "cxp"], ["log", "prod"], ["prod", "ven"], ["ven", "cxc"], ["imp", "cxp"]]) {
+      expect(n(antes).x + n(antes).ancho, `${antes} antes que ${despues}`).toBeLessThan(n(despues).x);
+    }
   });
 
-  it("si un perfil falla, prueba el siguiente", async () => {
-    const vistos: (string | undefined)[] = [];
-    const quisquilloso: MotorDistribucion = {
-      layout: (grafo) => {
-        const compactacion = grafo.children?.[0]?.layoutOptions?.["elk.layered.compaction.postCompaction.strategy"];
-        vistos.push(compactacion);
-        return compactacion === "EDGE_LENGTH" ? Promise.reject(new Error("hitboxes")) : motor.layout(grafo);
-      },
-    };
-    const d = await distribuirNivel(cicloCoreLink, quisquilloso, { grupos: gruposCoreLink });
-    expect(vistos).toEqual(PERFILES_ELK.map((p) => p["elk.layered.compaction.postCompaction.strategy"]));
-    expect(validarDistribucion(d)).toEqual([]);
+  it("marca como transversales las aristas que tocan una banda", async () => {
+    const d = await distribuirNivel(cicloCoreLink, motor, { grupos: gruposCoreLink });
+    const transversales = d.aristas.filter((a) => a.transversal).map((a) => `${a.desde}>${a.hasta}`);
+    expect(transversales.sort()).toEqual(
+      ["cad>cxp", "cxp>tes", "tes>cont", "cxc>tes", "nom>prod", "act>cont", "cont>pres", "cont>log", "pres>com"].sort(),
+    );
   });
 
-  it("si fallan todos, propaga el primer error", async () => {
-    let n = 0;
-    const roto: MotorDistribucion = { layout: () => Promise.reject(new Error(`fallo ${++n}`)) };
-    await expect(distribuirNivel(cicloCoreLink, roto)).rejects.toThrow("fallo 1");
+  it("si ELK falla, propaga el error", async () => {
+    const roto: MotorDistribucion = { layout: () => Promise.reject(new Error("original")) };
+    await expect(distribuirNivel(cicloCoreLink, roto)).rejects.toThrow("original");
   });
 });

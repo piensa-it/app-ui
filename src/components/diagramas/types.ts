@@ -114,6 +114,8 @@ export interface AristaDistribuida {
   etiqueta?: EtiquetaDistribuida;
   estilo: EstiloArista;
   animada: boolean;
+  /** Toca un nodo de las capas transversal o base. */
+  transversal: boolean;
 }
 
 /** Geometría de un nivel, lista para pintar o exportar. Coordenadas en píxeles. */

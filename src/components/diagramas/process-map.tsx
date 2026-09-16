@@ -4,10 +4,12 @@ import { ArrowLeft, Download, X } from "lucide-react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import type { LinkComponent } from "@/components/marketing/public-header";
 import { cn } from "@/lib/utils";
 
 import { etapasDeNivel } from "./etapas";
+import { ALTO_BARRA, MARGEN_LIENZO, ZOOM_LEGIBLE } from "./encuadre";
 import { FlowMap, TarjetaProceso } from "./flow-map";
 import { tonoDeNodo } from "./tonos";
 import { distribuirNivel, type MotorDistribucion } from "./layout";
@@ -36,7 +38,7 @@ export interface ProcessMapProps {
   raiz: NodoProceso;
   /** Nombre y color de los carriles (`NodoProceso.grupo`). */
   grupos?: GrupoProceso[];
-  /** Hacia dónde corre el flujo. @default "derecha" */
+  /** Hacia dónde corre el flujo (los carriles son filas con «derecha» y columnas con «abajo»). @default "derecha" */
   direccion?: DireccionDiagrama;
   /** Anima todas las aristas. Respeta `prefers-reduced-motion`. */
   animado?: boolean;
@@ -63,6 +65,13 @@ export interface ProcessMapProps {
    * nivel distribuido (entre 360 y 880 px), sin franjas vacías.
    */
   alto?: number;
+  /**
+   * En el primer nivel, las aristas que tocan las capas transversal o base
+   * se ven solo al pasar el cursor, enfocar o seleccionar un proceso (y con el
+   * interruptor «Mostrar todas las conexiones»), para que se lea el flujo
+   * principal. @default "al-seleccionar"
+   */
+  conexionesTransversales?: "al-seleccionar" | "siempre";
   /** Muestra «Exportar SVG». @default true */
   exportable?: boolean;
   className?: string;
@@ -89,6 +98,7 @@ export function ProcessMap({
   etiquetasBandas,
   vista = "auto",
   alto,
+  conexionesTransversales = "al-seleccionar",
   exportable = true,
   className,
 }: ProcessMapProps) {
@@ -161,12 +171,20 @@ export function ProcessMap({
     return () => observador.disconnect();
   }, [enEtapas]);
 
+  const [mostrarTodas, setMostrarTodas] = React.useState(conexionesTransversales === "siempre");
+
   const distribucion = resultado?.clave === clave ? resultado.distribucion : undefined;
-  const altoLienzo =
-    alto ??
-    (distribucion && anchoLienzo
-      ? Math.round(Math.min(880, Math.max(360, (anchoLienzo * distribucion.alto) / Math.max(1, distribucion.ancho) + 48)))
-      : 480);
+  // Sin `alto`, el lienzo mide lo que el diagrama al zoom de encuadre: sin franjas vacías.
+  const altoLienzo = (() => {
+    if (alto) return alto;
+    if (!distribucion || !anchoLienzo) return 480;
+    const zoomAncho = (anchoLienzo - 2 * MARGEN_LIENZO) / Math.max(1, distribucion.ancho);
+    const zoom = Math.min(1, Math.max(ZOOM_LEGIBLE, zoomAncho));
+    const barra = zoomAncho < ZOOM_LEGIBLE ? ALTO_BARRA : 0;
+    return Math.round(Math.min(880, Math.max(220, distribucion.alto * zoom + 2 * MARGEN_LIENZO + barra)));
+  })();
+  const hayTransversales = Boolean(distribucion?.aristas.some((a) => a.transversal));
+  const ocultarTransversales = ruta.length === 1 && hayTransversales && !mostrarTodas;
   const error = resultado?.clave === clave ? resultado.error : undefined;
   const nodoSeleccionado = actual.hijos?.find((n) => n.id === seleccionado) ?? null;
   const conDetalle = (n: NodoProceso | null) => Boolean(n && (n.detalle || n.enlaces?.length));
@@ -224,12 +242,15 @@ export function ProcessMap({
           </h2>
           {actual.subtitulo ? <p className="text-sm text-muted-foreground">{actual.subtitulo}</p> : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {ruta.length > 1 ? (
             <Button type="button" variant="outline" size="sm" onClick={() => irA(ruta.slice(0, -1))}>
               <ArrowLeft />
               Subir de nivel
             </Button>
+          ) : null}
+          {!enEtapas && ruta.length === 1 && hayTransversales && conexionesTransversales === "al-seleccionar" ? (
+            <Switch size="sm" label="Mostrar todas las conexiones" checked={mostrarTodas} onCheckedChange={setMostrarTodas} />
           ) : null}
           {exportable && !enEtapas ? (
             <Button type="button" variant="outline" size="sm" onClick={exportar} disabled={!distribucion}>
@@ -287,7 +308,8 @@ export function ProcessMap({
                 animado={animado}
                 seleccionado={seleccionado}
                 onActivar={activar}
-                tamano={`${Math.round(anchoLienzo)}x${altoLienzo}`}
+                contenedor={{ ancho: anchoLienzo, alto: altoLienzo }}
+                ocultarTransversales={ocultarTransversales}
               />
             ) : error ? (
               <p role="alert" className="p-6 text-sm text-destructive">
@@ -334,7 +356,7 @@ function PanelDetalle({ nodo, onEnlace, onCerrar, onEntrar }: PanelDetalleProps)
       </div>
       {nodo.detalle ? <div className="leading-relaxed">{nodo.detalle}</div> : null}
       {nodo.enlaces?.length || onEntrar ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {onEntrar ? (
             <Button type="button" size="sm" onClick={onEntrar}>
               Ver subprocesos

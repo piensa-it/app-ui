@@ -1,4 +1,4 @@
-import type { ElkExtendedEdge, ElkNode, ElkPoint } from "elkjs/lib/elk-api";
+import type { ElkNode } from "elkjs/lib/elk-api";
 
 import type {
   AristaDistribuida,
@@ -25,6 +25,7 @@ export interface MotorDistribucion {
 
 export interface OpcionesDistribucion {
   direccion?: DireccionDiagrama;
+  /** Carriles, en el orden en que se apilan. */
   grupos?: GrupoProceso[];
   /** Nombre de las bandas. @default { transversal: "Transversal", base: "Base" } */
   etiquetasBandas?: Partial<Record<"transversal" | "base", string>>;
@@ -38,19 +39,18 @@ const RELLENO_CON_ICONO = 92;
 const RELLENO_SIN_ICONO = 48;
 const LINEA_ETIQUETA = 20;
 
-/** Separación entre líneas de un mismo canal de aristas. */
-const PASO_CANAL = 12;
-/** Hueco entre la caja de una banda y lo que tiene alrededor. */
+/** Separación entre pistas de un mismo canal. */
+const PASO = 10;
 const MARGEN = 16;
-/** Espacio entre nodos vecinos de una banda. */
+/** Relleno de un carril alrededor de sus nodos. */
+const RELLENO_CARRIL = 14;
+const SEPARACION_APILADOS = 20;
 const SEPARACION_BANDA = 32;
 
 /**
- * Tamaño de la caja de un nodo, estimado a partir del texto.
- *
- * ELK necesita las cajas antes de pintar, así que no se puede medir el DOM: se
- * estima con un ancho medio por carácter (DM Sans/Geist a 14 px ≈ 7,4 px) y la
- * etiqueta pasa a dos líneas antes de ensanchar la caja más allá de `ANCHO_MAX`.
+ * Tamaño de la caja de un nodo, estimado a partir del texto (la distribución
+ * necesita las cajas antes de pintar): ancho medio por carácter de la fuente
+ * de 14 px, y la etiqueta pasa a dos líneas antes de superar `ANCHO_MAX`.
  */
 export function medirNodo(nodo: Pick<NodoProceso, "etiqueta" | "subtitulo" | "icono" | "insignia">): {
   ancho: number;
@@ -68,18 +68,17 @@ export function medirNodo(nodo: Pick<NodoProceso, "etiqueta" | "subtitulo" | "ic
   return { ancho, alto: Math.max(60, alto) };
 }
 
+/** Caja de la etiqueta de una arista (texto de 12 px). */
 export function medirEtiqueta(texto: string): { ancho: number; alto: number } {
-  return { ancho: Math.round(texto.length * 6.4 + 14), alto: 20 };
+  return { ancho: Math.round(texto.length * 6.8 + 16), alto: 22 };
 }
 
 /* ─────────────────────────── Ejes canónicos ────────────────────────────
- * La composición de bandas se escribe una sola vez, con `u` a lo largo del
- * flujo y `v` a lo ancho. Con dirección «derecha» u = x; con «abajo» u = y. */
+ * Todo se compone con `u` a lo largo del flujo (columnas) y `v` a lo ancho
+ * (filas). Con dirección «derecha» u = x; con «abajo» u = y. */
 
 const trasponerPunto = (p: Punto): Punto => ({ x: p.y, y: p.x });
 const trasponerCaja = <T extends Caja>(c: T): T => ({ ...c, x: c.y, y: c.x, ancho: c.alto, alto: c.ancho });
-
-/* ─────────────────────────────── Distribución ─────────────────────────── */
 
 type Clase = "flujo" | "TF" | "BF" | "TT" | "BB" | "TB";
 
@@ -90,17 +89,34 @@ interface AristaClasificada {
   clase: Clase;
 }
 
+interface Plan {
+  a: AristaClasificada;
+  huecoSalida?: number;
+  huecoEntrada?: number;
+  huecoH?: number;
+  huecoEtiqueta?: number;
+}
+
 const capaDe = (nodo: NodoProceso): CapaProceso => nodo.capa ?? "flujo";
+
+function empujarEn<K, V>(mapa: Map<K, V[]>, clave: K, valor: V) {
+  const lista = mapa.get(clave);
+  if (lista) lista.push(valor);
+  else mapa.set(clave, [valor]);
+}
 
 /**
  * Distribuye un nivel: los `hijos` de `nivel` y sus `aristas`.
  *
- * El flujo lo coloca ELK (`layered`, enrutado ortogonal que esquiva nodos) con
- * un subgrafo por `grupo` como carril. Las capas transversal y base van en
- * bandas a todo lo ancho, antes y después del flujo, y sus aristas hacia el
- * flujo entran por puertos del borde del grafo de ELK: la parte de dentro la
- * enruta ELK y la de fuera recorre solo huecos vacíos (el canal entre banda y
- * flujo), así que tampoco pisa ninguna caja.
+ * - **Columnas:** ELK (`layered`) decide la etapa de cada proceso de flujo y
+ *   su orden, y las columnas se comparten entre carriles: un proceso
+ *   posterior queda siempre más adelante que uno anterior, esté en el carril
+ *   que esté.
+ * - **Filas:** un carril por `grupo`, en el orden de `opciones.grupos`
+ *   (columnas si la dirección es «abajo»). Las capas `transversal` y `base`
+ *   van en bandas antes y después.
+ * - **Aristas:** ortogonales y solo por los huecos entre columnas y entre
+ *   filas, que nunca contienen nodos; cada arista lleva su propia pista.
  */
 export async function distribuirNivel(
   nivel: Pick<NodoProceso, "hijos" | "aristas">,
@@ -112,10 +128,18 @@ export async function distribuirNivel(
   const hijos = nivel.hijos ?? [];
   const porId = new Map(hijos.map((n) => [n.id, n]));
   const medidas = new Map(hijos.map((n) => [n.id, medirNodo(n)]));
+  const tam = (id: string) => {
+    const m = medidas.get(id)!;
+    return derecha ? m : { ancho: m.alto, alto: m.ancho };
+  };
+  const tamEtiqueta = (texto: string) => {
+    const m = medirEtiqueta(texto);
+    return derecha ? m : { ancho: m.alto, alto: m.ancho };
+  };
 
-  // Sin flujo no hay bandas que ordenar: todo se distribuye como flujo.
   const hayFlujo = hijos.some((n) => capaDe(n) === "flujo");
   const capa = (id: string): CapaProceso => (hayFlujo ? capaDe(porId.get(id)!) : "flujo");
+  const banda = (id: string) => capa(id) as "transversal" | "base";
 
   const aristas: AristaClasificada[] = (nivel.aristas ?? [])
     .map((a, indice) => ({ ...a, indice }))
@@ -130,11 +154,17 @@ export async function distribuirNivel(
       else clase = "TB";
       return { indice: a.indice, desde: a.desde, hasta: a.hasta, clase };
     });
-  const aristaOriginal = (a: AristaClasificada) => nivel.aristas![a.indice];
+  const original = (a: AristaClasificada) => nivel.aristas![a.indice];
+  const de = (...clases: Clase[]) => aristas.filter((a) => clases.includes(a.clase));
 
-  /* ── 1. El flujo, con ELK ── */
+  /* ── 1. Columnas y orden, con ELK ── */
 
   const flujo = hijos.filter((n) => capa(n.id) === "flujo");
+  const { columna, orden } = await columnasConElk(flujo, de("flujo"), medidas, motor);
+  const numColumnas = Math.max(0, ...flujo.map((n) => columna.get(n.id)! + 1));
+
+  /* ── 2. Filas ── */
+
   const ordenGrupos = [
     ...new Set([
       ...(opciones.grupos ?? []).map((g) => g.id),
@@ -142,400 +172,410 @@ export async function distribuirNivel(
     ]),
   ].filter((g) => flujo.some((n) => n.grupo === g));
   const conCarriles = ordenGrupos.length >= 2;
-
-  const hojaElk = (n: NodoProceso): ElkNode => ({
-    id: n.id,
-    width: medidas.get(n.id)!.ancho,
-    height: medidas.get(n.id)!.alto,
-  });
-
-  const hijosElk: ElkNode[] = conCarriles
+  const filas: { grupo?: string; nodos: NodoProceso[] }[] = conCarriles
     ? [
-        ...ordenGrupos.map<ElkNode>((g) => ({
-          id: `carril:${g}`,
-          children: flujo.filter((n) => n.grupo === g).map(hojaElk),
-          layoutOptions: { "elk.padding": "[top=44,left=16,bottom=16,right=16]" },
-        })),
-        ...flujo.filter((n) => !n.grupo || !ordenGrupos.includes(n.grupo)).map(hojaElk),
-      ]
-    : flujo.map(hojaElk);
-
-  const ladoTransversal = derecha ? "NORTH" : "WEST";
-  const ladoBase = derecha ? "SOUTH" : "EAST";
-  const puertos = aristas
-    .filter((a) => a.clase === "TF" || a.clase === "BF")
-    .map((a) => ({
-      id: `puerto:${a.indice}`,
-      width: 0,
-      height: 0,
-      layoutOptions: { "elk.port.side": a.clase === "TF" ? ladoTransversal : ladoBase },
-    }));
-
-  const aristasElk: ElkExtendedEdge[] = aristas
-    .filter((a) => a.clase === "flujo" || a.clase === "TF" || a.clase === "BF")
-    .map((a) => {
-      const texto = aristaOriginal(a).etiqueta;
-      const puerto = `puerto:${a.indice}`;
-      const origenEsFlujo = capa(a.desde) === "flujo";
-      const destinoEsFlujo = capa(a.hasta) === "flujo";
-      return {
-        id: `arista:${a.indice}`,
-        sources: [origenEsFlujo ? a.desde : puerto],
-        targets: [destinoEsFlujo ? a.hasta : puerto],
-        labels: texto ? [{ text: texto, ...dimensionesElk(medirEtiqueta(texto)) }] : undefined,
-      };
-    });
-
-  const opcionesComunes = {
-    "elk.algorithm": "layered",
-    "elk.direction": derecha ? "RIGHT" : "DOWN",
-    "elk.hierarchyHandling": "INCLUDE_CHILDREN",
-    "elk.edgeRouting": "ORTHOGONAL",
-    "elk.edgeLabels.placement": "CENTER",
-    "elk.spacing.nodeNode": "40",
-    "elk.spacing.edgeNode": "24",
-    "elk.spacing.edgeEdge": "14",
-    "elk.spacing.edgeLabel": "6",
-    "elk.layered.spacing.nodeNodeBetweenLayers": "72",
-    "elk.layered.spacing.edgeNodeBetweenLayers": "24",
-    "elk.layered.spacing.edgeEdgeBetweenLayers": "14",
-  };
-  // ELK no admite aristas desde los puertos del grafo raíz: el nivel va
-  // envuelto en un nodo compuesto, y los puertos son de ese nodo.
-  const grafo: ElkNode = {
-    id: "lienzo",
-    layoutOptions: {
-      ...opcionesComunes,
-      "elk.json.edgeCoords": "ROOT",
-      "elk.json.shapeCoords": "ROOT",
-      "elk.padding": "[top=0,left=0,bottom=0,right=0]",
-    },
-    children: [
-      {
-        id: "nivel",
-        layoutOptions: {
-          ...opcionesComunes,
-          "elk.portConstraints": "FIXED_SIDE",
-          "elk.padding": "[top=16,left=16,bottom=16,right=16]",
-        },
-        ports: puertos,
-        children: hijosElk,
-        edges: aristasElk,
-      },
-    ],
-  };
-
-  const raiz = flujo.length > 0 ? await distribuirConRespaldo(motor, grafo) : null;
-  const resultado: ElkNode = raiz?.children?.[0] ?? { id: "nivel", width: 0, height: 0 };
-  const origen = { x: resultado.x ?? 0, y: resultado.y ?? 0 };
-  const alOrigen = <T extends { x?: number; y?: number }>(e: T): T => ({ ...e, x: (e.x ?? 0) - origen.x, y: (e.y ?? 0) - origen.y });
-
-  // Todo a coordenadas canónicas (u a lo largo del flujo).
-  const canon = <T extends Caja>(c: T): T => (derecha ? c : trasponerCaja(c));
-  const canonP = (p: Punto): Punto => (derecha ? p : trasponerPunto(p));
-
-  const cajasFlujo = new Map<string, Caja>();
-  const carrilesCanon: CarrilDistribuido[] = [];
-  for (const hijo of resultado.children ?? []) {
-    const caja = canon(cajaElk(alOrigen(hijo)));
-    if (hijo.id.startsWith("carril:")) {
-      const id = hijo.id.slice("carril:".length);
-      carrilesCanon.push({ id, etiqueta: opciones.grupos?.find((g) => g.id === id)?.etiqueta ?? id, ...caja });
-      for (const nieto of hijo.children ?? []) cajasFlujo.set(nieto.id, canon(cajaElk(alOrigen(nieto))));
-    } else {
-      cajasFlujo.set(hijo.id, caja);
-    }
-  }
-  const tamFlujo = canon({ x: 0, y: 0, ancho: resultado.width ?? 0, alto: resultado.height ?? 0 });
-
-  const puertosCanon = new Map<string, Punto>();
-  for (const p of resultado.ports ?? []) puertosCanon.set(p.id, canonP({ x: (p.x ?? 0) - origen.x, y: (p.y ?? 0) - origen.y }));
-
-  const seccionesElk = new Map<string, { puntos: Punto[]; etiqueta?: EtiquetaDistribuida }>();
-  for (const arista of recogerAristas(resultado)) {
-    const puntos = (arista.sections ?? []).flatMap((s) => [s.startPoint, ...(s.bendPoints ?? []), s.endPoint]);
-    const et = arista.labels?.[0];
-    seccionesElk.set(arista.id, {
-      puntos: puntos.map((p: ElkPoint) => canonP({ x: p.x - origen.x, y: p.y - origen.y })),
-      etiqueta:
-        et && et.text
-          ? { texto: et.text, ...canon({ x: (et.x ?? 0) - origen.x, y: (et.y ?? 0) - origen.y, ancho: et.width ?? 0, alto: et.height ?? 0 }) }
-          : undefined,
-    });
-  }
-
-  /* ── 2. Bandas y canales, en coordenadas canónicas ── */
+        ...ordenGrupos.map((g) => ({ grupo: g as string | undefined, nodos: flujo.filter((n) => n.grupo === g) })),
+        { grupo: undefined, nodos: flujo.filter((n) => !n.grupo || !ordenGrupos.includes(n.grupo)) },
+      ].filter((f) => f.nodos.length > 0)
+    : flujo.length
+      ? [{ nodos: flujo }]
+      : [];
+  const filaDe = new Map<string, number>();
+  filas.forEach((f, i) => f.nodos.forEach((n) => filaDe.set(n.id, i)));
+  const numFilas = filas.length;
 
   const transversales = hijos.filter((n) => capa(n.id) === "transversal");
   const bases = hijos.filter((n) => capa(n.id) === "base");
   const hayT = transversales.length > 0;
   const hayB = bases.length > 0;
-  const hayBandas = hayT || hayB;
+  const lead = conCarriles || hayT || hayB ? (derecha ? 156 : 44) : 0;
 
-  const de = (clase: Clase) => aristas.filter((a) => a.clase === clase);
-  const tf = de("TF");
-  const bf = de("BF");
+  /* ── 3. Plan de rutas: qué canales usa cada arista ──
+   * Hueco vertical k: después de la columna k (-1: antes de la primera).
+   * Hueco horizontal g: antes de la fila g (numFilas: después de la última). */
+
+  const pistasV = new Map<number, string[]>();
+  const pistasH = new Map<number, string[]>();
+  const etiquetaMaxEnHueco = new Map<number, number>();
+  const reservarEtiqueta = (k: number, texto?: string) => {
+    if (texto) etiquetaMaxEnHueco.set(k, Math.max(etiquetaMaxEnHueco.get(k) ?? 0, tamEtiqueta(texto).ancho));
+  };
+  const planes: Plan[] = [];
+
+  for (const a of de("flujo")) {
+    const i = columna.get(a.desde)!;
+    const j = columna.get(a.hasta)!;
+    const plan: Plan = { a, huecoSalida: i, huecoEntrada: j - 1, huecoEtiqueta: j - 1 };
+    empujarEn(pistasV, i, `${a.indice}:s`);
+    if (j - 1 !== i) {
+      empujarEn(pistasV, j - 1, `${a.indice}:e`);
+      const r = filaDe.get(a.desde)!;
+      const s = filaDe.get(a.hasta)!;
+      plan.huecoH = s < r ? r : r + 1;
+      empujarEn(pistasH, plan.huecoH, `${a.indice}`);
+    }
+    reservarEtiqueta(j - 1, original(a).etiqueta);
+    planes.push(plan);
+  }
+  for (const a of de("TF", "BF")) {
+    const g = a.clase === "TF" ? 0 : numFilas;
+    const haciaFlujo = capa(a.hasta) === "flujo";
+    const nodoFlujo = haciaFlujo ? a.hasta : a.desde;
+    const k = haciaFlujo ? columna.get(nodoFlujo)! - 1 : columna.get(nodoFlujo)!;
+    empujarEn(pistasV, k, `${a.indice}:${haciaFlujo ? "e" : "s"}`);
+    empujarEn(pistasH, g, `${a.indice}`);
+    reservarEtiqueta(k, original(a).etiqueta);
+    planes.push({ a, huecoH: g, huecoEtiqueta: k, ...(haciaFlujo ? { huecoEntrada: k } : { huecoSalida: k }) });
+  }
+
+  /* ── 4. Eje u ── */
+
+  const anchoColumna = Array.from({ length: numColumnas }, (_, c) =>
+    Math.max(0, ...flujo.filter((n) => columna.get(n.id) === c).map((n) => tam(n.id).ancho)),
+  );
+  const anchoHueco = (k: number) =>
+    Math.max(56, 32 + (pistasV.get(k)?.length ?? 0) * PASO, (etiquetaMaxEnHueco.get(k) ?? 0) + 24);
+  const inicioHueco = new Map<number, number>();
+  const inicioColumna: number[] = [];
+  let u = lead;
+  inicioHueco.set(-1, u);
+  u += anchoHueco(-1);
+  for (let c = 0; c < numColumnas; c++) {
+    inicioColumna[c] = u;
+    u += anchoColumna[c];
+    inicioHueco.set(c, u);
+    u += anchoHueco(c);
+  }
+  const finFlujoU = u;
+  const pistaU = (k: number, clave: string) => {
+    const lista = pistasV.get(k)!;
+    const t = lista.indexOf(clave);
+    return inicioHueco.get(k)! + anchoHueco(k) / 2 + (t - (lista.length - 1) / 2) * PASO;
+  };
+  const centroHuecoU = (k: number) => inicioHueco.get(k)! + anchoHueco(k) / 2;
+
+  /* ── 5. Eje v ── */
+
   const tt = de("TT");
   const bb = de("BB");
   const tb = de("TB");
-
-  const banda = (id: string) => capa(id) as "transversal" | "base";
-  const lead = hayBandas ? (derecha ? 148 : 44) : 0;
-  const tam = (id: string) => {
-    const m = medidas.get(id)!;
-    return derecha ? m : { ancho: m.alto, alto: m.ancho };
-  };
-  const altoFila = (nodos: NodoProceso[]) => Math.max(0, ...nodos.map((n) => tam(n.id).alto));
-
-  // Eje v. Las etiquetas de las aristas entre bandas van en una franja propia, por fuera de los canales.
   const grosorEtiqueta = (a: AristaClasificada) => {
-    const texto = aristaOriginal(a).etiqueta;
-    if (!texto) return 0;
-    const m = medirEtiqueta(texto);
-    return (derecha ? m.alto : m.ancho) + 4;
+    const texto = original(a).etiqueta;
+    return texto ? tamEtiqueta(texto).alto + 4 : 0;
   };
-  const etiquetasEn = (b: "transversal" | "base") =>
-    Math.max(0, ...[...tt, ...bb, ...tb].filter((a) => banda(a.desde) === b).map(grosorEtiqueta));
+  const extraT = Math.max(0, ...[...tt, ...tb].filter((a) => banda(a.desde) === "transversal").map(grosorEtiqueta));
+  const extraB = Math.max(0, ...[...bb, ...tb].filter((a) => banda(a.desde) === "base").map(grosorEtiqueta));
   const canalesT = tt.length + tb.length;
   const canalesB = bb.length + tb.length;
-  const extraT = etiquetasEn("transversal");
-  const extraB = etiquetasEn("base");
-  const vT0 = 0;
-  const filaT = vT0 + MARGEN + extraT + canalesT * PASO_CANAL;
+  const altoFila = (nodos: NodoProceso[]) => Math.max(0, ...nodos.map((n) => tam(n.id).alto));
+
+  const filaT = MARGEN + extraT + canalesT * PASO;
   const vT1 = hayT ? filaT + altoFila(transversales) + MARGEN : 0;
-  const vF0 = hayT ? vT1 + MARGEN + Math.max(1, tf.length) * PASO_CANAL + MARGEN : 0;
-  const vF1 = vF0 + tamFlujo.alto;
-  const vB0 = hayB ? vF1 + MARGEN + Math.max(1, bf.length) * PASO_CANAL + MARGEN : vF1;
+  let v = vT1;
+
+  const altoHuecoH = (g: number) => 2 * RELLENO_CARRIL + 20 + (pistasH.get(g)?.length ?? 0) * PASO;
+  const inicioHuecoH: number[] = [];
+  const inicioFila: number[] = [];
+  const altoDeFila: number[] = [];
+  const pilas = new Map<string, NodoProceso[]>();
+  filas.forEach((f, r) => {
+    for (const n of [...f.nodos].sort((x, y) => orden.get(x.id)! - orden.get(y.id)!)) {
+      empujarEn(pilas, `${r}|${columna.get(n.id)}`, n);
+    }
+  });
+  const altoPila = (nodos: NodoProceso[]) =>
+    nodos.reduce((s, n) => s + tam(n.id).alto, 0) + SEPARACION_APILADOS * Math.max(0, nodos.length - 1);
+  if (numFilas > 0) {
+    for (let r = 0; r <= numFilas; r++) {
+      inicioHuecoH[r] = v;
+      v += altoHuecoH(r);
+      if (r === numFilas) break;
+      inicioFila[r] = v;
+      altoDeFila[r] = Math.max(0, ...Array.from({ length: numColumnas }, (_, c) => altoPila(pilas.get(`${r}|${c}`) ?? [])));
+      v += altoDeFila[r];
+    }
+  }
+  const finFlujoV = v;
+  const vFlujoInicio = numFilas ? inicioHuecoH[0] : v;
+  const pistaV = (g: number, clave: string) => {
+    const lista = pistasH.get(g)!;
+    const t = lista.indexOf(clave);
+    return inicioHuecoH[g] + altoHuecoH(g) / 2 + (t - (lista.length - 1) / 2) * PASO;
+  };
+  const vB0 = v;
   const filaB = vB0 + MARGEN;
   const finFilaB = filaB + altoFila(bases);
-  const vB1 = hayB ? finFilaB + MARGEN + canalesB * PASO_CANAL + extraB + MARGEN : vF1;
+  const vB1 = finFilaB + MARGEN + canalesB * PASO + extraB + MARGEN;
 
-  const uF0 = lead;
-  const moverFlujo = (p: Punto): Punto => ({ x: p.x + uF0, y: p.y + vF0 });
-  const moverCaja = <T extends Caja>(c: T): T => ({ ...c, x: c.x + uF0, y: c.y + vF0 });
+  /* ── 6. Cajas ── */
 
   const cajas = new Map<string, Caja>();
-  for (const [id, c] of cajasFlujo) cajas.set(id, moverCaja(c));
+  for (const [clave, nodos] of pilas) {
+    const [r, c] = clave.split("|").map(Number);
+    let cursor = inicioFila[r] + (altoDeFila[r] - altoPila(nodos)) / 2;
+    for (const n of nodos) {
+      const t = tam(n.id);
+      cajas.set(n.id, { x: inicioColumna[c] + (anchoColumna[c] - t.ancho) / 2, y: cursor, ancho: t.ancho, alto: t.alto });
+      cursor += t.alto + SEPARACION_APILADOS;
+    }
+  }
 
-  // Eje u de cada banda: cada nodo, lo más cerca posible de los puertos con los que habla.
-  const colocarBanda = (nodos: NodoProceso[], conFlujo: AristaClasificada[], fila: number, altoDeFila: number) => {
+  const centroColumna = (id: string) => inicioColumna[columna.get(id)!] + anchoColumna[columna.get(id)!] / 2;
+  const colocarBanda = (nodos: NodoProceso[], fila: number) => {
+    const altoDeLaFila = altoFila(nodos);
     const deseado = new Map<string, number>();
     for (const n of nodos) {
-      const us = conFlujo
+      const us = de("TF", "BF")
         .filter((a) => a.desde === n.id || a.hasta === n.id)
-        .map((a) => puertosCanon.get(`puerto:${a.indice}`))
-        .filter((p): p is Punto => Boolean(p))
-        .map((p) => p.x + uF0);
-      if (us.length) deseado.set(n.id, us.reduce((s, u) => s + u, 0) / us.length);
+        .map((a) => centroColumna(a.desde === n.id ? a.hasta : a.desde));
+      if (us.length) deseado.set(n.id, us.reduce((s, x) => s + x, 0) / us.length);
     }
-    const orden = nodos
+    const lista = nodos
       .map((n, i) => ({ n, i, d: deseado.get(n.id) }))
-      .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity) || a.i - b.i);
+      // Los que no hablan con el flujo, al principio: así no alargan la banda por la derecha.
+      .sort((a, b) => (a.d ?? -Infinity) - (b.d ?? -Infinity) || a.i - b.i);
     let cursor = lead + MARGEN;
-    for (const { n, d } of orden) {
-      const { ancho, alto } = tam(n.id);
-      const u = Math.max(cursor, d === undefined ? cursor : d - ancho / 2);
-      cajas.set(n.id, { x: u, y: fila + (altoDeFila - alto) / 2, ancho, alto });
-      cursor = u + ancho + SEPARACION_BANDA;
+    for (const { n, d } of lista) {
+      const t = tam(n.id);
+      const x = Math.max(cursor, d === undefined ? cursor : d - t.ancho / 2);
+      cajas.set(n.id, { x, y: fila + (altoDeLaFila - t.alto) / 2, ancho: t.ancho, alto: t.alto });
+      cursor = x + t.ancho + SEPARACION_BANDA;
     }
     return cursor - SEPARACION_BANDA;
   };
-  const finT = hayT ? colocarBanda(transversales, tf, filaT, altoFila(transversales)) : 0;
-  const finB = hayB ? colocarBanda(bases, bf, filaB, altoFila(bases)) : 0;
+  const finT = hayT ? colocarBanda(transversales, filaT) : 0;
+  const finB = hayB ? colocarBanda(bases, filaB) : 0;
+  const finContenido = Math.max(finFlujoU, finT + MARGEN, finB + MARGEN);
+  const canalLateral = (j: number) => finContenido + MARGEN + j * PASO;
+  const anchoTotal = tb.length ? canalLateral(tb.length - 1) + MARGEN : finContenido;
+  const altoTotal = hayB ? vB1 : finFlujoV;
 
-  const uFin = Math.max(uF0 + tamFlujo.ancho, finT + MARGEN, finB + MARGEN);
-  const uCanalLateral = (j: number) => uFin + MARGEN + j * PASO_CANAL;
-  const anchoTotal = tb.length ? uCanalLateral(tb.length - 1) + MARGEN : uFin;
-  const altoTotal = hayB ? vB1 : vF1;
+  /* ── 7. Enganches: varias aristas por el mismo lado se reparten a lo largo del lado ── */
 
-  // Puntos de enganche: varias aristas por el mismo lado de un nodo se reparten a lo largo del lado.
-  type Lado = "antes" | "despues"; // v mínima o v máxima de la caja
+  type Lado = "entrada" | "salida" | "antes" | "despues";
   const enganches = new Map<string, { clave: string; hacia: number }[]>();
-  const pedirEnganche = (nodo: string, lado: Lado, clave: string, hacia: number) => {
-    const k = `${nodo}|${lado}`;
-    if (!enganches.has(k)) enganches.set(k, []);
-    enganches.get(k)!.push({ clave, hacia });
-  };
+  const pedir = (nodo: string, lado: Lado, clave: string, hacia: number) =>
+    empujarEn(enganches, `${nodo}|${lado}`, { clave, hacia });
   const enganche = (nodo: string, lado: Lado, clave: string): Punto => {
     const lista = [...enganches.get(`${nodo}|${lado}`)!].sort((a, b) => a.hacia - b.hacia);
     const k = lista.findIndex((e) => e.clave === clave);
     const c = cajas.get(nodo)!;
-    return { x: c.x + (c.ancho * (k + 1)) / (lista.length + 1), y: lado === "antes" ? c.y : c.y + c.alto };
+    const f = (k + 1) / (lista.length + 1);
+    if (lado === "entrada") return { x: c.x, y: c.y + c.alto * f };
+    if (lado === "salida") return { x: c.x + c.ancho, y: c.y + c.alto * f };
+    return { x: c.x + c.ancho * f, y: lado === "antes" ? c.y : c.y + c.alto };
   };
+  const centro = (id: string) => {
+    const c = cajas.get(id)!;
+    return { x: c.x + c.ancho / 2, y: c.y + c.alto / 2 };
+  };
+  const exterior = (id: string): Lado => (banda(id) === "transversal" ? "antes" : "despues");
+  const interior = (id: string): Lado => (banda(id) === "transversal" ? "despues" : "antes");
 
-  const centroU = (id: string) => cajas.get(id)!.x + cajas.get(id)!.ancho / 2;
-  const ladoExterior = (id: string): Lado => (banda(id) === "transversal" ? "antes" : "despues");
-  const ladoInterior = (id: string): Lado => (banda(id) === "transversal" ? "despues" : "antes");
-
-  for (const a of [...tf, ...bf]) {
-    const nodoBanda = capa(a.desde) === "flujo" ? a.hasta : a.desde;
-    const p = puertosCanon.get(`puerto:${a.indice}`);
-    pedirEnganche(nodoBanda, ladoInterior(nodoBanda), `a${a.indice}`, (p?.x ?? 0) + uF0);
+  for (const { a } of planes) {
+    if (capa(a.desde) === "flujo") pedir(a.desde, "salida", `${a.indice}`, centro(a.hasta).y);
+    else pedir(a.desde, interior(a.desde), `${a.indice}`, centro(a.hasta).x);
+    if (capa(a.hasta) === "flujo") pedir(a.hasta, "entrada", `${a.indice}`, centro(a.desde).y);
+    else pedir(a.hasta, interior(a.hasta), `${a.indice}`, centro(a.desde).x);
   }
   for (const a of [...tt, ...bb, ...tb]) {
-    pedirEnganche(a.desde, ladoExterior(a.desde), `a${a.indice}:o`, a.clase === "TB" ? Infinity : centroU(a.hasta));
-    pedirEnganche(a.hasta, ladoExterior(a.hasta), `a${a.indice}:d`, a.clase === "TB" ? Infinity : centroU(a.desde));
+    pedir(a.desde, exterior(a.desde), `${a.indice}`, a.clase === "TB" ? Infinity : centro(a.hasta).x);
+    pedir(a.hasta, exterior(a.hasta), `${a.indice}`, a.clase === "TB" ? Infinity : centro(a.desde).x);
   }
 
-  const lineaCanalT = (i: number) => vT0 + MARGEN + extraT + i * PASO_CANAL;
-  const lineaCanalB = (i: number) => finFilaB + MARGEN + i * PASO_CANAL;
-  const lineaHuecoT = (i: number) => vT1 + MARGEN + i * PASO_CANAL;
-  const lineaHuecoB = (i: number) => vF1 + MARGEN + i * PASO_CANAL;
+  /* ── 8. Rutas ── */
 
-  const aristasCanon: AristaDistribuida[] = [];
+  const resultado: AristaDistribuida[] = [];
+  const etiquetasPorHueco = new Map<number, EtiquetaDistribuida[]>();
   const empujar = (a: AristaClasificada, puntos: Punto[], etiqueta?: EtiquetaDistribuida) => {
-    const original = aristaOriginal(a);
-    aristasCanon.push({
+    const o = original(a);
+    resultado.push({
       id: `arista:${a.indice}`,
       desde: a.desde,
       hasta: a.hasta,
       puntos: limpiarPoligonal(puntos),
       etiqueta,
-      estilo: original.estilo ?? "continua",
-      animada: Boolean(original.animada),
+      estilo: o.estilo ?? "continua",
+      animada: Boolean(o.animada),
+      transversal: a.clase !== "flujo",
     });
   };
 
-  for (const a of de("flujo")) {
-    const s = seccionesElk.get(`arista:${a.indice}`);
-    if (!s) continue;
-    empujar(a, s.puntos.map(moverFlujo), s.etiqueta && moverCaja(s.etiqueta));
+  for (const { a, huecoSalida, huecoEntrada, huecoH, huecoEtiqueta } of planes) {
+    const origenFlujo = capa(a.desde) === "flujo";
+    const destinoFlujo = capa(a.hasta) === "flujo";
+    const o = origenFlujo ? enganche(a.desde, "salida", `${a.indice}`) : enganche(a.desde, interior(a.desde), `${a.indice}`);
+    const d = destinoFlujo ? enganche(a.hasta, "entrada", `${a.indice}`) : enganche(a.hasta, interior(a.hasta), `${a.indice}`);
+    const puntos: Punto[] = [o];
+    if (origenFlujo) {
+      const us = pistaU(huecoSalida!, `${a.indice}:s`);
+      puntos.push({ x: us, y: o.y });
+      if (huecoH !== undefined) {
+        const vh = pistaV(huecoH, `${a.indice}`);
+        puntos.push({ x: us, y: vh });
+        if (destinoFlujo) {
+          const ue = pistaU(huecoEntrada!, `${a.indice}:e`);
+          puntos.push({ x: ue, y: vh }, { x: ue, y: d.y });
+        } else {
+          puntos.push({ x: d.x, y: vh });
+        }
+      } else {
+        puntos.push({ x: us, y: d.y });
+      }
+    } else {
+      const vh = pistaV(huecoH!, `${a.indice}`);
+      const ue = pistaU(huecoEntrada!, `${a.indice}:e`);
+      puntos.push({ x: o.x, y: vh }, { x: ue, y: vh }, { x: ue, y: d.y });
+    }
+    puntos.push(d);
+
+    const texto = original(a).etiqueta;
+    let etiqueta: EtiquetaDistribuida | undefined;
+    if (texto && huecoEtiqueta !== undefined) {
+      const t = tamEtiqueta(texto);
+      const ancla = destinoFlujo ? d.y : o.y;
+      etiqueta = { texto, x: centroHuecoU(huecoEtiqueta) - t.ancho / 2, y: ancla - t.alto - 3, ancho: t.ancho, alto: t.alto };
+      empujarEn(etiquetasPorHueco, huecoEtiqueta, etiqueta);
+    }
+    empujar(a, puntos, etiqueta);
   }
 
-  const ordenarHueco = (lista: AristaClasificada[]) =>
-    [...lista].sort(
-      (x, y) => (puertosCanon.get(`puerto:${x.indice}`)?.x ?? 0) - (puertosCanon.get(`puerto:${y.indice}`)?.x ?? 0),
-    );
-  ordenarHueco(tf).forEach((a, i) => rutaHaciaFlujo(a, lineaHuecoT(i)));
-  ordenarHueco(bf).forEach((a, i) => rutaHaciaFlujo(a, lineaHuecoB(i)));
-
-  function rutaHaciaFlujo(a: AristaClasificada, lineaV: number) {
-    const s = seccionesElk.get(`arista:${a.indice}`);
-    if (!s || s.puntos.length === 0) return;
-    const dentro = s.puntos.map(moverFlujo);
-    const desdeBanda = capa(a.desde) !== "flujo";
-    const nodoBanda = desdeBanda ? a.desde : a.hasta;
-    const e = enganche(nodoBanda, ladoInterior(nodoBanda), `a${a.indice}`);
-    const puerto = desdeBanda ? dentro[0] : dentro[dentro.length - 1];
-    const fuera = [e, { x: e.x, y: lineaV }, { x: puerto.x, y: lineaV }, puerto];
-    empujar(
-      a,
-      desdeBanda ? [...fuera, ...dentro.slice(1)] : [...dentro.slice(0, -1), ...fuera.reverse()],
-      s.etiqueta && moverCaja(s.etiqueta),
-    );
+  // Etiquetas de un mismo hueco: sin pisarse entre sí y dentro de la franja del flujo.
+  for (const lista of etiquetasPorHueco.values()) {
+    lista.sort((x, y) => x.y - y.y);
+    let tope = vFlujoInicio;
+    for (const e of lista) {
+      e.y = Math.max(e.y, tope);
+      tope = e.y + e.alto + 2;
+    }
+    let suelo = finFlujoV;
+    for (const e of [...lista].reverse()) {
+      e.y = Math.min(e.y, suelo - e.alto);
+      suelo = e.y - 2;
+    }
   }
 
+  const lineaCanalT = (i: number) => MARGEN + extraT + i * PASO;
+  const lineaCanalB = (i: number) => finFilaB + MARGEN + i * PASO;
   let iT = 0;
   let iB = 0;
   for (const a of [...tt, ...bb]) {
     const linea = a.clase === "TT" ? lineaCanalT(iT++) : lineaCanalB(iB++);
-    const o = enganche(a.desde, ladoExterior(a.desde), `a${a.indice}:o`);
-    const d = enganche(a.hasta, ladoExterior(a.hasta), `a${a.indice}:d`);
-    const puntos = [o, { x: o.x, y: linea }, { x: d.x, y: linea }, d];
-    empujar(a, puntos, etiquetaEnCanal(aristaOriginal(a).etiqueta, puntos[1], puntos[2], banda(a.desde), derecha));
+    const o = enganche(a.desde, exterior(a.desde), `${a.indice}`);
+    const d = enganche(a.hasta, exterior(a.hasta), `${a.indice}`);
+    empujar(
+      a,
+      [o, { x: o.x, y: linea }, { x: d.x, y: linea }, d],
+      etiquetaEnCanal(original(a).etiqueta, o.x, d.x, linea, banda(a.desde), tamEtiqueta),
+    );
   }
   tb.forEach((a, j) => {
     const lineaO = banda(a.desde) === "transversal" ? lineaCanalT(iT++) : lineaCanalB(iB++);
     const lineaD = banda(a.hasta) === "transversal" ? lineaCanalT(iT++) : lineaCanalB(iB++);
-    const lateral = uCanalLateral(j);
-    const o = enganche(a.desde, ladoExterior(a.desde), `a${a.indice}:o`);
-    const d = enganche(a.hasta, ladoExterior(a.hasta), `a${a.indice}:d`);
-    const puntos = [o, { x: o.x, y: lineaO }, { x: lateral, y: lineaO }, { x: lateral, y: lineaD }, { x: d.x, y: lineaD }, d];
-    empujar(a, puntos, etiquetaEnCanal(aristaOriginal(a).etiqueta, puntos[1], puntos[2], banda(a.desde), derecha));
+    const lateral = canalLateral(j);
+    const o = enganche(a.desde, exterior(a.desde), `${a.indice}`);
+    const d = enganche(a.hasta, exterior(a.hasta), `${a.indice}`);
+    empujar(
+      a,
+      [o, { x: o.x, y: lineaO }, { x: lateral, y: lineaO }, { x: lateral, y: lineaD }, { x: d.x, y: lineaD }, d],
+      etiquetaEnCanal(original(a).etiqueta, o.x, lateral, lineaO, banda(a.desde), tamEtiqueta),
+    );
   });
 
-  const bandasCanon: BandaDistribuida[] = [];
+  /* ── 9. Carriles y bandas ── */
+
+  const carriles: CarrilDistribuido[] = [];
+  if (conCarriles) {
+    filas.forEach((f, r) => {
+      if (!f.grupo) return;
+      carriles.push({
+        id: f.grupo,
+        etiqueta: opciones.grupos?.find((g) => g.id === f.grupo)?.etiqueta ?? f.grupo,
+        x: MARGEN / 2,
+        y: inicioFila[r] - RELLENO_CARRIL,
+        ancho: finFlujoU - MARGEN / 2,
+        alto: altoDeFila[r] + 2 * RELLENO_CARRIL,
+      });
+    });
+  }
+
   const etiquetaBanda = (c: "transversal" | "base") =>
     opciones.etiquetasBandas?.[c] ?? (c === "transversal" ? "Transversal" : "Base");
+  // El título se da ya en coordenadas reales.
   const tituloBanda = (v0: number, v1: number): Caja =>
     derecha
       ? { x: MARGEN / 2, y: v0 + MARGEN / 2, ancho: lead - MARGEN, alto: v1 - v0 - MARGEN }
-      : { x: v0 + MARGEN / 2, y: MARGEN / 2, ancho: v1 - v0 - MARGEN, alto: lead - MARGEN }; // ya traspuesto: ver abajo
+      : { x: v0 + MARGEN / 2, y: MARGEN / 2, ancho: v1 - v0 - MARGEN, alto: lead - MARGEN };
+  const bandas: BandaDistribuida[] = [];
   if (hayT) {
-    bandasCanon.push({ capa: "transversal", etiqueta: etiquetaBanda("transversal"), x: 0, y: vT0, ancho: anchoTotal, alto: vT1 - vT0, titulo: tituloBanda(vT0, vT1) });
+    bandas.push({ capa: "transversal", etiqueta: etiquetaBanda("transversal"), x: 0, y: 0, ancho: anchoTotal, alto: vT1, titulo: tituloBanda(0, vT1) });
   }
   if (hayB) {
-    bandasCanon.push({ capa: "base", etiqueta: etiquetaBanda("base"), x: 0, y: vB0, ancho: anchoTotal, alto: vB1 - vB0, titulo: tituloBanda(vB0, vB1) });
+    bandas.push({ capa: "base", etiqueta: etiquetaBanda("base"), x: 0, y: vB0, ancho: anchoTotal, alto: vB1 - vB0, titulo: tituloBanda(vB0, vB1) });
   }
 
-  /* ── 3. De vuelta a coordenadas reales ── */
+  /* ── 10. A coordenadas reales ── */
 
   const real = <T extends Caja>(c: T): T => (derecha ? c : trasponerCaja(c));
   const realP = (p: Punto): Punto => (derecha ? p : trasponerPunto(p));
-
   const nodos: NodoDistribuido[] = hijos
     .filter((n) => cajas.has(n.id))
-    .map((n) => {
-      const c = real(cajas.get(n.id)!);
-      return { id: n.id, capa: capa(n.id), grupo: n.grupo, x: c.x, y: c.y, ancho: c.ancho, alto: c.alto };
-    });
+    .map((n) => ({ id: n.id, capa: capa(n.id), grupo: n.grupo, ...real(cajas.get(n.id)!) }));
 
   return {
     ancho: Math.ceil(derecha ? anchoTotal : altoTotal),
     alto: Math.ceil(derecha ? altoTotal : anchoTotal),
     direccion,
     nodos,
-    carriles: carrilesCanon.map((c) => real(moverCaja(c))),
-    // El título ya se calculó en coordenadas reales; el resto de la banda se traspone.
-    bandas: bandasCanon.map((b) => ({ ...real(b), titulo: b.titulo })),
-    aristas: aristasCanon.map((a) => ({
-      ...a,
-      puntos: a.puntos.map(realP),
-      etiqueta: a.etiqueta && (derecha ? a.etiqueta : { ...a.etiqueta, ...sinTexto(real(a.etiqueta)) }),
-    })),
+    carriles: carriles.map(real),
+    bandas: bandas.map((b) => ({ ...real(b), titulo: b.titulo })),
+    aristas: resultado.map((a) => ({ ...a, puntos: a.puntos.map(realP), etiqueta: a.etiqueta && real(a.etiqueta) })),
   };
 }
 
 /* ─────────────────────────────── Auxiliares ─────────────────────────────── */
 
 /**
- * Perfiles de opciones que se prueban en orden.
- *
- * El primero acorta las aristas largas tras colocar los nodos (con el Mapa de
- * CoreLink, 2.744 → 2.156 px de ancho). Pero ELK (elkjs 0.12) aborta con
- * algunas combinaciones de opciones y grafos concretos —medido: este perfil
- * rompe con el contexto C4 de ejemplo, y `NETWORK_SIMPLEX` o `PREFER_NODES`
- * rompen con el Mapa de CoreLink—, y no hay una combinación compacta que valga
- * para todos. Si un perfil falla se prueba el siguiente; el último es el de
- * fábrica, menos compacto pero el más probado.
+ * Etapa (columna) y orden de cada proceso de flujo según ELK `layered`. Las
+ * capas se leen de las coordenadas: los nodos cuyos intervalos a lo largo del
+ * flujo se solapan están en la misma capa.
  */
-export const PERFILES_ELK: readonly Record<string, string>[] = [
-  { "elk.layered.considerModelOrder.strategy": "PREFER_EDGES", "elk.layered.compaction.postCompaction.strategy": "EDGE_LENGTH" },
-  { "elk.layered.considerModelOrder.strategy": "NONE", "elk.layered.compaction.postCompaction.strategy": "NONE" },
-];
-
-async function distribuirConRespaldo(motor: MotorDistribucion, grafo: ElkNode): Promise<ElkNode> {
-  let primerError: unknown;
-  for (const perfil of PERFILES_ELK) {
-    const intento = structuredClone(grafo);
-    const aplicar = (n: ElkNode) => {
-      if (n.layoutOptions) Object.assign(n.layoutOptions, perfil);
-      n.children?.forEach(aplicar);
-    };
-    aplicar(intento);
-    try {
-      return await motor.layout(intento);
-    } catch (error) {
-      primerError ??= error;
+async function columnasConElk(
+  flujo: NodoProceso[],
+  aristas: AristaClasificada[],
+  medidas: Map<string, { ancho: number; alto: number }>,
+  motor: MotorDistribucion,
+): Promise<{ columna: Map<string, number>; orden: Map<string, number> }> {
+  const columna = new Map<string, number>();
+  const orden = new Map<string, number>();
+  if (flujo.length === 0) return { columna, orden };
+  const resultado = await motor.layout({
+    id: "capas",
+    layoutOptions: {
+      "elk.algorithm": "layered",
+      "elk.direction": "RIGHT",
+      "elk.spacing.nodeNode": "24",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "48",
+    },
+    children: flujo.map((n) => ({ id: n.id, width: medidas.get(n.id)!.ancho, height: medidas.get(n.id)!.alto })),
+    edges: aristas.map((a) => ({ id: `a${a.indice}`, sources: [a.desde], targets: [a.hasta] })),
+  });
+  const cajas = (resultado.children ?? [])
+    .map((c) => ({ id: c.id, x: c.x ?? 0, fin: (c.x ?? 0) + (c.width ?? 0), y: c.y ?? 0 }))
+    .sort((a, b) => a.x - b.x);
+  let capa = -1;
+  let finCapa = -Infinity;
+  for (const c of cajas) {
+    if (c.x >= finCapa - 0.5) {
+      capa++;
+      finCapa = c.fin;
+    } else {
+      finCapa = Math.max(finCapa, c.fin);
     }
+    columna.set(c.id, capa);
+    orden.set(c.id, c.y);
   }
-  throw primerError;
-}
-
-function dimensionesElk(m: { ancho: number; alto: number }) {
-  return { width: m.ancho, height: m.alto };
-}
-
-function cajaElk(n: { x?: number; y?: number; width?: number; height?: number }): Caja {
-  return { x: n.x ?? 0, y: n.y ?? 0, ancho: n.width ?? 0, alto: n.height ?? 0 };
-}
-
-function sinTexto(c: Caja): Caja {
-  return { x: c.x, y: c.y, ancho: c.ancho, alto: c.alto };
-}
-
-function recogerAristas(nodo: ElkNode): ElkExtendedEdge[] {
-  return [...(nodo.edges ?? []), ...(nodo.children ?? []).flatMap(recogerAristas)];
+  return { columna, orden };
 }
 
 /** Quita puntos repetidos y los intermedios alineados, para que la poligonal quede mínima. */
@@ -554,22 +594,19 @@ export function limpiarPoligonal(puntos: Punto[]): Punto[] {
 }
 
 /**
- * Etiqueta de una arista entre bandas, junto a su tramo de canal (canónico) y
- * del lado de fuera: en la banda transversal, antes de la línea; en la base,
- * después. Así nunca queda entre el canal y la fila de nodos.
+ * Etiqueta de una arista entre bandas, junto a su tramo de canal y del lado de
+ * fuera: en la banda transversal antes de la línea, en la base después.
  */
 function etiquetaEnCanal(
   texto: string | undefined,
-  a: Punto,
-  b: Punto,
+  u0: number,
+  u1: number,
+  linea: number,
   banda: "transversal" | "base",
-  derecha: boolean,
+  medir: (texto: string) => { ancho: number; alto: number },
 ): EtiquetaDistribuida | undefined {
   if (!texto) return undefined;
-  const m = medirEtiqueta(texto);
-  // En canónico, con dirección «abajo», el ancho del texto corre a lo largo de v.
-  const largoU = derecha ? m.ancho : m.alto;
-  const grosorV = derecha ? m.alto : m.ancho;
-  const v = banda === "transversal" ? a.y - 2 - grosorV : a.y + 2;
-  return { texto, x: (a.x + b.x) / 2 - largoU / 2, y: v, ancho: largoU, alto: grosorV };
+  const t = medir(texto);
+  const v = banda === "transversal" ? linea - 2 - t.alto : linea + 2;
+  return { texto, x: (u0 + u1) / 2 - t.ancho / 2, y: v, ancho: t.ancho, alto: t.alto };
 }
