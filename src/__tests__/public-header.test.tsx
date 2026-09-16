@@ -94,4 +94,68 @@ describe("PublicHeader", () => {
     expect(screen.getByText("Personas")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Empresas" }).length).toBeGreaterThan(0);
   });
+
+  it("sin mobileNav no pinta un botón de menú vacío (#187)", () => {
+    render(<PublicHeader logoSrc="/logo.svg" brandName="Lynx" desktopNav={<a href="#modulos">Módulos</a>} />);
+    expect(screen.queryByRole("button", { name: "Abrir menú" })).not.toBeInTheDocument();
+  });
+
+  it("two-rows: repite la navegación y las acciones en una segunda fila móvil", () => {
+    const { container } = render(
+      <PublicHeader
+        logoSrc="/logo.svg"
+        brandName="CoreLink"
+        desktopNav={<a href="#modulos">Módulos</a>}
+        actions={<a href="/login">Login</a>}
+      />,
+    );
+    const fila = container.querySelector('[data-part="second-row"]');
+    expect(fila).not.toBeNull();
+    expect(fila).toHaveTextContent("Módulos");
+    expect(fila).toHaveTextContent("Login");
+  });
+
+  it("actions-only: las acciones quedan visibles en móvil y no hay segunda fila", () => {
+    const { container } = render(
+      <PublicHeader
+        logoSrc="/logo.svg"
+        brandName="Lynx"
+        mobileLayout="actions-only"
+        desktopNav={<a href="#modulos">Módulos</a>}
+        actions={<a href="/entrar">Entrar</a>}
+      />,
+    );
+    expect(container.querySelector('[data-part="second-row"]')).toBeNull();
+    expect(container.querySelector('[data-part="actions"]')).not.toHaveClass("hidden");
+  });
+
+  it("menu: las acciones aparecen dentro del panel móvil al abrirlo", async () => {
+    const user = userEvent.setup();
+    render(
+      <PublicHeader
+        logoSrc="/logo.svg"
+        brandName="Deliver"
+        desktopNav={null}
+        mobileNav={<a href="#canales">Canales</a>}
+        actions={<a href="/estimar">Estimar mi plan</a>}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    expect(screen.getByRole("button", { name: "Cerrar menú" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getAllByRole("link", { name: "Estimar mi plan" })).toHaveLength(2);
+  });
+
+  it("labels traduce los textos accesibles", () => {
+    render(
+      <PublicHeader
+        logoSrc="/logo.svg"
+        brandName="Piensa IT"
+        desktopNav={<a href="/services">Services</a>}
+        mobileNav={<a href="/services">Services</a>}
+        labels={{ openMenu: "Open menu", mainNav: "Main navigation" }}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Open menu" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
+  });
 });

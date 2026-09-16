@@ -60,10 +60,13 @@ const packed = JSON.parse(
 const publishedFiles = new Set(packed.files.map((file) => file.path));
 const requiredFiles = [
   "dist/index.d.ts",
+  "dist/diagramas.d.ts",
   "dist/style.css",
   "dist/fonts.css",
   "dist/esm/index.js",
   "dist/cjs/index.cjs",
+  "dist/esm/diagramas.js",
+  "dist/cjs/diagramas.cjs",
   "tailwind-preset.js",
 ];
 const missingFiles = requiredFiles.filter((file) => !publishedFiles.has(file));
@@ -83,10 +86,13 @@ if (missingFiles.length > 0) {
 // unplugin-dts) eliminó la opción `rollupTypes` sin avisar: la acepta y la
 // ignora en silencio, así que el build "funciona" pero deja de empaquetar.
 // Este chequeo existe para que eso no pase inadvertido otra vez (#57).
-const publishedDtsFiles = [...publishedFiles].filter((file) => file.endsWith(".d.ts"));
-if (publishedDtsFiles.length !== 1 || publishedDtsFiles[0] !== "dist/index.d.ts") {
+// Desde #205 hay un segundo punto de entrada (`/diagramas`), con su propio
+// archivo de tipos empaquetado: se esperan exactamente esos dos.
+const expectedDtsFiles = ["dist/diagramas.d.ts", "dist/index.d.ts"];
+const publishedDtsFiles = [...publishedFiles].filter((file) => file.endsWith(".d.ts")).sort();
+if (publishedDtsFiles.join() !== expectedDtsFiles.join()) {
   throw new Error(
-    `Se esperaba publicar un único archivo de tipos (dist/index.d.ts, generado por ` +
+    `Se esperaba publicar solo ${expectedDtsFiles.join(" y ")} (generados por ` +
       `rollupTypes+api-extractor), pero el paquete publicaría ${publishedDtsFiles.length}: ` +
       `${publishedDtsFiles.slice(0, 10).join(", ")}${publishedDtsFiles.length > 10 ? ", ..." : ""}. ` +
       `Esto pasa si \`rollupTypes\` dejó de aplicarse — por ejemplo, vite-plugin-dts 5.x ya no lo ` +
@@ -190,6 +196,50 @@ if (pruned.libraryBytes > maxButtonBytes) {
 if (full.libraryBytes <= pruned.libraryBytes) {
   throw new Error("La prueba de poda no es concluyente: DatePicker no pesa más que Button.");
 }
+// --- `/diagramas` no se cuela en el índice principal (#205) ---
+// React Flow y ELK son dependencias opcionales: una aplicación que no las
+// instala tiene que poder importar el paquete principal. Se recorre el grafo
+// de módulos publicado desde cada entrada (imports relativos, estáticos y
+// dinámicos) y se anotan los paquetes externos que alcanza.
+function externalPackagesReachedFrom(entry) {
+  const seen = new Set();
+  const packages = new Set();
+  const pending = [path.join(rootPath, entry)];
+  const importRe = /(?:import|export)\s*(?:[^"';]*?\sfrom\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
+  while (pending.length > 0) {
+    const file = pending.pop();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const source = readFileSync(file, "utf8");
+    for (const match of source.matchAll(importRe)) {
+      const specifier = match[1] ?? match[2];
+      if (specifier.startsWith(".")) pending.push(path.resolve(path.dirname(file), specifier));
+      else packages.add(specifier);
+    }
+  }
+  return packages;
+}
+const optionalDiagramDependencies = ["@xyflow/react", "elkjs"];
+const reaches = (packages, dependency) => [...packages].some((id) => id === dependency || id.startsWith(`${dependency}/`));
+const mainPackages = externalPackagesReachedFrom("dist/esm/index.js");
+const leakedDiagramDependencies = optionalDiagramDependencies.filter((dependency) => reaches(mainPackages, dependency));
+if (leakedDiagramDependencies.length > 0) {
+  throw new Error(`El índice principal alcanza dependencias de /diagramas: ${leakedDiagramDependencies.join(", ")}`);
+}
+// Control: desde `/diagramas` sí se alcanzan, o el recorrido no estaría mirando nada.
+const diagramPackages = externalPackagesReachedFrom("dist/esm/diagramas.js");
+const missingDiagramDependencies = optionalDiagramDependencies.filter((dependency) => !reaches(diagramPackages, dependency));
+if (missingDiagramDependencies.length > 0) {
+  throw new Error(
+    `La prueba de /diagramas no es concluyente: no alcanza ${missingDiagramDependencies.join(", ")}.`,
+  );
+}
+for (const dependency of optionalDiagramDependencies) {
+  if (!pkg.peerDependenciesMeta?.[dependency]?.optional) {
+    throw new Error(`${dependency} debe ser una peerDependency opcional.`);
+  }
+}
+
 const esmBytes = packed.files
   .filter((file) => file.path.startsWith("dist/esm/"))
   .reduce((total, file) => total + file.size, 0);

@@ -77,4 +77,23 @@ describe("PublicFooter", () => {
     );
     expect(screen.getByRole("link", { name: "X (Twitter)" })).toHaveAttribute("href", "https://x.com/piensait");
   });
+
+  it("contacto, versión, año fijo y textos en otro idioma (#187)", () => {
+    render(
+      <PublicFooter
+        logoSrc="/logo.svg"
+        brandName="Piensa IT"
+        description="Software that runs large-format retail."
+        contact={[{ label: "Norwalk, Connecticut" }, { label: "info@piensait.com", href: "mailto:info@piensait.com" }]}
+        version="corelink@0.1.436"
+        year={2026}
+        labels={{ contact: "Contact", rightsReserved: "All rights reserved." }}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Contact" })).toBeInTheDocument();
+    expect(screen.getByText("Norwalk, Connecticut")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "info@piensait.com" })).toHaveAttribute("href", "mailto:info@piensait.com");
+    expect(screen.getByText("corelink@0.1.436")).toBeInTheDocument();
+    expect(screen.getByText(/© 2026 Piensa IT\. All rights reserved\./)).toBeInTheDocument();
+  });
 });

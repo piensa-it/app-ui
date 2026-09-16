@@ -8,7 +8,10 @@ class ResizeObserverMock implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverMock
 
-Object.defineProperty(Element.prototype, "scrollTo", {
-  configurable: true,
-  value: () => {},
-})
+// Las pruebas de render de servidor corren en entorno `node`, sin DOM.
+if (typeof Element !== "undefined") {
+  Object.defineProperty(Element.prototype, "scrollTo", {
+    configurable: true,
+    value: () => {},
+  })
+}

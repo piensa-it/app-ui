@@ -151,6 +151,12 @@ activo.
 - TanStack Table y Recharts resuelven tablas y gráficas.
 - Los componentes no hacen fetch ni importan auth, backend o routing.
 - Los textos específicos de una aplicación se reciben por props.
+- Las piezas de marketing (`src/components/marketing/`) se renderizan en el
+  servidor sin `window` ni `document` durante el render, porque las webs
+  públicas se publican prerenderizadas o en Astro. Sus textos fijos,
+  incluidos los accesibles, se reciben por `labels`, porque se publican en
+  inglés y en español. Cada pieza nueva se suma a
+  `src/__tests__/marketing-ssr.test.tsx`.
 - Todo export público sale de `src/index.ts`.
 - Los consumidores importan únicamente desde la raíz del paquete.
 - Los estilos compartidos viven en tokens y recetas; no se duplican entre

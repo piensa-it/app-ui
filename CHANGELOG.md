@@ -6,6 +6,78 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-16
+
+### Added
+
+- **`PublicHeader` sirve para todas las landings de Piensa IT (#187).**
+  - `desktopNav` y `mobileNav` pasan a ser opcionales. Sin `mobileNav` ya no aparece un botón de menú vacío.
+  - `actions`: botones, selector de tema o de idioma a la derecha.
+  - `mobileLayout` define el header en móvil: `menu` (hamburguesa, las acciones dentro del panel), `two-rows` (segunda fila con enlaces y acciones) o `actions-only` (solo las acciones).
+  - `labels` traduce los textos accesibles.
+  - La segunda fila de `two-rows` pasa a otra línea en vez de desplazarse, para que ninguna acción quede fuera de la pantalla.
+  - El botón de menú expone `aria-expanded`.
+- **`PublicFooter`: `contact`, `version`, `year` y `labels` (#187).**
+  - `contact`: una columna de ubicación y medios de contacto.
+  - `version`: la versión de la app en monoespaciada.
+  - `year`: año fijo, para que el HTML prerenderizado no quede con el año del build.
+  - `labels`: los textos «Legal», «Síguenos», «Contacto» y los derechos reservados, para publicarlo en inglés.
+- **Secciones de landing: `Section`, `SectionHeading`, `Eyebrow`, `Highlight` y `FeatureGrid` (#189).**
+  - `Section`: ancho, márgenes y espacio vertical comunes, con `id` como ancla. Tono `default`, `muted` o `inverted` (bloque con los tokens oscuros dentro de una página clara). Fondo `grid`, `glow` o `grid-glow`.
+  - `SectionHeading`: eyebrow, título, subtítulo, acciones y línea de acento.
+  - `Eyebrow`: texto o pastilla con punto o ícono.
+  - `Highlight`: parte de un título en degradado de marca (hacia `--marketing-highlight-to`) o en color de acento, opcionalmente en cursiva.
+  - `FeatureGrid` cubre las rejillas de las cuatro landings con los mismos datos. Variantes `card`, `list`, `joined` y `compact`, de 2 a 5 columnas, con la última fila centrada. Por tarjeta: ícono, numeración, insignia de estado, chip de código, viñetas, etiquetas, pie «etiqueta: valor», tono, atenuada y enlace.
+- **`Hero`, la portada de landing (#188).** Eyebrow, título `h1` con `Highlight`, descripción, acciones, nota bajo los botones, artefacto del producto en `aside` (dos columnas; sin él queda centrada), `footer` a todo el ancho para cifras y fondo decorativo.
+- **Más secciones de landing (#190, #191, #194, #195, #197, #201).**
+  - `PageHero`: cabecera de páginas interiores, sin artefacto.
+  - `StatRow`: cifras con rótulo, acento y divisores. El valor llega formateado, así que el HTML del servidor trae la cifra final.
+  - `ProcessSteps`: «cómo funciona» como lista ordenada «01, 02…» con ícono, horizontal o vertical. No se llama `Steps` para no chocar con un asistente por pasos.
+  - `Checklist`: garantías con check.
+  - `SplitSection`: texto y maqueta del producto lado a lado.
+  - `CtaBanner`: cierre con degradado de marca, rejilla o superficie sobria, con una o dos acciones.
+- **Firma de producto «by Piensa IT» (#184).**
+  - `PublicHeader` y `PublicFooter` aceptan `signature` (`true` o `{ label, logoSrc }`), con el isotipo de Piensa IT incluido (56 px, 2 KB).
+  - `logoSrc` pasa a ser opcional y `brandName` del header acepta nodos.
+  - El enlace de inicio se nombra «<Producto> by Piensa IT».
+  - `ProductSignature` se exporta también suelta.
+- **`ThemeToggle`, `ThemeScript` y `themeScript()` (#200).**
+  - `ThemeToggle` elige entre claro, oscuro y sistema.
+  - Si no es controlado, guarda la elección, aplica `dark` en `<html>` y sigue al sistema en vivo.
+  - `ThemeScript` (Astro) y `themeScript()` (`index.html` en Vite) aplican el tema antes del primer pintado, así la página no parpadea.
+- **`LanguageSwitcher` (#207): selector de idioma para las webs públicas.**
+  - Cada opción es un enlace real con `hreflang`, así que funciona sin JavaScript.
+  - Tiene dos variantes: `segmented` (EN | ES) y `menu` sobre `<details>` nativo.
+  - `onChange` avisa la elección para que el sitio la guarde.
+- **`CodeBlock` (#193).** Código con título, estilo de ventana, pestañas por lenguaje, copiar (anunciado a lectores de pantalla) y números de línea. Todas las pestañas quedan en el HTML. El resaltado es opcional con `highlight` (p. ej. Shiki en el build): la librería no suma un resaltador.
+- **`ContactSection` (#192).** WhatsApp, correo y canales libres en tarjetas, centrado o como lista junto a un formulario. `whatsappHref` y `mailtoHref` arman los enlaces con el mensaje codificado.
+- **`ContactForm` (#203).** Formulario de contacto sin backend propio.
+  - Valida en el navegador, enfoca el primer error y anuncia envío, éxito y error.
+  - No reenvía con doble clic y trae honeypot opcional.
+  - Sin `onSubmit` se envía de forma nativa a `action` (Netlify Forms).
+  - Textos traducibles con `labels`.
+- **`ProductCatalog` (#202).** Catálogo de productos con enlace a cada landing y enlaces secundarios, agrupable por categoría, con estado y tinte del producto (`accent` en canales HSL). La variante `compact` sirve para «Otros productos de Piensa IT».
+- **`PricingPlans` y `PricingTable` (#196).**
+  - `PricingPlans`: planes en tarjetas, con pestañas por categoría, plan destacado con insignia, líneas de detalle y nota.
+  - `PricingTable`: tablas semánticas por rango de volumen, cada grupo con sus columnas, columna de ahorro, grupos a todo el ancho o a media columna, y la cantidad fundida bajo el plan en móvil.
+  - Los precios se formatean con `Intl` y un locale fijo, igual en servidor y navegador.
+- **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
+
+### Fixed
+
+- **`UiProvider` se puede renderizar en el servidor (#183).** `AlertDialogHost` usaba `useSyncExternalStore` sin `getServerSnapshot`, así que cualquier SSR, prerenderizado o isla de Astro que montara `UiProvider` fallaba con «Missing getServerSnapshot». Ya no hace falta montarlo solo después de hidratar. Pruebas nuevas: `renderToString` en entorno `node` (sin DOM), con y sin `density`, e hidratación sin avisos.
+- **`ProcessMap` y `C4Diagram`: procesos por niveles, en un punto de entrada aparte (`@piensa-it/ui-library/diagramas`, #205).** Lo que cada producto dibujaba a mano en SVG —el Mapa de CoreLink con flechas que se montaban sobre los recuadros— pasa a ser una pieza común: la aplicación aporta los datos (`NodoProceso`: `etiqueta`, `subtitulo`, `icono`, `capa`, `grupo`, `hijos`, `aristas`, `enlaces`, `detalle`) y el componente distribuye, enruta y navega.
+  - **Niveles.** Un clic (o Intro/Espacio) en un proceso con `hijos` baja a ellos y el foco pasa al título del nivel; la miga de pan y «Subir de nivel» suben. Un proceso sin `hijos` abre un panel con su `detalle` y sus `enlaces`, que llaman a `onEnlace(href)` (sin `onEnlace` son `<a href>`). Sin estados de hoja de ruta: pinta procesos, no disponibilidad comercial.
+  - **Carriles como filas y columnas compartidas.** Cada `grupo` es una fila, en el orden de `grupos` (columnas con `direccion="abajo"`), y las columnas las decide ELK (`layered`) para todo el nivel: un proceso posterior queda siempre más a la derecha que uno anterior, esté en la fila que esté. Las capas `transversal` y `base` van en bandas antes y después. Las aristas son ortogonales y van solo por los huecos entre filas y entre columnas —que nunca contienen nodos—, cada una por su propia pista. **La prueba que lo fija** (`process-map-layout.test.ts`) distribuye un conjunto equivalente al Mapa de CoreLink —13 nodos, 3 carriles, 17 aristas— en las dos direcciones y comprueba que ningún tramo atraviesa un nodo ajeno, ninguna etiqueta tapa un nodo y ningún par de nodos se solapa, además del orden de filas y columnas; la misma comprobación se exporta como `validarDistribucion` para las pruebas de cada aplicación.
+  - **Se lee el flujo principal.** En el primer nivel, las aristas que tocan las bandas se ocultan hasta pasar el cursor, enfocar o seleccionar un proceso —que se resalta con sus vecinos mientras el resto se atenúa—, o hasta activar «Mostrar todas las conexiones» (`conexionesTransversales="siempre"` las deja fijas).
+  - **Texto legible.** El encuadre inicial nunca baja del zoom en que la etiqueta de un nodo mide 12 px en pantalla; si el nivel no cabe a lo ancho, se alinea al principio y se desplaza arrastrando o con una barra horizontal, con una pista de que hay más a la derecha. Sin `alto`, el lienzo mide lo que el diagrama a ese zoom, sin franjas vacías.
+  - **ELK se carga de forma diferida** (`import()` la primera vez que se distribuye un nivel), en el hilo principal. Para sacarlo a un Web Worker la aplicación pasa `motor={new ELK({ workerFactory })}`: la URL del worker tiene que resolverla el bundler de la aplicación, no la librería publicada.
+  - **Lienzo sobre React Flow** (desplazar, acercar, encuadrar), con tokens de la librería en claro y oscuro. Las aristas llevan etiqueta, trazo continuo o discontinuo y animación opcional (`animado`, o `animada` por arista) que se detiene con `prefers-reduced-motion`. Cada proceso es un `role="button"` con foco visible, y el diagrama tiene una descripción para lector de pantalla con la lista de flujos.
+  - **Por debajo de 860 px, lista de etapas**: el mismo nivel ordenado por el camino más largo, con transversales y base al final, sin cargar ELK.
+  - **Exportar SVG**: un SVG autónomo con los colores del tema vigente (sin iconos).
+  - **`C4Diagram`** es un preajuste: `ElementoC4` con `tipo` persona, sistema, contenedor o componente, `limites` que se pintan como carriles, relaciones con tecnología y trazo discontinuo si son asíncronas; los tres niveles (contexto, contenedores, componentes) salen de anidar `hijos`.
+  - **Dependencias opcionales:** `@xyflow/react` y `elkjs` son `peerDependencies` opcionales. Importar el paquete principal no las toca: el ESM, el CJS y `index.d.ts` del índice salen idénticos byte a byte, y `verify:package` recorre ahora el grafo de módulos publicado para fallar si el índice llega a alcanzarlas. `style.css` sí crece 5,0 KB (las clases de Tailwind de los diagramas viajan en la misma hoja). `verify:contract` recorre también `src/diagramas.ts`.
+
 ## [1.3.0] - 2026-09-12
 
 ### Added

@@ -63,8 +63,11 @@ function storyFileFor(sourceFile) {
   return `${withoutExt}.stories.tsx`;
 }
 
+// `src/diagramas.ts` es el segundo punto de entrada del paquete
+// (`@piensa-it/ui-library/diagramas`, #205): mismo contrato que el índice.
 const indexSource = readFileSync(new URL("src/index.ts", rootUrl), "utf8");
-const namedExports = parseNamedExports(indexSource);
+const diagramasSource = readFileSync(new URL("src/diagramas.ts", rootUrl), "utf8");
+const namedExports = [...parseNamedExports(indexSource), ...parseNamedExports(diagramasSource)];
 // `export * from "./icons"` no declara nombres explícitos: los iconos son
 // re-exports directos de lucide-react y no son componentes propios ni API
 // que vaya a romperse por nuestro lado, así que quedan fuera a propósito.

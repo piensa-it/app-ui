@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PublicHeader } from "./public-header";
 import { Button } from "../ui/button";
+import { ThemeToggle } from "../ui/theme-toggle";
+import { LanguageSwitcher } from "./language-switcher";
 
 // Logo placeholder neutro — cada producto pasa el suyo vía `logoSrc`.
 const placeholderLogo =
@@ -58,6 +60,111 @@ export const ConBadgeYCrossLink: Story = {
   args: {
     badge: "Personas",
     crossLink: { to: "#", label: "¿Tienes una empresa?" },
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+const anclas = (
+  <>
+    <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+      Módulos
+    </a>
+    <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+      Contacto
+    </a>
+  </>
+);
+
+export const DosFilasEnMovil: Story = {
+  name: "Dos filas en móvil (ej. CoreLink, AdapterDian)",
+  args: {
+    mobileNav: undefined,
+    desktopNav: anclas,
+    actions: <Button size="sm">Login</Button>,
+  },
+  parameters: { viewport: { defaultViewport: "mobile1" } },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const SoloAccionesEnMovil: Story = {
+  name: "Solo acciones en móvil (ej. Lynx)",
+  args: {
+    mobileNav: undefined,
+    mobileLayout: "actions-only",
+    desktopNav: anclas,
+    actions: (
+      <>
+        <Button size="sm" variant="outline" className="hidden sm:inline-flex">
+          Agenda tu demo
+        </Button>
+        <Button size="sm">Entrar</Button>
+      </>
+    ),
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const SinNavegacion: Story = {
+  name: "Sin navegación",
+  args: { desktopNav: undefined, mobileNav: undefined },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const EnIngles: Story = {
+  name: "En inglés (labels)",
+  args: {
+    brandName: "Piensa IT",
+    desktopNav: (
+      <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+        Services
+      </a>
+    ),
+    mobileNav: (
+      <a href="#" className="py-2 text-sm text-muted-foreground">
+        Services
+      </a>
+    ),
+    actions: <Button size="sm">Book a call</Button>,
+    labels: { openMenu: "Open menu", closeMenu: "Close menu", mainNav: "Main navigation", mobileNav: "Mobile navigation" },
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const ConFirmaTemaEIdioma: Story = {
+  name: "Con firma, tema e idioma (plantilla de landing)",
+  args: {
+    logoSrc: undefined,
+    brandName: "Deliver",
+    signature: true,
+    mobileNav: undefined,
+    desktopNav: anclas,
+    actions: (
+      <>
+        <LanguageSwitcher value="en" languages={[{ code: "en", label: "English", href: "#" }, { code: "es", label: "Español", href: "#es" }]} />
+        <ThemeToggle value="system" />
+        <Button size="sm">Estimar mi plan</Button>
+      </>
+    ),
   },
   render: (args) => (
     <div className="min-h-48 bg-muted/50">
