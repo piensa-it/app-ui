@@ -53,16 +53,21 @@ describe("UiProvider — hidratación", () => {
     const { hydrateRoot } = await import("react-dom/client");
     const { act } = await import("react");
     const { vi } = await import("vitest");
-    const error = vi.spyOn(console, "error").mockImplementation(() => {});
-
     const app = (
       <UiProvider density="compact">
         <p>hola</p>
       </UiProvider>
     );
     const container = document.createElement("div");
+    // React 18 avisa por `useLayoutEffect` al renderizar en servidor dentro de
+    // jsdom (Ark ve un `document`); en Node no pasa, y eso lo cubre
+    // `ui-provider-ssr.test.tsx`. Aquí solo se vigila la hidratación.
+    const silencio = vi.spyOn(console, "error").mockImplementation(() => {});
     container.innerHTML = renderToString(app);
+    silencio.mockRestore();
     document.body.appendChild(container);
+
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const root = await act(async () => hydrateRoot(container, app));
 

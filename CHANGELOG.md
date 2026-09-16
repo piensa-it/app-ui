@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-16
+
 ### Added
 
 - **`PublicHeader` sirve para todas las landings de Piensa IT (#187).**
