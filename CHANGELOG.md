@@ -47,6 +47,18 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - Cada opción es un enlace real con `hreflang`, así que funciona sin JavaScript.
   - Tiene dos variantes: `segmented` (EN | ES) y `menu` sobre `<details>` nativo.
   - `onChange` avisa la elección para que el sitio la guarde.
+- **`CodeBlock` (#193).** Código con título, estilo de ventana, pestañas por lenguaje, copiar (anunciado a lectores de pantalla) y números de línea. Todas las pestañas quedan en el HTML. El resaltado es opcional con `highlight` (p. ej. Shiki en el build): la librería no suma un resaltador.
+- **`ContactSection` (#192).** WhatsApp, correo y canales libres en tarjetas, centrado o como lista junto a un formulario. `whatsappHref` y `mailtoHref` arman los enlaces con el mensaje codificado.
+- **`ContactForm` (#203).** Formulario de contacto sin backend propio.
+  - Valida en el navegador, enfoca el primer error y anuncia envío, éxito y error.
+  - No reenvía con doble clic y trae honeypot opcional.
+  - Sin `onSubmit` se envía de forma nativa a `action` (Netlify Forms).
+  - Textos traducibles con `labels`.
+- **`ProductCatalog` (#202).** Catálogo de productos con enlace a cada landing y enlaces secundarios, agrupable por categoría, con estado y tinte del producto (`accent` en canales HSL). La variante `compact` sirve para «Otros productos de Piensa IT».
+- **`PricingPlans` y `PricingTable` (#196).**
+  - `PricingPlans`: planes en tarjetas, con pestañas por categoría, plan destacado con insignia, líneas de detalle y nota.
+  - `PricingTable`: tablas semánticas por rango de volumen, cada grupo con sus columnas, columna de ahorro, grupos a todo el ancho o a media columna, y la cantidad fundida bajo el plan en móvil.
+  - Los precios se formatean con `Intl` y un locale fijo, igual en servidor y navegador.
 - **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
 
 ### Fixed

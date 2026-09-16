@@ -170,6 +170,12 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Marketing | CtaBanner | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | ProductSignature | Sí | Sí (2) | Sí | 2 | Documentado y probado |
 | Marketing | LanguageSwitcher | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | ContactSection | Sí | Sí (2) | Sí | 1 | Documentado y probado |
+| Marketing | ContactForm | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | ProductCatalog | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | PricingPlans | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | PricingTable | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| UI | CodeBlock | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Diagramas | ProcessMap | Sí | Sí (1) | No | 1 | Documentado y probado |
 | Diagramas | C4Diagram | Sí | Sí (1) | No | 0 | Documentado y probado |
 

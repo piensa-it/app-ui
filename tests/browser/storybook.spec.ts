@@ -1066,7 +1066,37 @@ test.describe("Secciones de marketing (#186)", () => {
     ["marketing-splitsection--default", "split-section"],
     ["marketing-pagehero--centrada", "page-hero-centrada"],
     ["marketing-ctabanner--degradado", "cta-banner-degradado"],
+    ["marketing-contactsection--tarjetas", "contact-section-tarjetas"],
+    ["marketing-contactform--en-ingles-con-lateral", "contact-form-lateral"],
+    ["marketing-productcatalog--agrupado", "product-catalog-agrupado"],
+    ["marketing-pricing--planes-por-canal", "pricing-planes"],
+    ["marketing-pricing--tabla-por-rangos", "pricing-tabla"],
   ] as const;
+
+  for (const [story, nombre] of [
+    ["ui-codeblock--ventana", "code-block-ventana"],
+    ["ui-codeblock--con-pestanas", "code-block-pestanas"],
+  ] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.locator("pre").first()).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
+  test("la tabla de precios en móvil funde la cantidad bajo el plan, sin scroll horizontal", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("marketing-pricing--tabla-por-rangos"));
+    await stabilize(page);
+    const anchoPagina = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(anchoPagina).toBeLessThanOrEqual(390);
+    await expect(page.getByRole("columnheader", { name: "Documentos/año" }).first()).toBeHidden();
+    await expect(page.getByRole("rowheader", { name: /Micro\s*60/ })).toBeVisible();
+  });
 
   for (const [story, nombre, ancho] of [
     ["marketing-publicheader--con-firma-tema-e-idioma", "public-header-firma-tema-idioma", 1366],

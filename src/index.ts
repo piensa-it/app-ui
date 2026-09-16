@@ -277,6 +277,28 @@ export { SplitSection, type SplitSectionProps } from "./components/marketing/spl
 export { CtaBanner, type CtaBannerProps } from "./components/marketing/cta-banner";
 export { ProductSignature, type ProductSignatureProps, type ProductSignatureOptions } from "./components/marketing/product-signature";
 export { LanguageSwitcher, type LanguageSwitcherProps, type LanguageOption } from "./components/marketing/language-switcher";
+export { ContactSection, type ContactSectionProps, type ContactChannel } from "./components/marketing/contact-section";
+export { whatsappHref, mailtoHref } from "./components/marketing/contact-links";
+export {
+  ContactForm,
+  type ContactFormProps,
+  type ContactFormValues,
+  type ContactFormLabels,
+  type ContactFieldName,
+} from "./components/marketing/contact-form";
+export { ProductCatalog, type ProductCatalogProps, type CatalogProduct } from "./components/marketing/product-catalog";
+export {
+  PricingPlans,
+  PricingTable,
+  type PricingPlansProps,
+  type PricingPlan,
+  type PricingCategory,
+  type PricingTableProps,
+  type PricingTableGroup,
+  type PricingColumn,
+  type PriceFormat,
+} from "./components/marketing/pricing";
+export { CodeBlock, type CodeBlockProps, type CodeSnippet, type CodeBlockLabels } from "./components/ui/code-block";
 export {
   ThemeToggle,
   ThemeScript,

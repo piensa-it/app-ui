@@ -16,6 +16,11 @@ import { SplitSection } from "../components/marketing/split-section";
 import { StatRow } from "../components/marketing/stat-row";
 import { LanguageSwitcher } from "../components/marketing/language-switcher";
 import { ThemeScript, ThemeToggle } from "../components/ui/theme-toggle";
+import { CodeBlock } from "../components/ui/code-block";
+import { ContactForm } from "../components/marketing/contact-form";
+import { ContactSection } from "../components/marketing/contact-section";
+import { PricingPlans, PricingTable } from "../components/marketing/pricing";
+import { ProductCatalog } from "../components/marketing/product-catalog";
 import { Highlight, Section, SectionHeading } from "../components/marketing/section";
 
 /**
@@ -96,6 +101,23 @@ const secciones: [string, ReactElement][] = [
           </>
         }
       />
+    </>,
+  ],
+  [
+    "CodeBlock, ContactSection y ContactForm",
+    <>
+      <CodeBlock windowChrome title="A" tabs={[{ label: "curl", code: "b" }, { label: "Node", code: "c" }]} lineNumbers />
+      <ContactSection layout="centered" channels={[{ type: "whatsapp", phone: "1" }, { type: "email", address: "a@b.co" }]} note="n" />
+      <ContactForm consent={{ label: "Acepto", required: true }} honeypot="website" aside={<p>A</p>} />
+    </>,
+  ],
+  [
+    "ProductCatalog, PricingPlans y PricingTable",
+    <>
+      <ProductCatalog groupBy="category" products={[{ name: "A", tagline: "B", href: "https://a.co", accent: "243 75% 58%", links: [{ label: "C", href: "/c" }] }]} />
+      <ProductCatalog variant="compact" products={[{ name: "A", tagline: "B", href: "/a" }]} />
+      <PricingPlans format={{ currency: "COP" }} categories={[{ label: "A", plans: [{ name: "B", price: 1 }] }, { label: "C", plans: [{ name: "D", price: "E" }] }]} />
+      <PricingTable format={{ currency: "COP" }} groups={[{ title: "A", width: "half", columns: [{ key: "a", header: "A" }, { key: "b", header: "B", kind: "price", mergeOnMobile: true }], rows: [{ a: "x", b: 2 }] }]} />
     </>,
   ],
   [
