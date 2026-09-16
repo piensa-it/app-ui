@@ -253,8 +253,8 @@ export { initialsFrom } from "./lib/initials";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/global-error-boundary";
 
 // --- Marketing / sitios públicos ---
-export { PublicHeader, type PublicHeaderProps, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
-export { PublicFooter, type PublicFooterProps } from "./components/marketing/public-footer";
+export { PublicHeader, type PublicHeaderProps, type PublicHeaderLabels, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
+export { PublicFooter, type PublicFooterProps, type PublicFooterLabels } from "./components/marketing/public-footer";
 export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/image-carousel-backdrop";
 
 // --- Utilidades ---

@@ -21,6 +21,29 @@ interface FooterLegalLink {
   onClick?: () => void;
 }
 
+interface FooterContactItem {
+  /** Texto visible (dirección, correo, teléfono). */
+  label: ReactNode;
+  /** Enlace opcional (`mailto:`, `tel:`, `https://wa.me/...`). */
+  href?: string;
+  icon?: ReactNode;
+}
+
+export interface PublicFooterLabels {
+  legal: string;
+  social: string;
+  contact: string;
+  /** Texto tras el titular del copyright. */
+  rightsReserved: string;
+}
+
+const defaultLabels: PublicFooterLabels = {
+  legal: "Legal",
+  social: "Síguenos",
+  contact: "Contacto",
+  rightsReserved: "Todos los derechos reservados.",
+};
+
 export interface PublicFooterProps {
   logoSrc: string;
   brandName: string;
@@ -34,6 +57,18 @@ export interface PublicFooterProps {
   /** Texto de crédito al final (ej. "Desarrollado por..."). Opcional, acepta nodos con link. */
   credit?: ReactNode;
   copyrightHolder?: string;
+  /** Ubicación y medios de contacto, en su propia columna. */
+  contact?: FooterContactItem[];
+  /** Versión de la aplicación (ej. `corelink@0.1.436`), en letra monoespaciada al pie. */
+  version?: ReactNode;
+  /**
+   * Año del copyright. Pásalo fijo al prerenderizar: si no, el HTML del
+   * servidor queda con el año del build.
+   * @default el año actual
+   */
+  year?: number;
+  /** Textos fijos, para publicar el footer en otros idiomas. */
+  labels?: Partial<PublicFooterLabels>;
   linkComponent?: LinkComponent;
   className?: string;
 }
@@ -58,11 +93,16 @@ export const PublicFooter = ({
   socialLinks = [],
   credit,
   copyrightHolder,
+  contact = [],
+  version,
+  year = new Date().getFullYear(),
+  labels: labelsProp,
   linkComponent: Link = DefaultLink,
   className,
 }: PublicFooterProps) => {
   const hasLegal = legalLinks.length > 0;
   const hasSocial = socialLinks.length > 0;
+  const labels = { ...defaultLabels, ...labelsProp };
 
   return (
     <footer className={cn("bg-muted/30 py-12", className)}>
@@ -93,7 +133,7 @@ export const PublicFooter = ({
 
           {hasLegal && (
             <div>
-              <h3 className="mb-4 font-semibold">Legal</h3>
+              <h3 className="mb-4 font-semibold">{labels.legal}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {legalLinks.map((link) =>
                   link.onClick ? (
@@ -114,9 +154,36 @@ export const PublicFooter = ({
             </div>
           )}
 
+          {contact.length > 0 && (
+            <div>
+              <h3 className="mb-4 font-semibold">{labels.contact}</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {contact.map((item, index) => {
+                  const content = (
+                    <>
+                      {item.icon && <span className="mt-0.5 shrink-0 [&_svg]:size-4" aria-hidden="true">{item.icon}</span>}
+                      <span>{item.label}</span>
+                    </>
+                  );
+                  return (
+                    <li key={index}>
+                      {item.href ? (
+                        <a href={item.href} className="flex gap-2 transition-colors hover:text-primary">
+                          {content}
+                        </a>
+                      ) : (
+                        <span className="flex gap-2">{content}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
           {hasSocial && (
             <div>
-              <h3 className="mb-4 font-semibold">Síguenos</h3>
+              <h3 className="mb-4 font-semibold">{labels.social}</h3>
               <div className="flex gap-4">
                 {socialLinks.map((social) => (
                   <a
@@ -137,9 +204,10 @@ export const PublicFooter = ({
 
         <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
           <p>
-            &copy; {new Date().getFullYear()} {copyrightHolder ?? brandName}. Todos los derechos reservados.
+            &copy; {year} {copyrightHolder ?? brandName}. {labels.rightsReserved}
           </p>
           {credit && <p className="mt-2">{credit}</p>}
+          {version && <p className="mt-2 font-mono text-xs">{version}</p>}
         </div>
       </div>
     </footer>

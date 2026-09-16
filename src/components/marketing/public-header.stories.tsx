@@ -65,3 +65,85 @@ export const ConBadgeYCrossLink: Story = {
     </div>
   ),
 };
+
+const anclas = (
+  <>
+    <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+      Módulos
+    </a>
+    <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+      Contacto
+    </a>
+  </>
+);
+
+export const DosFilasEnMovil: Story = {
+  name: "Dos filas en móvil (ej. CoreLink, AdapterDian)",
+  args: {
+    mobileNav: undefined,
+    desktopNav: anclas,
+    actions: <Button size="sm">Login</Button>,
+  },
+  parameters: { viewport: { defaultViewport: "mobile1" } },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const SoloAccionesEnMovil: Story = {
+  name: "Solo acciones en móvil (ej. Lynx)",
+  args: {
+    mobileNav: undefined,
+    mobileLayout: "actions-only",
+    desktopNav: anclas,
+    actions: (
+      <>
+        <Button size="sm" variant="outline" className="hidden sm:inline-flex">
+          Agenda tu demo
+        </Button>
+        <Button size="sm">Entrar</Button>
+      </>
+    ),
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const SinNavegacion: Story = {
+  name: "Sin navegación",
+  args: { desktopNav: undefined, mobileNav: undefined },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const EnIngles: Story = {
+  name: "En inglés (labels)",
+  args: {
+    brandName: "Piensa IT",
+    desktopNav: (
+      <a href="#" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+        Services
+      </a>
+    ),
+    mobileNav: (
+      <a href="#" className="py-2 text-sm text-muted-foreground">
+        Services
+      </a>
+    ),
+    actions: <Button size="sm">Book a call</Button>,
+    labels: { openMenu: "Open menu", closeMenu: "Close menu", mainNav: "Main navigation", mobileNav: "Mobile navigation" },
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};

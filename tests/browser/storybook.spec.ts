@@ -444,6 +444,27 @@ test.describe("Storybook browser gate", () => {
       maxDiffPixels: MAX_DIFF_PIXELS,
     });
   });
+
+  // #187: los dos modos móviles sin hamburguesa de las landings. La segunda
+  // fila (CoreLink, AdapterDian) y el header con solo acciones (Lynx).
+  for (const [story, nombre] of [
+    ["marketing-publicheader--dos-filas-en-movil", "public-header-mobile-two-rows.png"],
+    ["marketing-publicheader--solo-acciones-en-movil", "public-header-mobile-actions-only.png"],
+  ] as const) {
+    test(`keeps ${nombre.replace(".png", "")} visually stable`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 400 });
+      await page.goto(storyUrl(story));
+      await stabilize(page);
+
+      const root = page.locator("#storybook-root");
+      await expect(root.getByRole("banner")).toBeVisible();
+      await expect(root.getByRole("button", { name: "Abrir menú" })).toHaveCount(0);
+      await expect(root).toHaveScreenshot(nombre, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
 });
 
 test.describe("Checkbox — indeterminado (#144)", () => {

@@ -6,6 +6,21 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- **`PublicHeader` sirve para todas las landings de Piensa IT (#187).**
+  - `desktopNav` y `mobileNav` pasan a ser opcionales. Sin `mobileNav` ya no aparece un botón de menú vacío.
+  - `actions`: botones, selector de tema o de idioma a la derecha.
+  - `mobileLayout` define el header en móvil: `menu` (hamburguesa, las acciones dentro del panel), `two-rows` (segunda fila con enlaces y acciones) o `actions-only` (solo las acciones).
+  - `labels` traduce los textos accesibles.
+  - El botón de menú expone `aria-expanded`.
+- **`PublicFooter`: `contact`, `version`, `year` y `labels` (#187).**
+  - `contact`: una columna de ubicación y medios de contacto.
+  - `version`: la versión de la app en monoespaciada.
+  - `year`: año fijo, para que el HTML prerenderizado no quede con el año del build.
+  - `labels`: los textos «Legal», «Síguenos», «Contacto» y los derechos reservados, para publicarlo en inglés.
+- **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
+
 ### Fixed
 
 - **`UiProvider` se puede renderizar en el servidor (#183).** `AlertDialogHost` usaba `useSyncExternalStore` sin `getServerSnapshot`, así que cualquier SSR, prerenderizado o isla de Astro que montara `UiProvider` fallaba con «Missing getServerSnapshot». Ya no hace falta montarlo solo después de hidratar. Pruebas nuevas: `renderToString` en entorno `node` (sin DOM), con y sin `density`, e hidratación sin avisos.

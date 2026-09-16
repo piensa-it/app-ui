@@ -22,6 +22,20 @@ const DefaultLink: LinkComponent = ({ to, children, ...rest }) => (
   </a>
 );
 
+export interface PublicHeaderLabels {
+  openMenu: string;
+  closeMenu: string;
+  mainNav: string;
+  mobileNav: string;
+}
+
+const defaultLabels: PublicHeaderLabels = {
+  openMenu: "Abrir menú",
+  closeMenu: "Cerrar menú",
+  mainNav: "Navegación principal",
+  mobileNav: "Navegación móvil",
+};
+
 export interface PublicHeaderProps {
   logoSrc: string;
   brandName: string;
@@ -31,10 +45,28 @@ export interface PublicHeaderProps {
   badge?: string;
   /** Link cruzado opcional (ej. Personas → Empresas). */
   crossLink?: { to: string; label: string };
-  /** Contenido del nav de escritorio (links, selector de idioma, CTA...). */
-  desktopNav: ReactNode;
-  /** Contenido del menú móvil. */
-  mobileNav: ReactNode;
+  /** Enlaces de navegación de escritorio (anclas, páginas). */
+  desktopNav?: ReactNode;
+  /**
+   * Contenido del menú móvil. Solo se usa con `mobileLayout="menu"`: sin él
+   * no se pinta el botón de hamburguesa.
+   */
+  mobileNav?: ReactNode;
+  /**
+   * Acciones a la derecha, siempre visibles en escritorio: botones (1 o 2),
+   * `ThemeToggle`, selector de idioma. En móvil dependen de `mobileLayout`.
+   */
+  actions?: ReactNode;
+  /**
+   * Cómo se adapta el header en móvil:
+   * - `menu`: hamburguesa que abre `mobileNav` (y las `actions` debajo).
+   * - `two-rows`: una segunda fila con `desktopNav` y `actions`.
+   * - `actions-only`: se ocultan los enlaces y solo quedan las `actions`.
+   * @default "menu" si hay `mobileNav`; si no, "two-rows"
+   */
+  mobileLayout?: "menu" | "two-rows" | "actions-only";
+  /** Textos accesibles, para publicar el header en otros idiomas. */
+  labels?: Partial<PublicHeaderLabels>;
   linkComponent?: LinkComponent;
   /** Comportamiento vertical del header. @default "sticky" */
   position?: "sticky" | "fixed" | "static";
@@ -59,12 +91,17 @@ export const PublicHeader = ({
   crossLink,
   desktopNav,
   mobileNav,
+  actions,
+  mobileLayout = mobileNav === undefined ? "two-rows" : "menu",
+  labels: labelsProp,
   linkComponent: Link = DefaultLink,
   position = "sticky",
   className = "",
 }: PublicHeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const labels = { ...defaultLabels, ...labelsProp };
+  const hasMenu = mobileLayout === "menu" && mobileNav !== undefined;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12);
@@ -97,31 +134,68 @@ export const PublicHeader = ({
             )}
           </Link>
 
-          <nav aria-label="Navegación principal" className="hidden items-center gap-2 md:flex">
-            {crossLink && (
-              <Link to={crossLink.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-                {crossLink.label}
-              </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            {(crossLink || desktopNav) && (
+              <nav aria-label={labels.mainNav} className="hidden items-center gap-2 md:flex">
+                {crossLink && (
+                  <Link to={crossLink.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+                    {crossLink.label}
+                  </Link>
+                )}
+                {desktopNav}
+              </nav>
             )}
-            {desktopNav}
-          </nav>
 
-          <button
-            type="button"
-            className={cn(
-              "grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent md:hidden",
-              focusRingOutside,
+            {actions && (
+              <div
+                data-part="actions"
+                className={cn(
+                  "items-center gap-2",
+                  // En `menu` y `two-rows` las acciones móviles viven en el
+                  // panel o en la segunda fila; en `actions-only`, aquí mismo.
+                  mobileLayout === "actions-only" ? "flex" : "hidden md:flex",
+                )}
+              >
+                {actions}
+              </div>
             )}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+
+            {hasMenu && (
+              <button
+                type="button"
+                className={cn(
+                  "grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent md:hidden",
+                  focusRingOutside,
+                )}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-expanded={mobileMenuOpen}
+                aria-label={mobileMenuOpen ? labels.closeMenu : labels.openMenu}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            )}
+          </div>
         </div>
 
-        {mobileMenuOpen && (
+        {mobileLayout === "two-rows" && (crossLink || desktopNav || actions) && (
+          <div data-part="second-row" className="flex items-center gap-2 overflow-x-auto border-t border-border py-2 md:hidden">
+            {(crossLink || desktopNav) && (
+              <nav aria-label={labels.mobileNav} className="flex items-center gap-1">
+                {crossLink && (
+                  <Link to={crossLink.to} className="whitespace-nowrap rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground">
+                    {crossLink.label}
+                  </Link>
+                )}
+                {desktopNav}
+              </nav>
+            )}
+            {actions && <div className="ms-auto flex shrink-0 items-center gap-2">{actions}</div>}
+          </div>
+        )}
+
+        {hasMenu && mobileMenuOpen && (
           <div data-marketing-motion="menu-in" className="border-t border-border py-3 md:hidden">
-            <nav aria-label="Navegación móvil" className="flex flex-col gap-1">
+            <nav aria-label={labels.mobileNav} className="flex flex-col gap-1">
               {crossLink && (
                 <Link
                   to={crossLink.to}
@@ -133,6 +207,7 @@ export const PublicHeader = ({
               )}
               {mobileNav}
             </nav>
+            {actions && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border px-3 pt-3">{actions}</div>}
           </div>
         )}
       </div>
