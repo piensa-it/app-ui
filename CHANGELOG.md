@@ -13,6 +13,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - `actions`: botones, selector de tema o de idioma a la derecha.
   - `mobileLayout` define el header en móvil: `menu` (hamburguesa, las acciones dentro del panel), `two-rows` (segunda fila con enlaces y acciones) o `actions-only` (solo las acciones).
   - `labels` traduce los textos accesibles.
+  - La segunda fila de `two-rows` pasa a otra línea en vez de desplazarse, para que ninguna acción quede fuera de la pantalla.
   - El botón de menú expone `aria-expanded`.
 - **`PublicFooter`: `contact`, `version`, `year` y `labels` (#187).**
   - `contact`: una columna de ubicación y medios de contacto.
@@ -33,6 +34,19 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - `Checklist`: garantías con check.
   - `SplitSection`: texto y maqueta del producto lado a lado.
   - `CtaBanner`: cierre con degradado de marca, rejilla o superficie sobria, con una o dos acciones.
+- **Firma de producto «by Piensa IT» (#184).**
+  - `PublicHeader` y `PublicFooter` aceptan `signature` (`true` o `{ label, logoSrc }`), con el isotipo de Piensa IT incluido (56 px, 2 KB).
+  - `logoSrc` pasa a ser opcional y `brandName` del header acepta nodos.
+  - El enlace de inicio se nombra «<Producto> by Piensa IT».
+  - `ProductSignature` se exporta también suelta.
+- **`ThemeToggle`, `ThemeScript` y `themeScript()` (#200).**
+  - `ThemeToggle` elige entre claro, oscuro y sistema.
+  - Si no es controlado, guarda la elección, aplica `dark` en `<html>` y sigue al sistema en vivo.
+  - `ThemeScript` (Astro) y `themeScript()` (`index.html` en Vite) aplican el tema antes del primer pintado, así la página no parpadea.
+- **`LanguageSwitcher` (#207): selector de idioma para las webs públicas.**
+  - Cada opción es un enlace real con `hreflang`, así que funciona sin JavaScript.
+  - Tiene dos variantes: `segmented` (EN | ES) y `menu` sobre `<details>` nativo.
+  - `onChange` avisa la elección para que el sitio la guarde.
 - **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
 
 ### Fixed

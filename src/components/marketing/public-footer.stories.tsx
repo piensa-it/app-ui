@@ -71,3 +71,8 @@ export const ContactoYVersion: Story = {
     labels: { contact: "Contact", rightsReserved: "All rights reserved." },
   },
 };
+
+export const ConFirma: Story = {
+  name: "Con firma «by Piensa IT»",
+  args: { logoSrc: undefined, brandName: "Deliver", signature: true, description: "SMS, WhatsApp, Email y Push desde una API.", year: 2026 },
+};

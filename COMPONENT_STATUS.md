@@ -153,7 +153,7 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Layout | UserMenu | Sí | Sí (3) | Sí | 8 | Estable |
 | Layout | SettingsPage | Sí | Sí (2) | Sí | 3 | Estable |
 | Layout | GlobalErrorBoundary | Sí | Sí (1) | No | 0 | Documentado y probado |
-| Marketing | PublicHeader | Sí | Sí (3) | Sí | 1 | Documentado y probado |
+| Marketing | PublicHeader | Sí | Sí (4) | Sí | 1 | Documentado y probado |
 | Marketing | PublicFooter | Sí | Sí (1) | No | 0 | Documentado y probado |
 | Marketing | ImageCarouselBackdrop | Sí | Sí (1) | No | 0 | Documentado y probado |
 | Marketing | Section | Sí | Sí (2) | Sí | 1 | Documentado y probado |
@@ -168,6 +168,8 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Marketing | Checklist | Sí | Sí (2) | No | 1 | Documentado y probado |
 | Marketing | SplitSection | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | CtaBanner | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Marketing | ProductSignature | Sí | Sí (2) | Sí | 2 | Documentado y probado |
+| Marketing | LanguageSwitcher | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 
 ## Reparto
 

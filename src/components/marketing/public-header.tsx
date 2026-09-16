@@ -4,6 +4,9 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { focusRingOutside } from "@/lib/recipes/focus";
 
+import { ProductSignature, type ProductSignatureOptions } from "./product-signature";
+import { resolveSignature } from "./resolve-signature";
+
 import "./marketing.css";
 
 export interface LinkComponentProps {
@@ -37,8 +40,15 @@ const defaultLabels: PublicHeaderLabels = {
 };
 
 export interface PublicHeaderProps {
-  logoSrc: string;
-  brandName: string;
+  /** Logo del producto. Opcional: con `signature` basta el nombre. */
+  logoSrc?: string;
+  /** Nombre del producto. Acepta nodos para casos especiales. */
+  brandName: ReactNode;
+  /**
+   * Firma «by Piensa IT» junto al nombre, con el isotipo de Piensa IT
+   * incluido. `true` usa los valores por defecto.
+   */
+  signature?: boolean | ProductSignatureOptions;
   /** Ruta a la que navega el logo. */
   homeHref?: string;
   /** Pill opcional junto al logo (ej. "Personas" / "Empresas"). */
@@ -86,6 +96,7 @@ export interface PublicHeaderProps {
 export const PublicHeader = ({
   logoSrc,
   brandName,
+  signature,
   homeHref = "/",
   badge,
   crossLink,
@@ -101,6 +112,7 @@ export const PublicHeader = ({
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const labels = { ...defaultLabels, ...labelsProp };
+  const signatureOptions = resolveSignature(signature);
   const hasMenu = mobileLayout === "menu" && mobileNav !== undefined;
 
   useEffect(() => {
@@ -127,8 +139,13 @@ export const PublicHeader = ({
               focusRingOutside,
             )}
           >
-            <img src={logoSrc} alt="" className="size-9 shrink-0 rounded-lg object-contain" />
-            <span className="truncate font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
+            {logoSrc && <img src={logoSrc} alt="" className="size-9 shrink-0 rounded-lg object-contain" />}
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="truncate font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
+              {/* Espacio para el nombre accesible «Deliver by Piensa IT»; en flex no se ve. */}
+              {signatureOptions && " "}
+              {signatureOptions && <ProductSignature {...signatureOptions} className="self-center" />}
+            </span>
             {badge && (
               <span className="shrink-0 rounded bg-primary/10 px-2 py-1 text-xs text-primary">{badge}</span>
             )}
@@ -178,7 +195,7 @@ export const PublicHeader = ({
         </div>
 
         {mobileLayout === "two-rows" && (crossLink || desktopNav || actions) && (
-          <div data-part="second-row" className="flex items-center gap-2 overflow-x-auto border-t border-border py-2 md:hidden">
+          <div data-part="second-row" className="flex flex-wrap items-center gap-2 border-t border-border py-2 md:hidden">
             {(crossLink || desktopNav) && (
               <nav aria-label={labels.mobileNav} className="flex items-center gap-1">
                 {crossLink && (

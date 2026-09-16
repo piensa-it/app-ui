@@ -275,6 +275,17 @@ export { ProcessSteps, type ProcessStepsProps, type ProcessStep } from "./compon
 export { Checklist, type ChecklistProps, type ChecklistItem } from "./components/marketing/checklist";
 export { SplitSection, type SplitSectionProps } from "./components/marketing/split-section";
 export { CtaBanner, type CtaBannerProps } from "./components/marketing/cta-banner";
+export { ProductSignature, type ProductSignatureProps, type ProductSignatureOptions } from "./components/marketing/product-signature";
+export { LanguageSwitcher, type LanguageSwitcherProps, type LanguageOption } from "./components/marketing/language-switcher";
+export {
+  ThemeToggle,
+  ThemeScript,
+  themeScript,
+  type ThemeToggleProps,
+  type ThemeToggleLabels,
+  type ThemeScriptProps,
+  type ThemePreference,
+} from "./components/ui/theme-toggle";
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";

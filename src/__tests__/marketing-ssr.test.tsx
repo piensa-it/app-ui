@@ -14,6 +14,8 @@ import { PageHero } from "../components/marketing/page-hero";
 import { ProcessSteps } from "../components/marketing/process-steps";
 import { SplitSection } from "../components/marketing/split-section";
 import { StatRow } from "../components/marketing/stat-row";
+import { LanguageSwitcher } from "../components/marketing/language-switcher";
+import { ThemeScript, ThemeToggle } from "../components/ui/theme-toggle";
 import { Highlight, Section, SectionHeading } from "../components/marketing/section";
 
 /**
@@ -77,6 +79,23 @@ const secciones: [string, ReactElement][] = [
       <SplitSection title="A" media={<div>B</div>} reverse />
       <PageHero eyebrow="A" title="B" breadcrumbs={<nav>C</nav>} />
       <CtaBanner title="A" background="grid" actions={<a href="/b">B</a>} />
+    </>,
+  ],
+  [
+    "Header con firma, ThemeToggle, LanguageSwitcher y ThemeScript",
+    <>
+      <ThemeScript />
+      <PublicHeader
+        brandName="Deliver"
+        signature
+        actions={
+          <>
+            <ThemeToggle />
+            <LanguageSwitcher value="en" languages={[{ code: "en", label: "English", href: "/" }, { code: "es", label: "Español", href: "/es/" }]} />
+            <LanguageSwitcher variant="menu" value="en" languages={[{ code: "en", label: "English", href: "/" }]} />
+          </>
+        }
+      />
     </>,
   ],
   [

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PublicHeader } from "./public-header";
 import { Button } from "../ui/button";
+import { ThemeToggle } from "../ui/theme-toggle";
+import { LanguageSwitcher } from "./language-switcher";
 
 // Logo placeholder neutro — cada producto pasa el suyo vía `logoSrc`.
 const placeholderLogo =
@@ -140,6 +142,29 @@ export const EnIngles: Story = {
     ),
     actions: <Button size="sm">Book a call</Button>,
     labels: { openMenu: "Open menu", closeMenu: "Close menu", mainNav: "Main navigation", mobileNav: "Mobile navigation" },
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const ConFirmaTemaEIdioma: Story = {
+  name: "Con firma, tema e idioma (plantilla de landing)",
+  args: {
+    logoSrc: undefined,
+    brandName: "Deliver",
+    signature: true,
+    mobileNav: undefined,
+    desktopNav: anclas,
+    actions: (
+      <>
+        <LanguageSwitcher value="en" languages={[{ code: "en", label: "English", href: "#" }, { code: "es", label: "Español", href: "#es" }]} />
+        <ThemeToggle value="system" />
+        <Button size="sm">Estimar mi plan</Button>
+      </>
+    ),
   },
   render: (args) => (
     <div className="min-h-48 bg-muted/50">

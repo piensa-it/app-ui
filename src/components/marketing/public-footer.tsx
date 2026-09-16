@@ -3,6 +3,9 @@ import type { LinkComponent } from "./public-header";
 
 import { cn } from "@/lib/utils";
 
+import { ProductSignature, type ProductSignatureOptions } from "./product-signature";
+import { resolveSignature } from "./resolve-signature";
+
 interface SocialLink {
   href: string;
   label: string;
@@ -45,8 +48,11 @@ const defaultLabels: PublicFooterLabels = {
 };
 
 export interface PublicFooterProps {
-  logoSrc: string;
+  /** Logo del producto. Opcional: con `signature` basta el nombre. */
+  logoSrc?: string;
   brandName: string;
+  /** Firma «by Piensa IT» junto al nombre del pie. `true` usa los valores por defecto. */
+  signature?: boolean | ProductSignatureOptions;
   /** Una línea describiendo el producto/audiencia. */
   description: string;
   /** Columnas de links de producto (ej. "Soluciones"). Opcional. */
@@ -87,6 +93,7 @@ const DefaultLink: LinkComponent = ({ to, children, ...rest }) => (
 export const PublicFooter = ({
   logoSrc,
   brandName,
+  signature,
   description,
   columns = [],
   legalLinks = [],
@@ -103,6 +110,7 @@ export const PublicFooter = ({
   const hasLegal = legalLinks.length > 0;
   const hasSocial = socialLinks.length > 0;
   const labels = { ...defaultLabels, ...labelsProp };
+  const signatureOptions = resolveSignature(signature);
 
   return (
     <footer className={cn("bg-muted/30 py-12", className)}>
@@ -110,8 +118,9 @@ export const PublicFooter = ({
         <div className="mb-8 grid gap-8 md:grid-cols-4">
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <img src={logoSrc} alt={brandName} className="h-8 w-auto" />
+              {logoSrc && <img src={logoSrc} alt="" className="h-8 w-auto" />}
               <span className="text-lg font-bold">{brandName}</span>
+              {signatureOptions && <ProductSignature {...signatureOptions} />}
             </div>
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>

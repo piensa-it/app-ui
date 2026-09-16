@@ -1068,6 +1068,22 @@ test.describe("Secciones de marketing (#186)", () => {
     ["marketing-ctabanner--degradado", "cta-banner-degradado"],
   ] as const;
 
+  for (const [story, nombre, ancho] of [
+    ["marketing-publicheader--con-firma-tema-e-idioma", "public-header-firma-tema-idioma", 1366],
+    ["marketing-publicheader--con-firma-tema-e-idioma", "public-header-firma-tema-idioma-movil", 390],
+  ] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: ancho, height: 300 });
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.getByRole("link", { name: "Deliver by Piensa IT" })).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
   for (const [story, nombre] of casos) {
     for (const tema of ["light", "dark"] as const) {
       test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
