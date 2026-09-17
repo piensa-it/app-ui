@@ -25,4 +25,14 @@ describe("Progress", () => {
     const bar = screen.getByRole("progressbar");
     expect(bar).not.toHaveAttribute("aria-valuenow");
   });
+
+  it("el relleno se ancla al porcentaje con unidad, no a un número suelto (#206)", () => {
+    // Ark expone `--percent` como número sin unidad; `width: var(--percent)`
+    // es inválido y el navegador lo descarta, dejando la barra siempre llena.
+    // El ancho tiene que llevar unidad de porcentaje.
+    const { container } = render(<Progress value={42} aria-label="Carga" />);
+    const range = container.querySelector('[data-part="range"]') as HTMLElement;
+    expect(range).toBeTruthy();
+    expect(range.style.width).toContain("%");
+  });
 });

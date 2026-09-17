@@ -15,7 +15,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       <ArkProgress.Track className="h-2 w-full overflow-hidden rounded-full bg-secondary">
         <ArkProgress.Range
           className="block h-full rounded-full bg-primary transition-all"
-          style={{ width: "var(--percent)" }}
+          style={{ width: "calc(var(--percent) * 1%)" }}
         />
       </ArkProgress.Track>
       {showValue ? <ArkProgress.ValueText className="text-xs text-muted-foreground" /> : null}
