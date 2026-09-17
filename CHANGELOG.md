@@ -6,6 +6,8 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-17
+
 ### Added
 
 - **`ProcessMap` y `C4Diagram`: procesos por niveles, en un punto de entrada aparte (`@piensa-it/ui-library/diagramas`, #205).** Lo que cada producto dibujaba a mano en SVG —el Mapa de CoreLink con flechas que se montaban sobre los recuadros— pasa a ser una pieza común: la aplicación aporta los datos (`NodoProceso`: `etiqueta`, `subtitulo`, `icono`, `capa`, `grupo`, `hijos`, `aristas`, `enlaces`, `detalle`) y el componente distribuye, enruta y navega.
@@ -19,6 +21,17 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - **Exportar SVG**: un SVG autónomo con los colores del tema vigente (sin iconos).
   - **`C4Diagram`** es un preajuste: `ElementoC4` con `tipo` persona, sistema, contenedor o componente, `limites` que se pintan como carriles, relaciones con tecnología y trazo discontinuo si son asíncronas; los tres niveles (contexto, contenedores, componentes) salen de anidar `hijos`.
   - **Dependencias opcionales:** `@xyflow/react` y `elkjs` son `peerDependencies` opcionales. Importar el paquete principal no las toca: el ESM, el CJS y `index.d.ts` del índice salen idénticos byte a byte, y `verify:package` recorre ahora el grafo de módulos publicado para fallar si el índice llega a alcanzarlas. `style.css` sí crece 5,0 KB (las clases de Tailwind de los diagramas viajan en la misma hoja). `verify:contract` recorre también `src/diagramas.ts`.
+- **Marca por producto con `--brand-primary` (#212).** `:root` y `.dark` derivan `--primary` de `--brand-primary` (y `--brand-primary-dark` opcional): una app define su color una sola vez y fluye a claro, oscuro y a los bloques `Section inverted`. El rodeo anterior (`:root, .dark { --primary }`) sigue funcionando.
+- **`tailwind-preset.d.ts` publicado (#212).** Un consumidor con TypeScript estricto (`astro check`) ya no falla con TS7016 al importar `@piensa-it/ui-library/tailwind-preset`.
+
+### Fixed
+
+- **`Progress` reflejaba siempre la barra llena (#206).** `width: var(--percent)` usaba el número sin unidad de Ark (inválido en CSS); ahora `calc(var(--percent) * 1%)`.
+- **`Section inverted` y el tema oscuro perdían la marca (#212).** `.dark` revertía `--primary` al índigo de fábrica; ahora deriva de `--brand-primary`.
+- **`AnimatedNumber` se quedaba en 0 bajo StrictMode (#180).** El punto de partida de la animación es ahora el valor mostrado, no el último destino, así que una animación cancelada (StrictMode, o un cambio de valor a mitad) reanuda desde lo visible.
+- **`Field` desplazaba el control cuando el campo vecino tenía descripción (#178).** `content-start` evita que el campo repartiera el alto sobrante entre sus filas.
+- **`PricingTable` recortaba la tabla y `PricingPlans` desbordaba los precios largos en móvil (#218).** Relleno reducido (`px-2 sm:px-5`) con la primera columna alineada, y precio fluido con `clamp()` que envuelve el periodo.
+- **`PublicHeader` montaba el menú sobre la marca entre ~1024 y ~1180 px (#217).** Ahora la marca es `shrink-0` (nunca se recorta) y un `ResizeObserver` colapsa a la hamburguesa cuando el contenido no cabe, con independencia del ancho y del idioma, sin salto de hidratación.
 
 ## [1.5.0] - 2026-09-16
 

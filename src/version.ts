@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.5.0";
+export const UI_LIBRARY_VERSION = "1.6.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,19 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código. Suma los diagramas de procesos y un lote de correcciones de estabilidad reportadas desde producción.",
+      "Diagramas de procesos: `ProcessMap` y `C4Diagram` se importan de `@piensa-it/ui-library/diagramas` (procesos por niveles distribuidos con ELK, carriles como filas, navegación por teclado). Necesitan instalar `@xyflow/react` y `elkjs` en tu app; quien no los importa no descarga nada nuevo (#205).",
+      "Marca por producto: si aplicabas tu color con el rodeo `:root, .dark { --primary: … }`, ahora podés definirlo una sola vez con `--brand-primary` en `:root` (y `--brand-primary-dark` opcional): fluye a claro, oscuro y a los bloques `Section inverted`, que antes revertían al índigo de fábrica (#212). El rodeo anterior sigue funcionando.",
+      "`PublicHeader` ya colapsa solo a menú compacto cuando el contenido no cabe (por medida, no por breakpoint): la marca nunca se recorta. Si habías quitado enlaces para que cupieran a anchos intermedios, podés recuperarlos (#217).",
+      "`tailwind-preset` ahora publica tipos (`tailwind-preset.d.ts`): un consumidor con TypeScript estricto (`astro check`) ya no falla con TS7016 al importarlo (#212).",
+      "Correcciones sin cambio de API: `Progress` refleja el porcentaje real (#206), `AnimatedNumber` no se queda en 0 bajo StrictMode (#180), `Field` no desalinea el control cuando el campo vecino tiene descripción (#178), y `PricingTable`/`PricingPlans` no recortan ni desbordan en móvil (#218).",
+    ],
+  },
+  {
+    version: "1.5.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-16",
     migration: [
       "Todo es aditivo: subir no requiere cambios de código.",
       "Portal del desarrollador: armá las guías de tu servicio con `DocsLayout` (menú, tabla de contenidos, anterior/siguiente) y renderizá tu MDX dentro de `DocsProse`. Para avisos usá `Alert` con `role=\"note\"`, y para ejemplos con pestañas por lenguaje, `CodeBlock`. La estructura `/developers/` ya armada está en `piensa-web-starter`: tu repo solo escribe la prosa en `web/src/content/docs/`.",
