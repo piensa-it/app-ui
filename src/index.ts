@@ -300,6 +300,16 @@ export {
 } from "./components/marketing/pricing";
 export { CodeBlock, type CodeBlockProps, type CodeSnippet, type CodeBlockLabels } from "./components/ui/code-block";
 export {
+  DocsLayout,
+  type DocsLayoutProps,
+  type DocsLayoutLabels,
+  type DocsNavGroup,
+  type DocsNavItem,
+  type DocsTocItem,
+  type DocsPageLink,
+} from "./components/docs/docs-layout";
+export { DocsProse, type DocsProseProps } from "./components/docs/docs-prose";
+export {
   ThemeToggle,
   ThemeScript,
   themeScript,

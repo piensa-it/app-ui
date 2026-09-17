@@ -1140,3 +1140,27 @@ test.describe("Secciones de marketing (#186)", () => {
     expect(artefacto!.y).toBeGreaterThan(titulo!.y + titulo!.height);
   });
 });
+
+test.describe("Portal del desarrollador (#213)", () => {
+  for (const [ancho, vista] of [[1440, "escritorio"], [390, "movil"]] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`la guía en ${vista} y tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: ancho, height: 900 });
+        await page.goto(storyUrl("docs-docslayout--guia", `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        await expect(page.getByRole("article")).toBeVisible();
+        await expect(page).toHaveScreenshot(`docs-layout-guia-${vista}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
+  test("en móvil el menú se abre sin JavaScript de la librería (details nativo)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("docs-docslayout--guia"));
+    await stabilize(page);
+    const menu = page.getByRole("navigation", { name: "Documentation" });
+    await expect(menu.getByRole("link", { name: "Webhooks" })).toBeHidden();
+    await menu.getByText("Documentation menu").click();
+    await expect(menu.getByRole("link", { name: "Webhooks" }).first()).toBeVisible();
+  });
+});

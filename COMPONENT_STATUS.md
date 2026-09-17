@@ -176,6 +176,8 @@ no tiene prueba, dice "sin prueba", así de feo se vea.
 | Marketing | PricingPlans | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | Marketing | PricingTable | Sí | Sí (2) | Sí | 0 | Documentado y probado |
 | UI | CodeBlock | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Docs | DocsLayout | Sí | Sí (2) | Sí | 0 | Documentado y probado |
+| Docs | DocsProse | Sí | Sí (2) | Sí | 1 | Documentado y probado |
 | Diagramas | ProcessMap | Sí | Sí (1) | No | 1 | Documentado y probado |
 | Diagramas | C4Diagram | Sí | Sí (1) | No | 0 | Documentado y probado |
 

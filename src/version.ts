@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.4.0";
+export const UI_LIBRARY_VERSION = "1.5.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,15 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código.",
+      "Portal del desarrollador: armá las guías de tu servicio con `DocsLayout` (menú, tabla de contenidos, anterior/siguiente) y renderizá tu MDX dentro de `DocsProse`. Para avisos usá `Alert` con `role=\"note\"`, y para ejemplos con pestañas por lenguaje, `CodeBlock`. La estructura `/developers/` ya armada está en `piensa-web-starter`: tu repo solo escribe la prosa en `web/src/content/docs/`.",
+    ],
+  },
+  {
+    version: "1.4.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-16",
     migration: [
       "Todo es aditivo: subir no requiere cambios de código. Lo que sigue es lo que podés adoptar en tu web pública.",
       "Web pública (landing, precios, contacto): en vez de secciones a mano, armala con las piezas de marketing. `PublicHeader` (ahora con `actions`, `mobileLayout`, `signature` y `labels`), `Hero` y `PageHero`, `Section` + `SectionHeading` + `FeatureGrid`, `StatRow`, `ProcessSteps`, `Checklist`, `SplitSection`, `CtaBanner`, `ContactSection`, `ContactForm`, `PricingPlans`/`PricingTable`, `ProductCatalog` y `PublicFooter`. Todas se renderizan en el servidor (Astro, prerenderizado) y reciben los textos por props o `labels`, así que sirven en inglés y en español.",

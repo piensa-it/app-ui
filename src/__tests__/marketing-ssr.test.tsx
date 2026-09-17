@@ -17,6 +17,8 @@ import { StatRow } from "../components/marketing/stat-row";
 import { LanguageSwitcher } from "../components/marketing/language-switcher";
 import { ThemeScript, ThemeToggle } from "../components/ui/theme-toggle";
 import { CodeBlock } from "../components/ui/code-block";
+import { DocsLayout } from "../components/docs/docs-layout";
+import { DocsProse } from "../components/docs/docs-prose";
 import { ContactForm } from "../components/marketing/contact-form";
 import { ContactSection } from "../components/marketing/contact-section";
 import { PricingPlans, PricingTable } from "../components/marketing/pricing";
@@ -119,6 +121,20 @@ const secciones: [string, ReactElement][] = [
       <PricingPlans format={{ currency: "COP" }} categories={[{ label: "A", plans: [{ name: "B", price: 1 }] }, { label: "C", plans: [{ name: "D", price: "E" }] }]} />
       <PricingTable format={{ currency: "COP" }} groups={[{ title: "A", width: "half", columns: [{ key: "a", header: "A" }, { key: "b", header: "B", kind: "price", mergeOnMobile: true }], rows: [{ a: "x", b: 2 }] }]} />
     </>,
+  ],
+  [
+    "DocsLayout con DocsProse",
+    <DocsLayout
+      nav={[{ title: "A", items: [{ label: "B", href: "/b/", active: true, badge: "C" }] }]}
+      toc={[{ id: "d", label: "D" }]}
+      breadcrumbs={[{ label: "E", href: "/e/" }, { label: "F" }]}
+      prev={{ label: "G", href: "/g/" }}
+      next={{ label: "H", href: "/h/" }}
+    >
+      <DocsProse>
+        <h2 id="d">D</h2>
+      </DocsProse>
+    </DocsLayout>,
   ],
   [
     "ImageCarouselBackdrop",
