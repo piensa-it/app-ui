@@ -52,6 +52,23 @@ test.describe("Storybook browser gate", () => {
     });
   });
 
+  test("Field alinea el control aunque el campo vecino tenga descripción (#178)", async ({ page }) => {
+    await page.goto(storyUrl("ui-formgrid--default"));
+    await stabilize(page);
+
+    // Fila 1 del FormGrid a dos columnas: «Nombre» (sin descripción) junto a
+    // «Documento» (con descripción, que lo hace más alto). Los dos controles
+    // deben empezar a la misma altura; sin `content-start` en `Field`, el
+    // vecino más bajo repartía el alto sobrante y bajaba su control.
+    const sinDescripcion = page.getByPlaceholder("Distribuidora El Poblado");
+    const conDescripcion = page.getByPlaceholder("900123456");
+    const a = await sinDescripcion.boundingBox();
+    const b = await conDescripcion.boundingBox();
+    expect(a, "control sin descripción visible").not.toBeNull();
+    expect(b, "control con descripción visible").not.toBeNull();
+    expect(Math.abs(a!.y - b!.y)).toBeLessThanOrEqual(1);
+  });
+
   test("opens, focuses and closes the Ark UI dialog", async ({ page }) => {
     const errors: Error[] = [];
     page.on("pageerror", (error) => errors.push(error));

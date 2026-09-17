@@ -99,7 +99,11 @@ export function Field({
   return (
     <div
       className={cn(
-        "grid",
+        // `content-start`: cuando el `FormGrid` estira el campo a la altura de
+        // un vecino más alto (uno con descripción, p. ej.), el alto sobrante no
+        // se reparte entre las filas —rótulo y control se quedan arriba, sin
+        // que el control baje y se desalinee de la fila (#178).
+        "grid content-start",
         span === "full" && "sm:col-span-2",
         // El espacio entre etiqueta, control y mensaje sale de la escala:
         // así todos los formularios de todas las aplicaciones respiran igual.
