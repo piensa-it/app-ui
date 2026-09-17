@@ -69,6 +69,28 @@ test.describe("Storybook browser gate", () => {
     expect(Math.abs(a!.y - b!.y)).toBeLessThanOrEqual(1);
   });
 
+  test("la marca (--brand-primary) fluye a --primary también en .dark e inverted (#212)", async ({ page }) => {
+    // Cualquier story carga globals.css con los tokens.
+    await page.goto(storyUrl("ui-button--todas-las-variantes"));
+    await stabilize(page);
+
+    // `Section inverted` aplica la clase `dark` a su bloque. Antes, `.dark`
+    // fijaba `--primary` al índigo de fábrica y perdía la marca de la app.
+    // Ahora `.dark` deriva de `--brand-primary` cuando existe.
+    const primary = await page.evaluate(() => {
+      const block = document.createElement("div");
+      block.className = "dark";
+      block.style.setProperty("--brand-primary", "0 84% 60%");
+      const inner = document.createElement("div");
+      block.appendChild(inner);
+      document.body.appendChild(block);
+      const value = getComputedStyle(inner).getPropertyValue("--primary").trim();
+      block.remove();
+      return value;
+    });
+    expect(primary).toBe("0 84% 60%");
+  });
+
   test("opens, focuses and closes the Ark UI dialog", async ({ page }) => {
     const errors: Error[] = [];
     page.on("pageerror", (error) => errors.push(error));

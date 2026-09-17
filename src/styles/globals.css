@@ -77,7 +77,11 @@
     --popover: var(--raised);
     --popover-foreground: 0 0% 10%;
 
-    --primary: 243 75% 59%;
+    /* Identidad configurable: una app define su marca UNA vez con
+       `--brand-primary` (y opcionalmente `--brand-primary-dark` para un tono
+       oscuro propio) y fluye a claro, oscuro e `inverted`. Sin marca, el
+       índigo de fábrica. Ver #212 y DESIGN_SYSTEM.md > "Identidad configurable". */
+    --primary: var(--brand-primary, 243 75% 59%);
     --primary-foreground: 0 0% 100%;
 
     /* Estos cuatro se dibujan directamente sobre `ground`. Con el fondo de la
@@ -422,7 +426,11 @@
     --popover: var(--raised);
     --popover-foreground: 0 0% 95%;
 
-    --primary: 243 82% 70%;
+    /* Deriva de la marca igual que `:root`, para que un bloque `.dark` o
+       `Section inverted` no revierta `--primary` al índigo de fábrica (#212).
+       `--brand-primary-dark` gana; si no, cae a `--brand-primary`; si no, al
+       índigo oscuro por defecto. */
+    --primary: var(--brand-primary-dark, var(--brand-primary, 243 82% 70%));
     --primary-foreground: 243 45% 12%;
 
     --secondary: 0 0% 17%;

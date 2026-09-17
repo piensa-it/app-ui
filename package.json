@@ -27,6 +27,7 @@
   "files": [
     "dist",
     "tailwind-preset.js",
+    "tailwind-preset.d.ts",
     "scripts/codemod-espaciado.mjs",
     "scripts/codemod-props-control.mjs"
   ],
@@ -46,7 +47,10 @@
     },
     "./styles.css": "./dist/style.css",
     "./fonts.css": "./dist/fonts.css",
-    "./tailwind-preset": "./tailwind-preset.js"
+    "./tailwind-preset": {
+      "types": "./tailwind-preset.d.ts",
+      "default": "./tailwind-preset.js"
+    }
   },
   "sideEffects": [
     "**/*.css"

@@ -40,6 +40,29 @@ El color primario conserva su linaje cromático entre modo claro y oscuro. La
 identidad de una aplicación nunca cambia el significado de success, warning o
 destructive.
 
+**Cómo aplicar la marca de un producto.** Definí `--brand-primary` una sola vez
+en `:root` (canales HSL, sin `hsl(...)`, igual que el resto de tokens). El
+sistema la deriva a `--primary` en claro, en oscuro y dentro de cualquier
+`Section tone="inverted"` — que aplica la clase `.dark` a su bloque. Si querés
+un tono distinto en oscuro, agregá `--brand-primary-dark`; si no, oscuro
+reutiliza `--brand-primary`. Sin ninguna de las dos, queda el índigo de fábrica.
+
+```css
+:root {
+  --brand-primary: 0 84% 60%;        /* rojo de la marca, claro y oscuro */
+  --brand-primary-dark: 0 72% 51%;   /* opcional: tono propio para .dark */
+}
+```
+
+> No redefinas `--primary` directamente en `.dark` (el rodeo antiguo
+> `:root, .dark { --primary: … }`): con `--brand-primary` basta una definición
+> y cubre también los bloques `inverted`. Ver #212.
+
+**Astro / islas:** hidratar un export del barrel directamente
+(`<CodeBlock client:visible>` importado del paquete) arrastra toda la librería
+al navegador (~360 KB comprimidos). Envolvé el componente que hidratás en un
+módulo propio de tu app en vez de importarlo suelto del paquete.
+
 ### Datos fáciles de comparar
 
 Las tablas, métricas, fechas y valores financieros priorizan alineación,
