@@ -87,8 +87,11 @@ if (missingFiles.length > 0) {
 // ignora en silencio, así que el build "funciona" pero deja de empaquetar.
 // Este chequeo existe para que eso no pase inadvertido otra vez (#57).
 // Desde #205 hay un segundo punto de entrada (`/diagramas`), con su propio
-// archivo de tipos empaquetado: se esperan exactamente esos dos.
-const expectedDtsFiles = ["dist/diagramas.d.ts", "dist/index.d.ts"];
+// archivo de tipos empaquetado. Desde #212 se publica además
+// `tailwind-preset.d.ts`, escrito a mano en la raíz (no lo genera api-extractor:
+// tipa el preset `.js` para que un consumidor con TS estricto no falle con
+// TS7016). Se esperan exactamente esos tres.
+const expectedDtsFiles = ["dist/diagramas.d.ts", "dist/index.d.ts", "tailwind-preset.d.ts"];
 const publishedDtsFiles = [...publishedFiles].filter((file) => file.endsWith(".d.ts")).sort();
 if (publishedDtsFiles.join() !== expectedDtsFiles.join()) {
   throw new Error(
