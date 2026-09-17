@@ -5,11 +5,10 @@ import { compilarTailwind } from "../test/compilar-tailwind";
 
 // El preset es un .js plano a propósito: se importa desde node_modules sin
 // pasar por un paso de compilación, y Tailwind 4 lo sigue cargando con
-// `@config`, así que las aplicaciones que lo extienden no cambian nada.
-// @ts-expect-error -- módulo JavaScript sin declaraciones
-import { content as presetContent } from "../../tailwind-preset.js";
-
-const uiLibraryContent = presetContent as string[];
+// `@config`, así que las aplicaciones que lo extienden no cambian nada. Desde
+// #212 lo acompaña `tailwind-preset.d.ts`, así que el import ya viene tipado
+// (un consumidor con TS estricto no falla con TS7016).
+import { content as uiLibraryContent } from "../../tailwind-preset.js";
 
 /**
  * Estas pruebas compilan Tailwind de verdad en vez de leer el objeto del
