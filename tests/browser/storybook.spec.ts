@@ -119,6 +119,51 @@ test.describe("Storybook browser gate", () => {
     }
   });
 
+  test("PublicHeader nunca recorta ni desborda la marca entre 320 y 1920 px (#217)", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await page.goto(storyUrl("marketing-publicheader--core-link-espanol"));
+    await stabilize(page);
+
+    const settle = () => page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+
+    for (let width = 320; width <= 1920; width += 20) {
+      await page.setViewportSize({ width, height: 800 });
+      await settle();
+
+      const problema = await page.evaluate(() => {
+        const header = document.querySelector("header")!;
+        const row = header.firstElementChild!.firstElementChild as HTMLElement; // fila flex interna
+        // La marca no se recorta: su etiqueta nunca queda truncada.
+        const name = [...header.querySelectorAll("span")].find(
+          (s) => s.textContent?.trim() === "CoreLink" && s.children.length === 0,
+        ) as HTMLElement | undefined;
+        if (!name) return "no se encontró la marca";
+        if (name.scrollWidth - name.clientWidth > 1) return `marca recortada (${name.scrollWidth - name.clientWidth}px)`;
+        // La fila no desborda su contenedor: si no cabe, colapsa, no desborda.
+        if (row.scrollWidth - row.clientWidth > 1) return `fila desbordada (${row.scrollWidth - row.clientWidth}px)`;
+        return null;
+      });
+      expect(problema, `@ ${width}px`).toBeNull();
+    }
+  });
+
+  test("PublicHeader colapsado expone todos los enlaces y acciones por teclado (#217)", async ({ page }) => {
+    await page.setViewportSize({ width: 1040, height: 800 });
+    await page.goto(storyUrl("marketing-publicheader--core-link-espanol"));
+    await stabilize(page);
+
+    // A 1040 px la composición no cabe: debe estar el botón de menú compacto.
+    const abrir = page.getByRole("button", { name: "Abrir menú" });
+    await expect(abrir).toBeVisible();
+    await abrir.click();
+
+    // Todos los enlaces y las dos acciones quedan accesibles en el panel.
+    for (const label of ["Módulos", "Grupos", "Desarrolladores", "Recursos", "Contacto"]) {
+      await expect(page.getByRole("link", { name: label })).toBeVisible();
+    }
+    await expect(page.getByRole("button", { name: "Reserva tu evaluación" })).toBeVisible();
+  });
+
   test("opens, focuses and closes the Ark UI dialog", async ({ page }) => {
     const errors: Error[] = [];
     page.on("pageerror", (error) => errors.push(error));

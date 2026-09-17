@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -111,6 +111,14 @@ export const PublicHeader = ({
 }: PublicHeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // `collapsed` fuerza el menú compacto cuando el contenido de escritorio no
+  // cabe en una línea, con independencia del ancho. Arranca en `false` para no
+  // depender de medir en el servidor: el render inicial es el mismo que el del
+  // servidor (base CSS por `md`), y el colapso solo se AÑADE tras medir en el
+  // cliente — nunca expande de menos, así que no hay salto de hidratación (#217).
+  const [collapsed, setCollapsed] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const neededWidthRef = useRef(0);
   const labels = { ...defaultLabels, ...labelsProp };
   const signatureOptions = resolveSignature(signature);
   const hasMenu = mobileLayout === "menu" && mobileNav !== undefined;
@@ -120,6 +128,32 @@ export const PublicHeader = ({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Colapso por medida: solo en el modo menú (el único con panel compacto).
+  // Con la marca y el bloque derecho en `shrink-0`, un contenido que no cabe
+  // DESBORDA la fila (`scrollWidth > clientWidth`) en vez de recortar la marca;
+  // ahí se colapsa. Para no oscilar, al colapsar se recuerda el ancho que hacía
+  // falta y solo se vuelve a expandir cuando el contenedor lo alcanza.
+  useEffect(() => {
+    if (!hasMenu) return;
+    const row = rowRef.current;
+    if (!row) return;
+    const measure = () =>
+      setCollapsed((prev) => {
+        if (!prev) {
+          if (row.scrollWidth > row.clientWidth + 1) {
+            neededWidthRef.current = row.scrollWidth;
+            return true;
+          }
+          return false;
+        }
+        return !(neededWidthRef.current && row.clientWidth >= neededWidthRef.current);
+      });
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    measure();
+    return () => observer.disconnect();
+  }, [hasMenu]);
 
   return (
     <header
@@ -131,17 +165,19 @@ export const PublicHeader = ({
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-16 items-center justify-between gap-4">
+        <div ref={rowRef} className="flex min-h-16 items-center justify-between gap-4">
           <Link
             to={homeHref}
             className={cn(
-              "flex min-w-0 items-center gap-2.5 rounded-md no-underline",
+              // La marca nunca cede: `shrink-0` y sin truncar, para que si algo
+              // no cabe colapse el menú en vez de recortarse la firma (#217).
+              "flex shrink-0 items-center gap-2.5 rounded-md no-underline",
               focusRingOutside,
             )}
           >
             {logoSrc && <img src={logoSrc} alt="" className="size-9 shrink-0 rounded-lg object-contain" />}
-            <span className="flex min-w-0 items-baseline gap-2">
-              <span className="truncate font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
+            <span className="flex items-baseline gap-2">
+              <span className="font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg">{brandName}</span>
               {/* Espacio para el nombre accesible «Deliver by Piensa IT»; en flex no se ve. */}
               {signatureOptions && " "}
               {signatureOptions && <ProductSignature {...signatureOptions} className="self-center" />}
@@ -153,7 +189,7 @@ export const PublicHeader = ({
 
           <div className="flex shrink-0 items-center gap-2">
             {(crossLink || desktopNav) && (
-              <nav aria-label={labels.mainNav} className="hidden items-center gap-2 md:flex">
+              <nav aria-label={labels.mainNav} className={cn("hidden items-center gap-2", !collapsed && "md:flex")}>
                 {crossLink && (
                   <Link to={crossLink.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
                     {crossLink.label}
@@ -170,7 +206,8 @@ export const PublicHeader = ({
                   "items-center gap-2",
                   // En `menu` y `two-rows` las acciones móviles viven en el
                   // panel o en la segunda fila; en `actions-only`, aquí mismo.
-                  mobileLayout === "actions-only" ? "flex" : "hidden md:flex",
+                  // Colapsado, se van al panel aunque sea ancho (#217).
+                  collapsed ? "hidden" : mobileLayout === "actions-only" ? "flex" : "hidden md:flex",
                 )}
               >
                 {actions}
@@ -181,7 +218,9 @@ export const PublicHeader = ({
               <button
                 type="button"
                 className={cn(
-                  "grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent md:hidden",
+                  "grid size-control-default shrink-0 place-items-center rounded-md border border-transparent text-foreground transition-colors hover:border-border hover:bg-accent",
+                  // Colapsado se muestra a cualquier ancho; si no, solo bajo `md`.
+                  !collapsed && "md:hidden",
                   focusRingOutside,
                 )}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -211,7 +250,7 @@ export const PublicHeader = ({
         )}
 
         {hasMenu && mobileMenuOpen && (
-          <div data-marketing-motion="menu-in" className="border-t border-border py-3 md:hidden">
+          <div data-marketing-motion="menu-in" className={cn("border-t border-border py-3", !collapsed && "md:hidden")}>
             <nav aria-label={labels.mobileNav} className="flex flex-col gap-1">
               {crossLink && (
                 <Link

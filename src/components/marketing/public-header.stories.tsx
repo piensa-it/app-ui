@@ -150,6 +150,95 @@ export const EnIngles: Story = {
   ),
 };
 
+// Composición estándar de la plantilla (#217): firma, enlaces, idioma, tema de
+// tres botones y dos acciones. Es la que se montaba sobre la marca entre ~1024
+// y ~1180 px antes de colapsar por medida.
+const enlaces = (labels: string[], vertical = false) => (
+  <>
+    {labels.map((label) => (
+      <a
+        key={label}
+        href="#"
+        className={
+          vertical
+            ? "rounded-md px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+            : "rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
+        }
+      >
+        {label}
+      </a>
+    ))}
+  </>
+);
+
+const accionesCoreLink = (lang: "es" | "en") => (
+  <>
+    <LanguageSwitcher
+      value={lang}
+      languages={[
+        { code: "en", label: "English", href: "#en" },
+        { code: "es", label: "Español", href: "#es" },
+      ]}
+    />
+    <ThemeToggle value="system" />
+    <Button size="sm" variant="outline">
+      {lang === "es" ? "Iniciar sesión" : "Log in"}
+    </Button>
+    <Button size="sm">{lang === "es" ? "Reserva tu evaluación" : "Book your assessment"}</Button>
+  </>
+);
+
+const coreLinkArgs = (lang: "es" | "en") => {
+  const labels = lang === "es"
+    ? ["Módulos", "Grupos", "Desarrolladores", "Recursos", "Contacto"]
+    : ["Modules", "Groups", "Developers", "Resources", "Contact"];
+  return {
+    logoSrc: undefined,
+    brandName: "CoreLink",
+    signature: true,
+    desktopNav: enlaces(labels),
+    mobileNav: enlaces(labels, true),
+    actions: accionesCoreLink(lang),
+  } satisfies Partial<Story["args"]>;
+};
+
+export const CoreLinkEspanol: Story = {
+  name: "CoreLink en español (firma, 5 enlaces, idioma, tema, 2 acciones)",
+  args: coreLinkArgs("es"),
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const CoreLinkIngles: Story = {
+  name: "CoreLink en inglés",
+  args: {
+    ...coreLinkArgs("en"),
+    labels: { openMenu: "Open menu", closeMenu: "Close menu", mainNav: "Main navigation", mobileNav: "Mobile navigation" },
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
+export const SeisEnlaces: Story = {
+  name: "Seis enlaces (peor caso)",
+  args: {
+    ...coreLinkArgs("es"),
+    desktopNav: enlaces(["Módulos", "Grupos", "Desarrolladores", "Recursos", "Precios", "Contacto"]),
+    mobileNav: enlaces(["Módulos", "Grupos", "Desarrolladores", "Recursos", "Precios", "Contacto"], true),
+  },
+  render: (args) => (
+    <div className="min-h-48 bg-muted/50">
+      <PublicHeader {...args} />
+    </div>
+  ),
+};
+
 export const ConFirmaTemaEIdioma: Story = {
   name: "Con firma, tema e idioma (plantilla de landing)",
   args: {
