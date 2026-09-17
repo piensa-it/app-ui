@@ -253,9 +253,71 @@ export { initialsFrom } from "./lib/initials";
 export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components/layout/global-error-boundary";
 
 // --- Marketing / sitios públicos ---
-export { PublicHeader, type PublicHeaderProps, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
-export { PublicFooter, type PublicFooterProps } from "./components/marketing/public-footer";
+export { PublicHeader, type PublicHeaderProps, type PublicHeaderLabels, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
+export { PublicFooter, type PublicFooterProps, type PublicFooterLabels } from "./components/marketing/public-footer";
 export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/image-carousel-backdrop";
+export {
+  Section,
+  SectionHeading,
+  Eyebrow,
+  Highlight,
+  type SectionProps,
+  type SectionHeadingProps,
+  type EyebrowProps,
+  type HighlightProps,
+  type MarketingBackground,
+} from "./components/marketing/section";
+export { FeatureGrid, type FeatureGridProps, type FeatureItem, type FeatureTone } from "./components/marketing/feature-grid";
+export { Hero, type HeroProps } from "./components/marketing/hero";
+export { PageHero, type PageHeroProps } from "./components/marketing/page-hero";
+export { StatRow, type StatRowProps, type StatItem } from "./components/marketing/stat-row";
+export { ProcessSteps, type ProcessStepsProps, type ProcessStep } from "./components/marketing/process-steps";
+export { Checklist, type ChecklistProps, type ChecklistItem } from "./components/marketing/checklist";
+export { SplitSection, type SplitSectionProps } from "./components/marketing/split-section";
+export { CtaBanner, type CtaBannerProps } from "./components/marketing/cta-banner";
+export { ProductSignature, type ProductSignatureProps, type ProductSignatureOptions } from "./components/marketing/product-signature";
+export { LanguageSwitcher, type LanguageSwitcherProps, type LanguageOption } from "./components/marketing/language-switcher";
+export { ContactSection, type ContactSectionProps, type ContactChannel } from "./components/marketing/contact-section";
+export { whatsappHref, mailtoHref } from "./components/marketing/contact-links";
+export {
+  ContactForm,
+  type ContactFormProps,
+  type ContactFormValues,
+  type ContactFormLabels,
+  type ContactFieldName,
+} from "./components/marketing/contact-form";
+export { ProductCatalog, type ProductCatalogProps, type CatalogProduct } from "./components/marketing/product-catalog";
+export {
+  PricingPlans,
+  PricingTable,
+  type PricingPlansProps,
+  type PricingPlan,
+  type PricingCategory,
+  type PricingTableProps,
+  type PricingTableGroup,
+  type PricingColumn,
+  type PriceFormat,
+} from "./components/marketing/pricing";
+export { CodeBlock, type CodeBlockProps, type CodeSnippet, type CodeBlockLabels } from "./components/ui/code-block";
+export {
+  DocsLayout,
+  type DocsLayoutProps,
+  type DocsLayoutLabels,
+  type DocsNavGroup,
+  type DocsNavItem,
+  type DocsTocItem,
+  type DocsPageLink,
+} from "./components/docs/docs-layout";
+export { DocsProse, type DocsProseProps } from "./components/docs/docs-prose";
+export {
+  ThemeToggle,
+  ThemeScript,
+  themeScript,
+  type ThemeToggleProps,
+  type ThemeToggleLabels,
+  type ThemeScriptProps,
+  type ThemePreference,
+} from "./components/ui/theme-toggle";
 
 // --- Utilidades ---
 export { cn } from "./lib/utils";

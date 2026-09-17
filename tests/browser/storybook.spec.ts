@@ -444,6 +444,27 @@ test.describe("Storybook browser gate", () => {
       maxDiffPixels: MAX_DIFF_PIXELS,
     });
   });
+
+  // #187: los dos modos móviles sin hamburguesa de las landings. La segunda
+  // fila (CoreLink, AdapterDian) y el header con solo acciones (Lynx).
+  for (const [story, nombre] of [
+    ["marketing-publicheader--dos-filas-en-movil", "public-header-mobile-two-rows.png"],
+    ["marketing-publicheader--solo-acciones-en-movil", "public-header-mobile-actions-only.png"],
+  ] as const) {
+    test(`keeps ${nombre.replace(".png", "")} visually stable`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 400 });
+      await page.goto(storyUrl(story));
+      await stabilize(page);
+
+      const root = page.locator("#storybook-root");
+      await expect(root.getByRole("banner")).toBeVisible();
+      await expect(root.getByRole("button", { name: "Abrir menú" })).toHaveCount(0);
+      await expect(root).toHaveScreenshot(nombre, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
 });
 
 test.describe("Checkbox — indeterminado (#144)", () => {
@@ -1026,5 +1047,120 @@ test.describe("SearchSelect", () => {
     await campo.fill("zzz");
     await page.keyboard.press("Escape");
     await expect(campo).toHaveValue("María Pérez");
+  });
+});
+
+test.describe("Secciones de marketing (#186)", () => {
+  // Las piezas de landing dependen de fondos decorativos, degradados en el
+  // texto y del bloque `inverted`: nada de eso lo ve jsdom. Las capturas fijan
+  // escritorio en los dos temas.
+  const casos = [
+    ["marketing-hero--con-artefacto", "hero-con-artefacto"],
+    ["marketing-hero--con-cifras", "hero-con-cifras"],
+    ["marketing-section--tonos-y-fondos", "section-tonos-y-fondos"],
+    ["marketing-featuregrid--tarjetas", "feature-grid-tarjetas"],
+    ["marketing-featuregrid--unidas-con-estado", "feature-grid-unidas-con-estado"],
+    ["marketing-featuregrid--numeradas-impares", "feature-grid-numeradas-impares"],
+    ["marketing-statrow--acento", "stat-row-acento"],
+    ["marketing-processsteps--tres-pasos", "process-steps-tres-pasos"],
+    ["marketing-splitsection--default", "split-section"],
+    ["marketing-pagehero--centrada", "page-hero-centrada"],
+    ["marketing-ctabanner--degradado", "cta-banner-degradado"],
+    ["marketing-contactsection--tarjetas", "contact-section-tarjetas"],
+    ["marketing-contactform--en-ingles-con-lateral", "contact-form-lateral"],
+    ["marketing-productcatalog--agrupado", "product-catalog-agrupado"],
+    ["marketing-pricing--planes-por-canal", "pricing-planes"],
+    ["marketing-pricing--tabla-por-rangos", "pricing-tabla"],
+  ] as const;
+
+  for (const [story, nombre] of [
+    ["ui-codeblock--ventana", "code-block-ventana"],
+    ["ui-codeblock--con-pestanas", "code-block-pestanas"],
+  ] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.locator("pre").first()).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
+  test("la tabla de precios en móvil funde la cantidad bajo el plan, sin scroll horizontal", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("marketing-pricing--tabla-por-rangos"));
+    await stabilize(page);
+    const anchoPagina = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(anchoPagina).toBeLessThanOrEqual(390);
+    await expect(page.getByRole("columnheader", { name: "Documentos/año" }).first()).toBeHidden();
+    await expect(page.getByRole("rowheader", { name: /Micro\s*60/ })).toBeVisible();
+  });
+
+  for (const [story, nombre, ancho] of [
+    ["marketing-publicheader--con-firma-tema-e-idioma", "public-header-firma-tema-idioma", 1366],
+    ["marketing-publicheader--con-firma-tema-e-idioma", "public-header-firma-tema-idioma-movil", 390],
+  ] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: ancho, height: 300 });
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.getByRole("link", { name: "Deliver by Piensa IT" })).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
+  for (const [story, nombre] of casos) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`${nombre} en tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: 1366, height: 900 });
+        await page.goto(storyUrl(story, `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        const root = page.locator("#storybook-root");
+        await expect(root.locator("[data-marketing-section]").first()).toBeVisible();
+        await expect(root).toHaveScreenshot(`${nombre}-${tema}.png`, {
+          animations: "disabled",
+          maxDiffPixels: MAX_DIFF_PIXELS,
+        });
+      });
+    }
+  }
+
+  test("el Hero en móvil pone el artefacto debajo del texto", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("marketing-hero--con-artefacto"));
+    await stabilize(page);
+    const titulo = await page.getByRole("heading", { level: 1 }).boundingBox();
+    const artefacto = await page.getByText("POST /v1/messages").boundingBox();
+    expect(titulo && artefacto).toBeTruthy();
+    expect(artefacto!.y).toBeGreaterThan(titulo!.y + titulo!.height);
+  });
+});
+
+test.describe("Portal del desarrollador (#213)", () => {
+  for (const [ancho, vista] of [[1440, "escritorio"], [390, "movil"]] as const) {
+    for (const tema of ["light", "dark"] as const) {
+      test(`la guía en ${vista} y tema ${tema} se mantiene visualmente estable`, async ({ page }) => {
+        await page.setViewportSize({ width: ancho, height: 900 });
+        await page.goto(storyUrl("docs-docslayout--guia", `theme:${tema};palette:indigo;fontFamily:geist`));
+        await stabilize(page);
+        await expect(page.getByRole("article")).toBeVisible();
+        await expect(page).toHaveScreenshot(`docs-layout-guia-${vista}-${tema}.png`, { animations: "disabled", maxDiffPixels: MAX_DIFF_PIXELS });
+      });
+    }
+  }
+
+  test("en móvil el menú se abre sin JavaScript de la librería (details nativo)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(storyUrl("docs-docslayout--guia"));
+    await stabilize(page);
+    const menu = page.getByRole("navigation", { name: "Documentation" });
+    await expect(menu.getByRole("link", { name: "Webhooks" })).toBeHidden();
+    await menu.getByText("Documentation menu").click();
+    await expect(menu.getByRole("link", { name: "Webhooks" }).first()).toBeVisible();
   });
 });

@@ -21,6 +21,8 @@ npm run build-storybook    # Genera storybook-static/ — esto es lo que se publ
 npm run test              # Tests en modo watch
 npm run test:run          # Tests una sola vez
 npm run lint              # ESLint
+npm run pruebas           # TODO (calidad + navegador) en Docker y firma .pruebas-evidencia.json — obligatorio antes de empujar
+npm run pruebas:cotejar   # ¿la constancia vale para el árbol actual?
 npm run test:browser      # Pruebas de navegador con el render de ESTA máquina
 npm run test:browser:docker         # Las mismas, en el Linux exacto de CI
 npm run test:browser:docker:update  # Regenera las capturas de referencia de Linux
@@ -28,7 +30,7 @@ npm run test:browser:docker:update  # Regenera las capturas de referencia de Lin
 
 Las capturas comparadas se generan por plataforma (macOS y Linux no
 rasterizan las letras igual), pero solo se **versionan** las de Linux
-(`*-linux.png`): son las únicas que mira `browser-gate` en CI, y se
+(`*-linux.png`): son las únicas que compara la suite de navegador de `npm run pruebas` (y `browser-gate` en la regresión manual de CI), y se
 regeneran con Docker, no a mano. Las de macOS (`*-darwin.png`) están en
 `.gitignore` y no se suben: son específicas de cada Mac, no de la
 plataforma —dos Macs distintas ya difieren en miles de píxeles de contorno
@@ -76,6 +78,8 @@ src/
 - No agregar dependencias de routing, data-fetching o backend (React Query, Supabase, etc.) — esas viven en el boilerplate de cada app, no aquí
 
 ## Publicación
+
+- **Modelo de despliegue común de Piensa IT** ([DEPLOYMENT.md](../DEPLOYMENT.md)): las pruebas no corren en Actions en cada PR ni push. Antes de empujar se corre `npm run pruebas` y se commitea `.pruebas-evidencia.json`; CI solo coteja la firma. Sin constancia válida, el PR falla en segundos.
 
 - **Paquete npm**: se publica a **GitHub Packages** (`@piensa-it` scope) al crear un Release en GitHub sobre `main` (dispara `.github/workflows/publish.yml`). Antes de crear el Release: bump de `version` en `package.json` vía PR normal. Ver README.md > "Publicar una nueva versión".
 - **Sitio de documentación**: se redespliega solo, en cada push a `main` (sitio Netlify `piensait-ui`, config en `netlify.toml`), sin necesidad de release ni bump de versión — siempre refleja el código fuente actual.

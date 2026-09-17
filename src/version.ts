@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.3.0";
+export const UI_LIBRARY_VERSION = "1.5.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,30 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código.",
+      "Portal del desarrollador: armá las guías de tu servicio con `DocsLayout` (menú, tabla de contenidos, anterior/siguiente) y renderizá tu MDX dentro de `DocsProse`. Para avisos usá `Alert` con `role=\"note\"`, y para ejemplos con pestañas por lenguaje, `CodeBlock`. La estructura `/developers/` ya armada está en `piensa-web-starter`: tu repo solo escribe la prosa en `web/src/content/docs/`.",
+    ],
+  },
+  {
+    version: "1.4.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-16",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código. Lo que sigue es lo que podés adoptar en tu web pública.",
+      "Web pública (landing, precios, contacto): en vez de secciones a mano, armala con las piezas de marketing. `PublicHeader` (ahora con `actions`, `mobileLayout`, `signature` y `labels`), `Hero` y `PageHero`, `Section` + `SectionHeading` + `FeatureGrid`, `StatRow`, `ProcessSteps`, `Checklist`, `SplitSection`, `CtaBanner`, `ContactSection`, `ContactForm`, `PricingPlans`/`PricingTable`, `ProductCatalog` y `PublicFooter`. Todas se renderizan en el servidor (Astro, prerenderizado) y reciben los textos por props o `labels`, así que sirven en inglés y en español.",
+      "Si montabas `UiProvider` solo después de hidratar para esquivar el error «Missing getServerSnapshot» (#183), quitá el rodeo: ya se renderiza en el servidor.",
+      "Firma «<Producto> by Piensa IT»: si la armabas pasando un componente como `brandName` o escondiendo el logo con una clase interna, cambialo por `<PublicHeader brandName=\"Deliver\" signature />` (y lo mismo en `PublicFooter`). El isotipo viene incluido.",
+      "Tema claro/oscuro/sistema: si tenés un selector propio, cambialo por `ThemeToggle` y agregá `<ThemeScript />` en el `<head>` (o `themeScript()` en `index.html`) con la misma `storageKey`, para que la página no parpadee al cargar.",
+      "Idioma: `LanguageSwitcher` con un enlace por idioma (`href` a la misma página en el otro idioma); usá `onChange` para guardar la elección.",
+      "`PublicFooter`: el logo ahora es decorativo (`alt=\"\"`), porque el nombre ya se lee al lado. Si una prueba tuya buscaba la imagen por su texto alternativo, buscá el nombre en texto.",
+      "Diagramas de procesos: `ProcessMap` y `C4Diagram` se importan de `@piensa-it/ui-library/diagramas` y necesitan instalar `@xyflow/react` y `elkjs` en tu aplicación. Quien no los importa no descarga nada nuevo.",
+    ],
+  },
+  {
+    version: "1.3.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-13",
     migration: [
       "Todo es aditivo: subir no requiere cambios de código.",
       "Selectores de registros en listas grandes: si en un formulario elegís un cliente, un ítem o un proveedor con `Select` (hay que hacer scroll) o con `AutoComplete` (guarda el texto, no el registro), cambialo por `SearchSelect`. Cada opción es `{ value, label, description }` —en `description` poné el NIT o el SKU, que distingue homónimos y también se busca—, y `onChange(id, opcion)` te entrega el identificador y la opción completa. Con pocos miles de registros ya cargados alcanza con pasar `options`: filtra solo, sin distinguir tildes. Con más, o si no están en memoria, pasale `onSearch` —recibe el texto con 300 ms de retardo, así que no le pongas un debounce propio encima—, hacé vos la consulta y devolvela en `options` con `loading` mientras llega. Al editar un documento guardado, pasá `selectedOption` para que el campo sepa qué nombre mostrar antes de cualquier búsqueda.",

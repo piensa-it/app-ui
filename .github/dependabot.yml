@@ -4,14 +4,19 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:00"
       timezone: America/Bogota
     open-pull-requests-limit: 5
     ignore:
       - dependency-name: "@ark-ui/react"
       - dependency-name: "@zag-js/*"
+      # Playwright se sube a mano, junto con la imagen de ci.yml y las capturas
+      # de Linux regeneradas: subirlo solo rompía `browser-gate` y
+      # `verify:package` en cada PR de Dependabot (#210) y llegaba por correo.
+      - dependency-name: "@playwright/test"
+      - dependency-name: "playwright"
+      - dependency-name: "playwright-core"
     groups:
       npm-minor-and-patch:
         update-types:
@@ -25,8 +30,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:30"
       timezone: America/Bogota
     groups:

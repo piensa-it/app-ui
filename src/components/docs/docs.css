@@ -1,0 +1,142 @@
+/* Prosa de las guías (#213). Se limita a los hijos directos y a elementos de
+   contenido para no pisar a `CodeBlock`, `Alert` u otros componentes de la
+   librería que la guía incruste: esos traen `data-*` o clases propias. */
+[data-docs-prose] {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+[data-docs-prose] > * + * {
+  margin-top: 1.25em;
+}
+
+[data-docs-prose] > h1 {
+  font-family: var(--font-heading, inherit);
+  font-size: 2.25rem;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+[data-docs-prose] > h2,
+[data-docs-prose] > h3,
+[data-docs-prose] > h4 {
+  font-family: var(--font-heading, inherit);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 5.5rem;
+}
+
+[data-docs-prose] > h2 {
+  margin-top: 2em;
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+[data-docs-prose] > h3 {
+  margin-top: 2em;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+[data-docs-prose] > h4 {
+  margin-top: 1.75em;
+  font-size: 1rem;
+}
+
+[data-docs-prose] > :is(h2, h3, h4) + * {
+  margin-top: 0.75em;
+}
+
+/* Ancla que generan los plugins de encabezados (rehype-autolink-headings). */
+[data-docs-prose] :is(h2, h3, h4) > a {
+  color: inherit;
+  text-decoration: none;
+}
+
+[data-docs-prose] :is(p, li, td, blockquote) a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+[data-docs-prose] > :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+[data-docs-prose] > ul {
+  list-style: disc;
+}
+
+[data-docs-prose] > ol {
+  list-style: decimal;
+}
+
+[data-docs-prose] li + li {
+  margin-top: 0.4em;
+}
+
+[data-docs-prose] li::marker {
+  color: hsl(var(--muted-foreground));
+}
+
+[data-docs-prose] :not(pre) > code {
+  border-radius: 0.3rem;
+  background: hsl(var(--muted));
+  padding: 0.15em 0.4em;
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 0.875em;
+}
+
+[data-docs-prose] > pre {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: hsl(var(--card));
+  padding: 1rem;
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+[data-docs-prose] > blockquote {
+  border-inline-start: 3px solid hsl(var(--primary) / 0.5);
+  padding-inline-start: 1em;
+  color: hsl(var(--muted-foreground));
+}
+
+[data-docs-prose] > hr {
+  border: 0;
+  border-top: 1px solid hsl(var(--border));
+  margin-block: 2.5em;
+}
+
+[data-docs-prose] > img,
+[data-docs-prose] > p > img {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+}
+
+[data-docs-prose] > table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+[data-docs-prose] > table :is(th, td) {
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0.6em 0.9em;
+  text-align: start;
+  vertical-align: top;
+}
+
+[data-docs-prose] > table th {
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

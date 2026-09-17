@@ -20,6 +20,75 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - **`C4Diagram`** es un preajuste: `ElementoC4` con `tipo` persona, sistema, contenedor o componente, `limites` que se pintan como carriles, relaciones con tecnología y trazo discontinuo si son asíncronas; los tres niveles (contexto, contenedores, componentes) salen de anidar `hijos`.
   - **Dependencias opcionales:** `@xyflow/react` y `elkjs` son `peerDependencies` opcionales. Importar el paquete principal no las toca: el ESM, el CJS y `index.d.ts` del índice salen idénticos byte a byte, y `verify:package` recorre ahora el grafo de módulos publicado para fallar si el índice llega a alcanzarlas. `style.css` sí crece 5,0 KB (las clases de Tailwind de los diagramas viajan en la misma hoja). `verify:contract` recorre también `src/diagramas.ts`.
 
+## [1.5.0] - 2026-09-16
+
+### Added
+
+- **`DocsLayout` y `DocsProse`: la estructura común del portal del desarrollador (#213).** La prosa de cada servicio (primeros pasos, autenticación, errores, webhooks) la escribe cada aplicación en MDX; la librería pone la estructura para que todos los portales naveguen igual.
+  - `DocsLayout` trae menú lateral por grupos con la página activa (`aria-current="page"`) e insignias, tabla de contenidos fija en escritorio, miga de pan y anterior/siguiente. En móvil, menú y tabla de contenidos se pliegan con `<details>` nativo, sin JavaScript. No incluye header ni footer.
+  - `DocsProse` estiliza el HTML de MDX (encabezados con ancla, listas, código, tablas, citas, imágenes) solo con tokens, sin `@tailwindcss/typography`, y respeta `CodeBlock` y `Alert` dentro de la guía.
+
+## [1.4.0] - 2026-09-16
+
+### Added
+
+- **`PublicHeader` sirve para todas las landings de Piensa IT (#187).**
+  - `desktopNav` y `mobileNav` pasan a ser opcionales. Sin `mobileNav` ya no aparece un botón de menú vacío.
+  - `actions`: botones, selector de tema o de idioma a la derecha.
+  - `mobileLayout` define el header en móvil: `menu` (hamburguesa, las acciones dentro del panel), `two-rows` (segunda fila con enlaces y acciones) o `actions-only` (solo las acciones).
+  - `labels` traduce los textos accesibles.
+  - La segunda fila de `two-rows` pasa a otra línea en vez de desplazarse, para que ninguna acción quede fuera de la pantalla.
+  - El botón de menú expone `aria-expanded`.
+- **`PublicFooter`: `contact`, `version`, `year` y `labels` (#187).**
+  - `contact`: una columna de ubicación y medios de contacto.
+  - `version`: la versión de la app en monoespaciada.
+  - `year`: año fijo, para que el HTML prerenderizado no quede con el año del build.
+  - `labels`: los textos «Legal», «Síguenos», «Contacto» y los derechos reservados, para publicarlo en inglés.
+- **Secciones de landing: `Section`, `SectionHeading`, `Eyebrow`, `Highlight` y `FeatureGrid` (#189).**
+  - `Section`: ancho, márgenes y espacio vertical comunes, con `id` como ancla. Tono `default`, `muted` o `inverted` (bloque con los tokens oscuros dentro de una página clara). Fondo `grid`, `glow` o `grid-glow`.
+  - `SectionHeading`: eyebrow, título, subtítulo, acciones y línea de acento.
+  - `Eyebrow`: texto o pastilla con punto o ícono.
+  - `Highlight`: parte de un título en degradado de marca (hacia `--marketing-highlight-to`) o en color de acento, opcionalmente en cursiva.
+  - `FeatureGrid` cubre las rejillas de las cuatro landings con los mismos datos. Variantes `card`, `list`, `joined` y `compact`, de 2 a 5 columnas, con la última fila centrada. Por tarjeta: ícono, numeración, insignia de estado, chip de código, viñetas, etiquetas, pie «etiqueta: valor», tono, atenuada y enlace.
+- **`Hero`, la portada de landing (#188).** Eyebrow, título `h1` con `Highlight`, descripción, acciones, nota bajo los botones, artefacto del producto en `aside` (dos columnas; sin él queda centrada), `footer` a todo el ancho para cifras y fondo decorativo.
+- **Más secciones de landing (#190, #191, #194, #195, #197, #201).**
+  - `PageHero`: cabecera de páginas interiores, sin artefacto.
+  - `StatRow`: cifras con rótulo, acento y divisores. El valor llega formateado, así que el HTML del servidor trae la cifra final.
+  - `ProcessSteps`: «cómo funciona» como lista ordenada «01, 02…» con ícono, horizontal o vertical. No se llama `Steps` para no chocar con un asistente por pasos.
+  - `Checklist`: garantías con check.
+  - `SplitSection`: texto y maqueta del producto lado a lado.
+  - `CtaBanner`: cierre con degradado de marca, rejilla o superficie sobria, con una o dos acciones.
+- **Firma de producto «by Piensa IT» (#184).**
+  - `PublicHeader` y `PublicFooter` aceptan `signature` (`true` o `{ label, logoSrc }`), con el isotipo de Piensa IT incluido (56 px, 2 KB).
+  - `logoSrc` pasa a ser opcional y `brandName` del header acepta nodos.
+  - El enlace de inicio se nombra «<Producto> by Piensa IT».
+  - `ProductSignature` se exporta también suelta.
+- **`ThemeToggle`, `ThemeScript` y `themeScript()` (#200).**
+  - `ThemeToggle` elige entre claro, oscuro y sistema.
+  - Si no es controlado, guarda la elección, aplica `dark` en `<html>` y sigue al sistema en vivo.
+  - `ThemeScript` (Astro) y `themeScript()` (`index.html` en Vite) aplican el tema antes del primer pintado, así la página no parpadea.
+- **`LanguageSwitcher` (#207): selector de idioma para las webs públicas.**
+  - Cada opción es un enlace real con `hreflang`, así que funciona sin JavaScript.
+  - Tiene dos variantes: `segmented` (EN | ES) y `menu` sobre `<details>` nativo.
+  - `onChange` avisa la elección para que el sitio la guarde.
+- **`CodeBlock` (#193).** Código con título, estilo de ventana, pestañas por lenguaje, copiar (anunciado a lectores de pantalla) y números de línea. Todas las pestañas quedan en el HTML. El resaltado es opcional con `highlight` (p. ej. Shiki en el build): la librería no suma un resaltador.
+- **`ContactSection` (#192).** WhatsApp, correo y canales libres en tarjetas, centrado o como lista junto a un formulario. `whatsappHref` y `mailtoHref` arman los enlaces con el mensaje codificado.
+- **`ContactForm` (#203).** Formulario de contacto sin backend propio.
+  - Valida en el navegador, enfoca el primer error y anuncia envío, éxito y error.
+  - No reenvía con doble clic y trae honeypot opcional.
+  - Sin `onSubmit` se envía de forma nativa a `action` (Netlify Forms).
+  - Textos traducibles con `labels`.
+- **`ProductCatalog` (#202).** Catálogo de productos con enlace a cada landing y enlaces secundarios, agrupable por categoría, con estado y tinte del producto (`accent` en canales HSL). La variante `compact` sirve para «Otros productos de Piensa IT».
+- **`PricingPlans` y `PricingTable` (#196).**
+  - `PricingPlans`: planes en tarjetas, con pestañas por categoría, plan destacado con insignia, líneas de detalle y nota.
+  - `PricingTable`: tablas semánticas por rango de volumen, cada grupo con sus columnas, columna de ahorro, grupos a todo el ancho o a media columna, y la cantidad fundida bajo el plan en móvil.
+  - Los precios se formatean con `Intl` y un locale fijo, igual en servidor y navegador.
+- **Prueba de render de servidor para marketing:** `marketing-ssr.test.tsx` renderiza cada pieza sin DOM y falla ante cualquier aviso.
+
+### Fixed
+
+- **`UiProvider` se puede renderizar en el servidor (#183).** `AlertDialogHost` usaba `useSyncExternalStore` sin `getServerSnapshot`, así que cualquier SSR, prerenderizado o isla de Astro que montara `UiProvider` fallaba con «Missing getServerSnapshot». Ya no hace falta montarlo solo después de hidratar. Pruebas nuevas: `renderToString` en entorno `node` (sin DOM), con y sin `density`, e hidratación sin avisos.
+
 ## [1.3.0] - 2026-09-12
 
 ### Added
