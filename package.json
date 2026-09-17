@@ -67,6 +67,8 @@
     "prepublishOnly": "npm run build",
     "test": "vitest",
     "test:run": "vitest run",
+    "pruebas": "node scripts/pruebas-docker.mjs",
+    "pruebas:cotejar": "node scripts/evidencia-pruebas.mjs cotejar",
     "test:browser": "playwright test",
     "test:browser:docker": "bash scripts/pruebas-navegador-docker.sh",
     "test:browser:docker:update": "bash scripts/pruebas-navegador-docker.sh --update-snapshots=all",

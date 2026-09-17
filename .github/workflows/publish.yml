@@ -42,21 +42,18 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: node scripts/validate-release.mjs
 
-      - run: npm run lint
+      # Lint, tipos, cobertura, contrato, React 18, Storybook y navegador ya
+      # los certifica la constancia firmada en local (DEPLOYMENT.md): si el
+      # commit del Release no es el que se probó, no se publica.
+      - name: Cotejar la constancia de pruebas
+        run: |
+          RESULTADO="$(node scripts/evidencia-pruebas.mjs cotejar)"
+          echo "Constancia: $RESULTADO"
+          [ "$RESULTADO" = "valida" ] || { echo "::error::El commit del Release no tiene constancia de pruebas válida. Corre \`npm run pruebas\`."; exit 1; }
 
-      - name: TypeScript strict check
-        run: npm run typecheck
-
-      - run: npm run test:run
-
-      # Defensa en profundidad: ci.yml ya corre esto en el PR, pero repetirlo
-      # acá evita publicar a npm si el estado de `main` cambió entre el merge
-      # y la creación del Release (o si el Release apunta a un commit distinto
-      # al que pasó CI). verify:package hace `npm run build` + valida que
-      # React/Ark UI/TanStack/Recharts sigan externalizados y que el bundle
-      # no exceda el presupuesto de tamaño — es estrictamente más que
-      # `npm run build` solo, así que reemplaza ese paso.
-      - name: Verificar build, tipos y tamaño del paquete
+      # verify:package hace `npm run build` y valida externos y tamaño: el build
+      # que se publica tiene que salir de este runner.
+      - name: Build y verificación del paquete
         run: npm run verify:package
 
       - name: Publicar en GitHub Packages

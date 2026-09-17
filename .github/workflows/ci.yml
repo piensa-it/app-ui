@@ -1,9 +1,29 @@
 name: CI
 
+# ── Modelo de despliegue común de Piensa IT (ver DEPLOYMENT.md) ─────────────
+#
+# Las pruebas NO corren aquí en cada PR ni en cada push. Corren en local, una
+# vez por cambio, con `npm run pruebas` (Docker, la misma imagen de Playwright
+# que usaba este workflow), que firma `.pruebas-evidencia.json`. Aquí solo se
+# coteja esa firma: si el código cambió desde que se firmó, falla en segundos.
+#
+# Por qué: cada PR y cada push corrían ~6 minutos de lint, tipos, cobertura,
+# contrato, paquete, Storybook y navegador, más las corridas de Dependabot que
+# fallaban y llegaban por correo. La cuota son 2.000 min/mes para toda la
+# organización.
+#
+# La regresión completa en Actions sigue disponible, a mano:
+#   gh workflow run ci.yml -f regresion_completa=true
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      regresion_completa:
+        description: "Correr aquí la calidad y la suite de navegador completas (~6 min de Actions)"
+        type: boolean
+        default: false
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -11,8 +31,9 @@ concurrency:
 
 jobs:
   pull-request-policy:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
       - name: Validate branch and PR title
@@ -21,7 +42,35 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: node scripts/validate-pr-metadata.mjs
 
+  # ── La puerta: la firma de las pruebas locales ────────────────────────────
+  #
+  # Sin `npm ci` ni `setup-node`: el cotejo es Node sin dependencias sobre
+  # `git ls-files` y el lock. Tarda segundos.
+  #
+  # Dependabot no tiene constancia (nadie corrió las pruebas por él): sus PR
+  # quedan sin cotejo y NO se fusionan hasta que alguien haga checkout, corra
+  # `npm run pruebas` y empuje la firma. Antes corrían la suite entera cada
+  # semana y fallaban por correo.
+  constancia:
+    if: github.event_name != 'workflow_dispatch' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v7
+      - name: Cotejar .pruebas-evidencia.json
+        run: |
+          # Se lee la PALABRA, no el código de salida: `cotejar` imprime
+          # `valida` o `invalida` y el motivo va por la salida de error.
+          RESULTADO="$(node scripts/evidencia-pruebas.mjs cotejar)"
+          echo "Constancia: $RESULTADO"
+          if [ "$RESULTADO" != "valida" ]; then
+            echo "::error::La constancia de pruebas no vale para este commit. Corre \`npm run pruebas\` en local y commitea .pruebas-evidencia.json."
+            exit 1
+          fi
+
+  # ── Regresión completa, solo a mano ───────────────────────────────────────
   quality-gate:
+    if: github.event_name == 'workflow_dispatch' && inputs.regresion_completa
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -57,56 +106,8 @@ jobs:
       - name: Build del sitio de documentación (Storybook)
         run: npm run build-storybook
 
-  # Solo corre en el PR que sube `version` en package.json — el de release.
-  # Por qué aquí y no en cada push (#172): `verify:react18` existe desde hace
-  # tiempo pero no lo corría nadie, y por eso el código de la librería dejó de
-  # compilar con los tipos de React 18 durante tres versiones sin que se viera.
-  # Medido antes de decidir dónde ponerlo: el `dist/index.d.ts` publicado sale
-  # idéntico byte a byte con y sin ese fallo, así que a ningún consumidor le
-  # llegó nada roto — lo que estaba roto era la comprobación, no la promesa.
-  # Con ese impacto real, gastar ~3 minutos en cada PR era desproporcionado;
-  # justo antes de publicar, que es lo único que importa, no lo es.
-  #
-  # El día que la librería sea React 19 exclusivo (#174), este job se borra.
-  release-gate:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # Hace falta el commit base para comparar la versión contra él.
-          fetch-depth: 0
-
-      - name: ¿Este PR sube la versión?
-        id: version
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          git show "$BASE_SHA":package.json > /tmp/package.base.json
-          antes="$(node -p "require('/tmp/package.base.json').version")"
-          ahora="$(node -p "require('./package.json').version")"
-          if [ "$antes" = "$ahora" ]; then
-            echo "bumped=false" >> "$GITHUB_OUTPUT"
-            echo "La versión sigue en $ahora: este no es el PR de release, no se comprueba React 18."
-          else
-            echo "bumped=true" >> "$GITHUB_OUTPUT"
-            echo "Versión $antes → $ahora: es el PR de release, se comprueba React 18."
-          fi
-
-      - uses: actions/setup-node@v7
-        if: steps.version.outputs.bumped == 'true'
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - run: npm ci
-        if: steps.version.outputs.bumped == 'true'
-
-      - name: React 18 sigue soportado (lo declara peerDependencies)
-        if: steps.version.outputs.bumped == 'true'
-        run: npm run verify:react18
-
   browser-gate:
+    if: github.event_name == 'workflow_dispatch' && inputs.regresion_completa
     runs-on: ubuntu-latest
     # Corre DENTRO de la imagen oficial de Playwright, la misma que usa
     # `npm run test:browser:docker` en local. Dos motivos:
@@ -158,8 +159,10 @@ jobs:
     # de dispararse en agosto, congelando el sitio casi un mes sin aviso.
     # Publicarlo desde acá lo vuelve visible junto al resto del CI y garantiza
     # que solo salga a producción lo que ya pasó calidad y navegador.
+    # Solo sale lo que tiene constancia válida (lo que certifica calidad,
+    # navegador y el build de Storybook). Un commit con `[skip ci]` no publica.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [quality-gate, browser-gate]
+    needs: [constancia]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
