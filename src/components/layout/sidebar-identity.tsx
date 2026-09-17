@@ -1,9 +1,10 @@
 import * as React from "react";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronRight, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { initialsFrom } from "@/lib/initials";
 import { Menu, MenuContent, MenuItemGroupLabel, MenuRadioItem, MenuRadioItemGroup, MenuTrigger } from "@/components/ui/menu";
+import { AppSwitcher, type AppSwitcherConfirm, type AppSwitcherItem } from "@/components/ui/app-switcher";
 import type { SidebarBrandOption } from "./sidebar-brand";
 import { useSidebar } from "./sidebar-context";
 
@@ -16,18 +17,51 @@ export interface SidebarIdentitySystem {
   initials?: string;
 }
 
+/** Una opción de compañía o de módulo. Lo extra solo se ve en el diálogo. */
+export interface SidebarIdentityOption extends SidebarBrandOption {
+  /** Icono de la ficha en el diálogo. */
+  icon?: React.ComponentType<{ className?: string }>;
+  /** Datos que la persona necesita ver para elegir: NIT, rol con el que entra. */
+  details?: { label: string; value: React.ReactNode }[];
+  /** Sección del diálogo en la que va. Sin sección, todas juntas bajo el rótulo. */
+  group?: string;
+}
+
+/** El diálogo de cambio: con muchas compañías o módulos, un menú corto no alcanza. */
+export interface SidebarIdentityDialog {
+  /** «Compañías que puedes operar», «Cambiar de módulo». */
+  title: string;
+  description?: string;
+  /** @default "Buscar…" */
+  searchPlaceholder?: string;
+  /** Al pie: dónde se pide un permiso, o que Ctrl K busca pantallas. */
+  hint?: React.ReactNode;
+  /** «Donde estabas»: identificadores recientes, arriba del todo. */
+  recent?: string[];
+  /** @default "Donde estabas" */
+  recentLabel?: string;
+  /** Segundo paso antes de cambiar, para cuando elegir cambia datos y permisos (#78). */
+  confirm?: AppSwitcherConfirm;
+}
+
 export interface SidebarIdentitySegment {
-  /** Rótulo del segmento: «Empresa», «Módulo». Se ve como sobretítulo y va al nombre accesible. */
+  /** Rótulo del segmento: «Compañía», «Módulo». Se ve como sobretítulo y va al nombre accesible. */
   caption: string;
   /** Opción actual. */
   value?: string;
-  /** Opciones. Con ellas el segmento es un menú con marca de selección y descripción. */
-  options?: SidebarBrandOption[];
+  /** Opciones. Con ellas el segmento es un menú corto; con `dialog` además, un diálogo con buscador. */
+  options?: SidebarIdentityOption[];
   onChange?: (value: string) => void;
   /**
-   * Desvía el disparador: en vez del menú propio, llama a esto. Para abrir
-   * un `AppSwitcher` con confirmación cuando elegir no es cambiar de pestaña
-   * (#78). Manda sobre `options`.
+   * Abre un diálogo (`AppSwitcher`) en vez del menú corto: buscador, fichas
+   * con icono, descripción, distintivo y detalles, «aquí estás» y recientes.
+   * Es lo que hace falta cuando hay muchas compañías o muchos módulos.
+   */
+  dialog?: SidebarIdentityDialog;
+  /**
+   * Desvía el disparador: en vez del menú o el diálogo propios, llama a
+   * esto, para abrir lo que la aplicación quiera. Manda sobre `options` y
+   * `dialog`.
    */
   onSelect?: () => void;
   /** Qué se muestra cuando `value` no coincide con ninguna opción. */
@@ -189,7 +223,11 @@ function Segment({ segment, badge }: { segment: SidebarIdentitySegment; badge?: 
       )}
     >
       {content}
-      <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0 text-sidebar-muted" />
+      {segment.dialog || segment.onSelect ? (
+        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-sidebar-muted" />
+      ) : (
+        <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0 text-sidebar-muted" />
+      )}
     </button>
   );
 
@@ -230,6 +268,10 @@ function SegmentControl({
     });
   }
 
+  if (segment.dialog) {
+    return <SegmentDialog segment={segment} dialog={segment.dialog} button={button} />;
+  }
+
   return (
     <Menu>
       <MenuTrigger>{button}</MenuTrigger>
@@ -247,5 +289,58 @@ function SegmentControl({
         </MenuRadioItemGroup>
       </MenuContent>
     </Menu>
+  );
+}
+
+/** El diálogo de cambio: el `AppSwitcher` montado desde las opciones del segmento. */
+function SegmentDialog({
+  segment,
+  dialog,
+  button,
+}: {
+  segment: SidebarIdentitySegment;
+  dialog: SidebarIdentityDialog;
+  button: React.ReactElement;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const options = segment.options ?? [];
+  const toItem = (option: SidebarIdentityOption): AppSwitcherItem => ({
+    id: option.value,
+    label: typeof option.label === "string" ? option.label : String(option.value),
+    description: typeof option.description === "string" ? option.description : undefined,
+    icon: option.icon,
+    badge: option.badge ? { label: String(option.badge.label), tone: option.badge.tone } : undefined,
+    details: option.details,
+    disabled: option.disabled,
+  });
+  // Con secciones, una por sección en el orden en que aparecen; sin ellas,
+  // todas juntas bajo el rótulo del segmento.
+  const groupIds = Array.from(new Set(options.map((option) => option.group ?? segment.caption)));
+  const groups = groupIds.map((id) => ({ id, label: id, items: options.filter((option) => (option.group ?? segment.caption) === id).map(toItem) }));
+
+  return (
+    <>
+      {React.cloneElement(button as React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>, {
+        onClick: () => setOpen(true),
+        "aria-haspopup": "dialog",
+      })}
+      <AppSwitcher
+        open={open}
+        onOpenChange={setOpen}
+        title={dialog.title}
+        description={dialog.description}
+        searchPlaceholder={dialog.searchPlaceholder}
+        hint={dialog.hint}
+        recent={dialog.recent}
+        recentLabel={dialog.recentLabel ?? "Donde estabas"}
+        confirm={dialog.confirm}
+        activeId={segment.value}
+        groups={groups}
+        onSelect={(id) => {
+          setOpen(false);
+          segment.onChange?.(id);
+        }}
+      />
+    </>
   );
 }

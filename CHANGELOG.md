@@ -23,6 +23,7 @@ el versionado, [SemVer](https://semver.org/lang/es/).
   - **Dependencias opcionales:** `@xyflow/react` y `elkjs` son `peerDependencies` opcionales. Importar el paquete principal no las toca: el ESM, el CJS y `index.d.ts` del índice salen idénticos byte a byte, y `verify:package` recorre ahora el grafo de módulos publicado para fallar si el índice llega a alcanzarlas. `style.css` sí crece 5,0 KB (las clases de Tailwind de los diagramas viajan en la misma hoja). `verify:contract` recorre también `src/diagramas.ts`.
 - **Marca por producto con `--brand-primary` (#212).** `:root` y `.dark` derivan `--primary` de `--brand-primary` (y `--brand-primary-dark` opcional): una app define su color una sola vez y fluye a claro, oscuro y a los bloques `Section inverted`. El rodeo anterior (`:root, .dark { --primary }`) sigue funcionando.
 - **`tailwind-preset.d.ts` publicado (#212).** Un consumidor con TypeScript estricto (`astro check`) ya no falla con TS7016 al importar `@piensa-it/ui-library/tailwind-preset`.
+- **`SidebarIdentity` abre un diálogo para cambiar de compañía o de módulo** (`dialog` en el segmento): el `AppSwitcher` montado desde las opciones, con buscador, fichas con icono, descripción, distintivo y detalles (NIT, rol con el que se entra), «aquí estás», «donde estabas» y una pista al pie (dónde pedir un permiso, o que Ctrl K busca pantallas). Con muchas compañías o muchos módulos, el menú corto no alcanzaba; el menú corto sigue para pocas opciones. Las opciones admiten `icon`, `details` y `group`. Los ejemplos lo usan.
 
 ### Fixed
 

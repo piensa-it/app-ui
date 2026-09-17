@@ -201,6 +201,8 @@ export {
   type SidebarIdentityProps,
   type SidebarIdentitySegment,
   type SidebarIdentitySystem,
+  type SidebarIdentityOption,
+  type SidebarIdentityDialog,
 } from "./components/layout/sidebar-identity";
 export {
   NotificationsMenu,
