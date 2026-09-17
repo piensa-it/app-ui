@@ -1,14 +1,14 @@
 {
   "_lee_esto": "Constancia de que lint, tipos, pruebas con cobertura, contrato, paquete, React 18, Storybook y la suite de navegador pasaron en verde antes de este commit, dentro de la imagen de Playwright del CI, para que GitHub Actions no las repita. Se genera sola con `npm run pruebas`; no se edita a mano. Ver DEPLOYMENT.md.",
   "version_formato": 2,
-  "hash": "52a4a3bbd6cdc740e13846ab638c6defe9ce6c017f098e0f5fbbf1042ede453c",
+  "hash": "32ad104c06ebb0e988e287910237773ad00011ef90b763d5f2cd1c4b0e09df98",
   "playwright": "1.62.1",
   "pruebas": {
-    "pasaron": 129,
-    "inestables": 0,
+    "pasaron": 128,
+    "inestables": 1,
     "omitidas": 0,
     "fallaron": 0,
-    "duracion_ms": 116330
+    "duracion_ms": 110475
   },
   "verificaciones": {
     "auditoria": true,
@@ -21,7 +21,7 @@
     "unitarias_pasaron": 1051,
     "storybook": true
   },
-  "generada": "2026-09-17T17:38:41.898Z",
+  "generada": "2026-09-17T18:45:26.272Z",
   "generada_por": {
     "nombre": "Andrés Montoya",
     "correo": "amontoyag8@gmail.com",
@@ -32,5 +32,5 @@
     "nodo": "v24.18.1",
     "arquitectura": "arm64"
   },
-  "commit_al_generar": "8515cbd07aa224856c2e007b0f3ae421e492aeb2"
+  "commit_al_generar": "ffce244b40d28c7fc7601e83a86c0f49399c7402"
 }
