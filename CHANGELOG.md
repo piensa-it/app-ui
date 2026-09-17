@@ -4,7 +4,37 @@ Todos los cambios relevantes de `@piensa-it/ui-library` se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y
 el versionado, [SemVer](https://semver.org/lang/es/).
 
+## Para repos consumidores: workarounds que ya puedes soltar
+
+Nota de adopción para las apps que consumen la librería. Si tu app llevaba un
+parche temporal por alguno de estos bugs mientras se corregían aguas arriba,
+sube al menos a la versión indicada y **quita el workaround**. Ninguno de estos
+arreglos es un cambio incompatible: subir es seguro.
+
+- **`UiProvider` en SSR / prerender / islas de Astro** — desde **1.4.0** (#183).
+  Fallaba con «Missing getServerSnapshot». Ya no hace falta montarlo solo
+  después de hidratar: quita ese aplazamiento.
+- **`Progress` se veía siempre lleno** — desde **1.6.0** (#206). Si forzabas el
+  `width` de la barra a mano, quítalo; ya usa `calc(var(--percent) * 1%)`.
+- **Tema oscuro / `Section inverted` perdían la marca** — desde **1.6.0** (#212).
+  Si re-declarabas `--primary` dentro de `.dark`, ya no hace falta: se deriva de
+  `--brand-primary`.
+- **`AnimatedNumber` se quedaba en 0 bajo StrictMode** — desde **1.6.0** (#180).
+  Si desactivabas StrictMode o remontabas con `key` para forzar la animación,
+  quítalo.
+- **`Field` desplazaba el control cuando el campo vecino tenía descripción** —
+  desde **1.6.0** (#178). Si alineabas los controles a mano, quítalo.
+- **`PricingTable`/`PricingPlans` se recortaban o desbordaban en móvil** — desde
+  **1.6.0** (#218). Si tenías CSS móvil propio para esos precios, quítalo.
+- **`PublicHeader` montaba el menú sobre la marca entre ~1024 y ~1180 px** —
+  desde **1.6.0** (#217). Si ocultabas la navegación en ese rango con un
+  breakpoint propio, quítalo: ahora colapsa solo cuando el contenido no cabe.
+
 ## [Unreleased]
+
+### Changed
+
+- **Dependencias al día (#221, #182).** Grupo `npm-minor-and-patch`: react y react-dom 19.2→19.3, `lucide-react`, `tailwind-merge`, `vite`, `typescript-eslint`, `@types/*`, `lint-staged` y `eslint-plugin-react-refresh`. Y `react-router-dom` 6→7. `react-router-dom` es `devDependency` (playground, stories y tests): **no cambia el contrato publicado** ni el rango de `peerDependencies` de React (`^18 || ^19`), así que un consumidor en React 18 sigue igual. Sin cambios de código.
 
 ## [1.6.0] - 2026-09-17
 
