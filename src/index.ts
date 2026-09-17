@@ -258,6 +258,7 @@ export { GlobalErrorBoundary, type GlobalErrorBoundaryProps } from "./components
 export { PublicHeader, type PublicHeaderProps, type PublicHeaderLabels, type LinkComponent, type LinkComponentProps } from "./components/marketing/public-header";
 export { PublicFooter, type PublicFooterProps, type PublicFooterLabels } from "./components/marketing/public-footer";
 export { ImageCarouselBackdrop, type ImageCarouselBackdropProps } from "./components/marketing/image-carousel-backdrop";
+export { ProductShowcase, type ProductShowcaseProps, type ProductScreen } from "./components/marketing/product-showcase";
 export {
   Section,
   SectionHeading,
