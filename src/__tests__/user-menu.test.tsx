@@ -123,8 +123,10 @@ describe("UserMenu · cerrar sesión", () => {
   // El diálogo se abre mientras el menú todavía se está cerrando, y en ese
   // intervalo el `<body>` conserva el `pointer-events: none` de la capa del menú.
   // En un runner lento `userEvent` llegaba justo ahí y fallaba (visto en CI con
-  // React 18): se reintenta el clic hasta que el botón acepta el puntero.
-  const clicCuandoAcepte = (boton: HTMLElement) => waitFor(() => user.click(boton));
+  // React 18): se reintenta el clic hasta que el botón acepta el puntero. El
+  // margen por defecto (1 s) no alcanzaba en el Docker de la constancia bajo
+  // carga (el intervalo con `pointer-events: none` se estira); 3 s sí.
+  const clicCuandoAcepte = (boton: HTMLElement) => waitFor(() => user.click(boton), { timeout: 3000 });
 
   it("sin confirmación, cierra al primer clic", async () => {
     const { onSignOut } = montar();
