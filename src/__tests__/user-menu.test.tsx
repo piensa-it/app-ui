@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { UiProvider } from "../components/providers/ui-provider";
@@ -21,7 +21,17 @@ const montar = (props: Partial<React.ComponentProps<typeof UserMenu>> = {}) => {
 
 // Una sola instancia de userEvent por prueba, con `findByRole` antes de cada
 // clic: Ark monta el menú en el siguiente tick y pinta los items después.
-const user = userEvent.setup();
+//
+// `pointerEventsCheck: Never`: el diálogo modal de cierre bloquea el `<body>`
+// con `pointer-events: none` (scroll-lock de Ark) y re-habilita el puntero en
+// su contenido; en jsdom ese re-habilitado compite con el clic y userEvent, por
+// defecto, rechaza el botón «porque hereda pointer-events: none». Es un artefacto
+// del entorno, no una imposibilidad real de interactuar (en un navegador el
+// diálogo es interactivo). Estas pruebas verifican comportamiento —Cancelar no
+// cierra, Confirmar cierra—, que no depende de pointer-events; desactivar el
+// chequeo lo hace determinista y quita el flake que aparecía en React 18 bajo
+// carga (la constancia en Docker), donde el reintento con margen no alcanzaba.
+const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
 const abrir = async () => {
   await user.click(screen.getByRole("button", { name: "Andrés Montoya" }));
@@ -120,14 +130,6 @@ describe("UserMenu · lo que hay dentro, y en qué orden", () => {
 });
 
 describe("UserMenu · cerrar sesión", () => {
-  // El diálogo se abre mientras el menú todavía se está cerrando, y en ese
-  // intervalo el `<body>` conserva el `pointer-events: none` de la capa del menú.
-  // En un runner lento `userEvent` llegaba justo ahí y fallaba (visto en CI con
-  // React 18): se reintenta el clic hasta que el botón acepta el puntero. El
-  // margen por defecto (1 s) no alcanzaba en el Docker de la constancia bajo
-  // carga (el intervalo con `pointer-events: none` se estira); 3 s sí.
-  const clicCuandoAcepte = (boton: HTMLElement) => waitFor(() => user.click(boton), { timeout: 3000 });
-
   it("sin confirmación, cierra al primer clic", async () => {
     const { onSignOut } = montar();
     await abrir();
@@ -144,7 +146,7 @@ describe("UserMenu · cerrar sesión", () => {
     expect(dialogo).toHaveTextContent("¿Cerrar la sesión?");
     // Es el AlertDialogHost de UiProvider, no una capa propia.
     expect(screen.getAllByRole("alertdialog")).toHaveLength(1);
-    await clicCuandoAcepte(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
+    await user.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
     await waitFor(() => expect(onSignOut).toHaveBeenCalledTimes(1));
   });
 
@@ -153,7 +155,7 @@ describe("UserMenu · cerrar sesión", () => {
     await abrir();
     await elegir("Cerrar sesión");
     const dialogo = await screen.findByRole("alertdialog");
-    await clicCuandoAcepte(within(dialogo).getByRole("button", { name: "Cancelar" }));
+    await user.click(within(dialogo).getByRole("button", { name: "Cancelar" }));
     expect(onSignOut).not.toHaveBeenCalled();
   });
 });
