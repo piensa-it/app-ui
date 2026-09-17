@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { StrictMode } from "react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AnimatedNumber } from "@/components/ui/animated-number";
@@ -33,5 +34,21 @@ describe("AnimatedNumber", () => {
     stubReducedMotion(false);
     render(<AnimatedNumber value={500} animateOnMount={false} data-testid="cifra" />);
     expect(screen.getByTestId("cifra")).toHaveTextContent("500");
+  });
+
+  it("bajo StrictMode termina en el valor final, no se queda en 0 (#180)", async () => {
+    stubReducedMotion(false);
+    // StrictMode monta, limpia y remonta el efecto. El bug: la limpieza
+    // cancelaba la animación con el estado aún en 0, y el remonte veía el
+    // destino ya marcado y no volvía a animar. `duration={0}` usa la rama
+    // inmediata, así se reproduce sin depender del reloj de la animación.
+    render(
+      <StrictMode>
+        <AnimatedNumber value={3072} duration={0} data-testid="cifra" />
+      </StrictMode>,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("cifra")).toHaveTextContent((3072).toLocaleString());
+    });
   });
 });

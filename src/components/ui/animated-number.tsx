@@ -36,24 +36,31 @@ export function AnimatedNumber({
 }: AnimatedNumberProps) {
   const initial = animateOnMount && !prefersReducedMotion() ? 0 : value;
   const [display, setDisplay] = useState(initial);
-  const fromRef = useRef(initial);
+  // El punto de partida es siempre lo que se está mostrando, no el último
+  // destino: así una animación cancelada (StrictMode, o un cambio de `value` a
+  // mitad de camino) reanuda desde lo visible en vez de quedarse congelada
+  // (#180). `displayRef` se mantiene sincronizado con `display` en cada frame.
+  const displayRef = useRef(initial);
 
   useEffect(() => {
-    const from = fromRef.current;
-    fromRef.current = value;
+    const from = displayRef.current;
     if (from === value) return;
+    // Escribe a la vez el estado visible y el ref que lo espeja.
+    const show = (v: number) => {
+      displayRef.current = v;
+      setDisplay(v);
+    };
     let frame = 0;
     if (duration <= 0 || prefersReducedMotion()) {
-      frame = requestAnimationFrame(() => setDisplay(value));
+      frame = requestAnimationFrame(() => show(value));
       return () => cancelAnimationFrame(frame);
     }
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(from + (value - from) * eased);
+      show(from + (value - from) * eased);
       if (t < 1) frame = requestAnimationFrame(tick);
-      else fromRef.current = value;
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
