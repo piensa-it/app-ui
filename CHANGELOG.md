@@ -6,6 +6,14 @@ el versionado, [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-16
+
+### Added
+
+- **`DocsLayout` y `DocsProse`: la estructura común del portal del desarrollador (#213).** La prosa de cada servicio (primeros pasos, autenticación, errores, webhooks) la escribe cada aplicación en MDX; la librería pone la estructura para que todos los portales naveguen igual.
+  - `DocsLayout` trae menú lateral por grupos con la página activa (`aria-current="page"`) e insignias, tabla de contenidos fija en escritorio, miga de pan y anterior/siguiente. En móvil, menú y tabla de contenidos se pliegan con `<details>` nativo, sin JavaScript. No incluye header ni footer.
+  - `DocsProse` estiliza el HTML de MDX (encabezados con ancla, listas, código, tablas, citas, imágenes) solo con tokens, sin `@tailwindcss/typography`, y respeta `CodeBlock` y `Alert` dentro de la guía.
+
 ## [1.4.0] - 2026-09-16
 
 ### Added
