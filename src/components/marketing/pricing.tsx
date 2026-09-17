@@ -78,8 +78,13 @@ function PlanCard({ plan, format }: { plan: PricingPlan; format?: PriceFormat })
         <h3 className="font-heading text-lg font-semibold text-foreground">{plan.name}</h3>
         {badge && <Badge size="sm">{badge}</Badge>}
       </div>
-      <p className="flex items-baseline gap-1.5">
-        <span className="font-heading text-3xl font-semibold tracking-tight tabular-nums text-foreground">{formatPrice(plan.price, format)}</span>
+      <p className="flex flex-wrap items-baseline gap-x-1.5">
+        {/* Tamaño fluido: un precio largo en `en-US` (`COP 2,399,000`) se
+            achica en pantallas estrechas en vez de desbordar la tarjeta, y el
+            periodo baja de línea cuando no cabe (#218). */}
+        <span className="font-heading text-[clamp(1.5rem,7vw,1.875rem)] font-semibold tracking-tight tabular-nums text-foreground [overflow-wrap:anywhere]">
+          {formatPrice(plan.price, format)}
+        </span>
         {plan.period && <span className="text-sm text-muted-foreground">{plan.period}</span>}
       </p>
       {plan.description && <p className="text-sm text-muted-foreground">{plan.description}</p>}
@@ -219,7 +224,7 @@ const PricingTable = React.forwardRef<HTMLDivElement, PricingTableProps>(({ grou
             key={groupIndex}
             className={cn("overflow-hidden rounded-xl border border-border bg-card", group.width !== "half" && "lg:col-span-2")}
           >
-            <header className="flex flex-col gap-1 border-b border-border px-5 py-4">
+            <header className="flex flex-col gap-1 border-b border-border px-2 py-4 sm:px-5">
               <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{group.title}</h3>
               {group.description && <p className="text-sm text-muted-foreground">{group.description}</p>}
             </header>
@@ -231,7 +236,7 @@ const PricingTable = React.forwardRef<HTMLDivElement, PricingTableProps>(({ grou
                       key={column.key}
                       scope="col"
                       className={cn(
-                        "px-5 py-2.5 font-medium",
+                        "px-2 py-2.5 font-medium sm:px-5",
                         column.kind && column.kind !== "text" ? "text-end" : "text-start",
                         column.mergeOnMobile && "hidden sm:table-cell",
                       )}
@@ -244,7 +249,7 @@ const PricingTable = React.forwardRef<HTMLDivElement, PricingTableProps>(({ grou
               <tbody className="divide-y divide-border">
                 {group.rows.map((row, rowIndex) => (
                   <tr key={rowIndex}>
-                    <th scope="row" className="px-5 py-3 text-start font-medium text-foreground">
+                    <th scope="row" className="px-2 py-3 text-start font-medium text-foreground sm:px-5">
                       {cellValue(row[first.key], first, format)}
                       {rest
                         .filter((column) => column.mergeOnMobile)
@@ -258,7 +263,7 @@ const PricingTable = React.forwardRef<HTMLDivElement, PricingTableProps>(({ grou
                       <td
                         key={column.key}
                         className={cn(
-                          "px-5 py-3 tabular-nums",
+                          "px-2 py-3 tabular-nums sm:px-5",
                           column.kind && column.kind !== "text" ? "text-end" : "text-start",
                           column.kind === "highlight" ? "font-medium text-success" : "text-foreground",
                           column.kind === "price" && "font-semibold",

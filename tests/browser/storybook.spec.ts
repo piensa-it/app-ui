@@ -91,6 +91,34 @@ test.describe("Storybook browser gate", () => {
     expect(primary).toBe("0 84% 60%");
   });
 
+  test("Pricing no recorta ni desborda en móvil, ni con precios largos (#218)", async ({ page }) => {
+    for (const width of [320, 390, 768]) {
+      await page.setViewportSize({ width, height: 1200 });
+      await page.goto(storyUrl("marketing-pricing--precios-largos"));
+      await stabilize(page);
+
+      const offenders = await page.evaluate(() => {
+        const root = document.getElementById("storybook-root")!;
+        const out: string[] = [];
+        // Tarjetas de plan: un precio largo que no cabe empuja el ancho del
+        // documento (las tarjetas no recortan).
+        if (root.scrollWidth - root.clientWidth > 1) out.push(`documento +${root.scrollWidth - root.clientWidth}px`);
+        // Tablas: la sección lleva overflow-hidden, así que un desborde se
+        // recorta en vez de hacer scroll; se compara el borde derecho real de
+        // cada fila contra el de su tarjeta.
+        root.querySelectorAll("section").forEach((card) => {
+          const right = card.getBoundingClientRect().right;
+          card.querySelectorAll("tr").forEach((tr) => {
+            const over = tr.getBoundingClientRect().right - right;
+            if (over > 1) out.push(`fila recortada +${Math.round(over)}px`);
+          });
+        });
+        return out;
+      });
+      expect(offenders, `marketing-pricing--precios-largos @ ${width}px`).toEqual([]);
+    }
+  });
+
   test("opens, focuses and closes the Ark UI dialog", async ({ page }) => {
     const errors: Error[] = [];
     page.on("pageerror", (error) => errors.push(error));
@@ -499,6 +527,24 @@ test.describe("Storybook browser gate", () => {
       await expect(root.getByRole("banner")).toBeVisible();
       await expect(root.getByRole("button", { name: "Abrir menú" })).toHaveCount(0);
       await expect(root).toHaveScreenshot(nombre, {
+        animations: "disabled",
+        maxDiffPixels: MAX_DIFF_PIXELS,
+      });
+    });
+  }
+
+  // #218: Pricing en móvil con precios largos (`COP 2,399,000` en en-US) y una
+  // tabla de 8 filas, en claro y oscuro. Ni la tabla recorta ni la tarjeta
+  // desborda; el rectángulo lo fija la prueba de arriba, esto cuida el aspecto.
+  for (const theme of ["light", "dark"] as const) {
+    test(`keeps pricing-precios-largos-movil-${theme} visually stable`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(storyUrl("marketing-pricing--precios-largos", `theme:${theme};palette:indigo;fontFamily:geist`));
+      await stabilize(page);
+
+      const root = page.locator("#storybook-root");
+      await expect(root.getByText("COP 2,399,000").first()).toBeVisible();
+      await expect(root).toHaveScreenshot(`pricing-precios-largos-movil-${theme}.png`, {
         animations: "disabled",
         maxDiffPixels: MAX_DIFF_PIXELS,
       });

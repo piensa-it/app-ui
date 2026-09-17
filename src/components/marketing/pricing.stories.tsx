@@ -43,6 +43,57 @@ export const PlanesPorCanal: Story = {
   },
 };
 
+/**
+ * Caso límite (#218): precios largos formateados en `en-US` (`COP 2,399,000`)
+ * en las tarjetas, y una tabla con 8 filas por rango. Sirve para comprobar en
+ * móvil que ni la tarjeta ni la tabla recortan o desbordan su contenedor.
+ */
+export const PreciosLargos: Story = {
+  name: "Precios largos y 8 filas (móvil)",
+  render: () => (
+    <div className="flex flex-col gap-10">
+      <PricingPlans
+        format={{ currency: "COP", locale: "en-US" }}
+        categories={[
+          {
+            label: "Único",
+            plans: [
+              { name: "Inicial", price: 459000, period: "al mes", details: [{ label: "Incluidos", value: "1,000" }] },
+              { name: "Crecimiento", price: 1459000, period: "al mes", highlighted: "Más elegido", details: [{ label: "Incluidos", value: "5,000" }] },
+              { name: "Escala", price: 2399000, period: "al mes", details: [{ label: "Incluidos", value: "20,000" }] },
+              { name: "Empresa", price: "Custom", details: [{ label: "Volumen", value: "+100,000" }] },
+            ],
+          },
+        ]}
+      />
+      <PricingTable
+        format={{ currency: "COP", locale: "en-US" }}
+        groups={[
+          {
+            title: "Emisión",
+            columns: [
+              { key: "plan", header: "Plan" },
+              { key: "docs", header: "Documentos/año", kind: "number", mergeOnMobile: true },
+              { key: "price", header: "Valor anual", kind: "price" },
+              { key: "saving", header: "Ahorro", kind: "highlight" },
+            ],
+            rows: [
+              { plan: "Micro", docs: "60", price: 99000, saving: "—" },
+              { plan: "Pyme", docs: "600", price: 299000, saving: "20 %" },
+              { plan: "Empresa", docs: "5,000", price: 699000, saving: "35 %" },
+              { plan: "Corporativo", docs: "20,000", price: 1299000, saving: "45 %" },
+              { plan: "Premium", docs: "50,000", price: 1799000, saving: "52 %" },
+              { plan: "Élite", docs: "100,000", price: 2099000, saving: "58 %" },
+              { plan: "Máximo", docs: "250,000", price: 2299000, saving: "60 %" },
+              { plan: "Ilimitado", docs: "500,000", price: 2399000, saving: "62 %" },
+            ],
+          },
+        ]}
+      />
+    </div>
+  ),
+};
+
 export const TablaPorRangos: Story = {
   name: "Tabla por rangos (ej. AdapterDian)",
   render: () => (
