@@ -10,6 +10,18 @@ import { contrastRatio, parseHsl } from "../lib/color";
  */
 const css = readFileSync(path.resolve(process.cwd(), "src/styles/globals.css"), "utf8");
 
+/**
+ * Resuelve `var(--x, <fallback>)` a su fallback (de forma recursiva, para el
+ * `.dark` que anida `var(--brand-primary-dark, var(--brand-primary, …))`).
+ * La marca (#212) se define fuera de la librería, así que en los tokens de
+ * fábrica `--primary` es su valor por defecto. Un `var(--y)` sin fallback se
+ * deja tal cual: otras pruebas lo comparan literal (`--background`).
+ */
+function resolveVarFallback(value: string): string {
+  const match = value.match(/^var\(\s*--[a-z0-9-]+\s*,\s*(.+)\)$/s);
+  return match ? resolveVarFallback(match[1].trim()) : value;
+}
+
 function tokens(scope: "light" | "dark"): Record<string, string> {
   const block =
     scope === "light"
@@ -17,7 +29,7 @@ function tokens(scope: "light" | "dark"): Record<string, string> {
       : css.slice(css.indexOf(".dark {"), css.indexOf("@layer base {\n  *"));
   const found: Record<string, string> = {};
   for (const [, name, value] of block.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) {
-    found[name] = value.trim();
+    found[name] = resolveVarFallback(value.trim());
   }
   return found;
 }
