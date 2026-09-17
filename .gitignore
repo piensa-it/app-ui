@@ -13,6 +13,8 @@ storybook-static/
 
 # Tests
 coverage/
+# Resultados de `npm run pruebas`. La constancia firmada (.pruebas-evidencia.json) SÍ se versiona.
+pruebas-locales/
 playwright-report/
 test-results/
 .playwright-mcp/

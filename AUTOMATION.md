@@ -21,22 +21,18 @@ repository — the only automated dependency vulnerability check is that
 
 ## 3. Dependabot
 
-Checks npm packages and GitHub Actions weekly. Compatible minor and patch npm
-updates are grouped to reduce PR noise. Every automated PR still passes the
-same Quality Gate and Security checks as a human contribution.
+Checks npm packages and GitHub Actions monthly. Compatible minor and patch npm
+updates are grouped to reduce PR noise. Playwright is excluded: it is upgraded
+by hand together with the CI image and the Linux snapshots. Dependabot PRs do
+not run tests in Actions; to merge one, check it out, run `npm run pruebas` and
+push the signed `.pruebas-evidencia.json` (see DEPLOYMENT.md).
 
 ## 4. Release integrity
 
-The pull request that bumps `version` in `package.json` runs one check no other
-pull request runs: `release-gate` executes `npm run verify:react18`. It installs
-React 18, type-checks the library, runs the suite, and compiles a real consumer
-`.tsx` against the built `dist/` with `@types/react` 18. `peerDependencies`
-declares `^18.3.1 || ^19.0.0`, and a support nobody exercises is a support in
-name only — that is how the library stopped compiling under React 18 types for
-three versions without anyone noticing (#172). It is deliberately not on every
-push: the impact was measured, and `dist/index.d.ts` came out byte-identical
-with and without that break, so no consumer ever received anything broken. When
-the library becomes React 19 only (#174), this job goes away.
+`verify:react18` (#172) is part of `npm run pruebas`, so every signed change
+proves React 18 still works. `publish.yml` refuses to publish a Release whose
+commit has no valid signature. When the library becomes React 19 only (#174),
+that step goes away.
 
 A published GitHub Release must use a semantic tag such as `v1.2.3` that
 exactly matches `package.json`. The workflow checks out that immutable tag,

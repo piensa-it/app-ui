@@ -1,0 +1,22 @@
+{
+  "rama": "main",
+  "workflow": "publish.yml",
+  "presupuesto_minutos": 3,
+  "commit_release": "chore(release): {resumen}",
+  "constancia": {
+    "firmar": "npm run pruebas",
+    "cotejar": "node scripts/evidencia-pruebas.mjs cotejar",
+    "archivo": ".pruebas-evidencia.json"
+  },
+  "publicacion": {
+    "_nota": "app-ui es una librería: publicar es crear un Release sobre main, no un push. El push a main solo publica la documentación (ci.yml, deploy-docs).",
+    "version": "package.json y src/version.ts, con notas de migración y CHANGELOG",
+    "comando": "gh release create v{version} --target main --title \"v{version} — {resumen}\" --notes-file <notas del CHANGELOG>",
+    "comprobar_paquete": "gh api orgs/piensa-it/packages/npm/ui-library/versions --jq '.[0].name'"
+  },
+  "produccion": {
+    "url": "https://ui.piensait.com",
+    "comprobar": ["/", "/index.json"]
+  },
+  "netlify": { "site_id_secret": "NETLIFY_SITE_ID" }
+}
