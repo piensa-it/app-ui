@@ -16,7 +16,14 @@ jobs:
     name: CodeQL
     # Code scanning uploads require GitHub Advanced Security on private repos.
     # Keep the workflow ready so it activates automatically after publication.
-    if: github.event.repository.private == false
+    #
+    # `[skip codeql]` en el mensaje del commit salta el escaneo SOLO para ese
+    # push (no para PRs ni para el cron semanal, donde `head_commit` es null y
+    # el `contains` da false). Sirve para no gastar ~7 min de Actions en el push
+    # del commit de release, cuyo código ya cotejó la constancia local.
+    if: >-
+      github.event.repository.private == false &&
+      !contains(github.event.head_commit.message, '[skip codeql]')
     runs-on: ubuntu-latest
     permissions:
       actions: read
