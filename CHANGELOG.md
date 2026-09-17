@@ -30,7 +30,11 @@ arreglos es un cambio incompatible: subir es seguro.
   desde **1.6.0** (#217). Si ocultabas la navegación en ese rango con un
   breakpoint propio, quítalo: ahora colapsa solo cuando el contenido no cabe.
 
-## [Unreleased]
+## [1.7.0] - 2026-09-17
+
+### Added
+
+- **`ProductShowcase`: carrusel de capturas del producto como tarjeta acotada, para el `aside` del `Hero` de dos columnas (#220).** Imagen con marco (`rounded-xl`, `border-raised-border`, `shadow-raised`), cruce (fade) por intervalo pausable al pasar el cursor **y al enfocar una pastilla**, pie con el nombre y la descripción de la pantalla activa, y selector de pastillas accesible (`aria-current`, anillo de foco). Agnóstico de negocio: las capturas, nombres y descripciones llegan por `screens` (`{ src, name, description }`), sin `Locale` ni imágenes hardcodeadas; respeta `prefers-reduced-motion`. Generaliza la isla `HeroCarousel` que cada web pública se escribía a mano (migración de Lynx). No lo confundas con `ImageCarouselBackdrop`, que sigue siendo el fondo a sangre completa de `AuthLayout`: son anatomías distintas.
 
 ### Changed
 

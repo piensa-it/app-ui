@@ -13,7 +13,7 @@ export interface LibraryRelease {
 }
 
 /** Versión compilada del paquete. Debe coincidir con `package.json`. */
-export const UI_LIBRARY_VERSION = "1.6.0";
+export const UI_LIBRARY_VERSION = "1.7.0";
 
 /**
  * Notas de migración de la 1.0.0 (#150), ya escritas y listas — pendientes
@@ -39,6 +39,16 @@ export const UI_LIBRARY_RELEASES: readonly LibraryRelease[] = [
   {
     version: UI_LIBRARY_VERSION,
     channel: "current",
+    migration: [
+      "Todo es aditivo: subir no requiere cambios de código. Suma un componente de marketing (`ProductShowcase`) y pone las dependencias al día.",
+      "Carrusel de capturas del producto: para el `aside` del `Hero` de dos columnas (tarjeta acotada con marco, pie que cambia y selector de pantalla) usá `ProductShowcase` con `screens={[{ src, name, description }]}`. Si en tu web pública armaste una isla propia (p. ej. `HeroCarousel`) para esto, reemplazala. No lo confundas con `ImageCarouselBackdrop`, que sigue siendo el fondo a sangre completa de `AuthLayout` (#220).",
+      "Dependencias al día: react y react-dom 19.2→19.3, `lucide-react`, `tailwind-merge`, `vite`, `typescript-eslint` y `react-router-dom` 6→7. `react-router-dom` es `devDependency` (playground, stories y tests): no cambia el contrato publicado ni el rango de `peerDependencies` de React (`^18 || ^19`). Subir es seguro (#221, #182).",
+    ],
+  },
+  {
+    version: "1.6.0",
+    channel: "maintenance",
+    publishedAt: "2026-09-17",
     migration: [
       "Todo es aditivo: subir no requiere cambios de código. Suma los diagramas de procesos y un lote de correcciones de estabilidad reportadas desde producción.",
       "Diagramas de procesos: `ProcessMap` y `C4Diagram` se importan de `@piensa-it/ui-library/diagramas` (procesos por niveles distribuidos con ELK, carriles como filas, navegación por teclado). Necesitan instalar `@xyflow/react` y `elkjs` en tu app; quien no los importa no descarga nada nuevo (#205).",
